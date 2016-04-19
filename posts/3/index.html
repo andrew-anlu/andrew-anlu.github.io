@@ -576,10 +576,19 @@ Included file 'flag_counter.html' not found in _includes directory
 
     </div>
   </div>
-  <footer role="contentinfo"><p>
+  <footer role="contentinfo"><!--返回顶部开始-->
+<div id="full" style="width:0px; height:0px; position:fixed; right:180px; bottom:150px; z-index:100; text-align:center; background-color:transparent; cursor:pointer;">
+  <a href="#" onclick="goTop();return false;"><img src="/images/top.png" border=0 alt="返回顶部"></a>
+</div>
+<script src="/javascripts/top.js" type="text/javascript"></script>
+<!--返回顶部结束-->
+
+<p>
   Copyright &copy; 2016 - 安路 -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
+
+
 
 </footer>
   
