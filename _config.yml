@@ -3,11 +3,11 @@
 # ----------------------- #
 
 url: http://andrew-anlu.github.io
-title: My Octopress Blog
-subtitle: A blogging framework for hackers.
-author: Your Name
-simple_search: https://www.google.com/search
-description:
+title: 安路的技术博客
+subtitle: 追求卓越成功就会在不经意追上你
+author: 安路
+simple_search: http://andrew-anlu.github.io
+description: Do one thing at a time, and do well
 
 # Default date format is "ordinal" (resulting in "July 22nd 2007")
 # You can customize the format as defined in
@@ -70,21 +70,21 @@ github_show_profile_link: true
 github_skip_forks: true
 
 # Twitter
-twitter_user:
-twitter_tweet_button: true
+#twitter_user:
+#twitter_tweet_button: true
 
 # Google +1
-google_plus_one: false
-google_plus_one_size: medium
+#google_plus_one: false
+#google_plus_one_size: medium
 
 # Google Plus Profile
 # Hidden: No visible button, just add author information to search results
-googleplus_user:
-googleplus_hidden: false
+#googleplus_user:
+#googleplus_hidden: false
 
 # Pinboard
-pinboard_user:
-pinboard_count: 3
+#pinboard_user:
+#pinboard_count: 3
 
 # Delicious
 delicious_user:
