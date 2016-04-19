@@ -1,0 +1,2447 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Swift | 安路的技术博客]]></title>
+  <link href="http://andrew-anlu.github.io/blog/categories/swift/atom.xml" rel="self"/>
+  <link href="http://andrew-anlu.github.io/"/>
+  <updated>2016-04-19T17:26:03+08:00</updated>
+  <id>http://andrew-anlu.github.io/</id>
+  <author>
+    <name><![CDATA[追求卓越成功就会在不经意间追上你]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[AsynDisplayKit入门篇]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/04/15/asyndisplaykitru-men-pian/"/>
+    <updated>2016-04-15T10:22:30+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/04/15/asyndisplaykitru-men-pian</id>
+    <content type="html"><![CDATA[<h2>前言</h2>
+
+<p>FaceBook的Paper团队给我们开源了一个很棒的库:<a href="https://github.com/facebook/AsyncDisplayKit">AsynDisplayKit</a>,这个库能让你通过将图像解码，布局以及渲染操作都放到后台线程处理，从而带来了快速响应的用户界面，也就是说不再会因为界面卡顿尔阻断用户交互。</p>
+
+<!--more-->
+
+
+<p>例如，对于非常复杂的界面，你可以使用 AsyncDisplayKit构建它而得到一种如丝般顺滑的，60帧每秒的滑动体验。而平常的UIkit优化就不太可能克服这样的性能挑战。</p>
+
+<p>从本教程中，你将从一个初始项目开始，它主要有一个UICollectionView的滑动问题，而使用AysncDisplayKit将大大提供其滑动性能。一路上，你将学会如何在旧项目上使用AsyncDisplaykit.</p>
+
+<blockquote><p><em>注意</em>，在本教程之前，你应该熟悉 Swift,Core Animation以及Core Graphics.</p></blockquote>
+
+<h2>开始</h2>
+
+<p>开始之前，请先看看<a href="https://code.facebook.com/posts/721586784561674/introducing-asyncdisplaykit-for-smooth-and-responsive-apps-on-ios/">AsyncDisplayKit介绍</a>,对它有个简要的概念，知道它是解决什么问题的。</p>
+
+<p>准备好了，就下载<a href="http://www.raywenderlich.com/wp-content/uploads/2015/04/Layers-Start.zip">开始项目</a>,你需要至少Xcode6.1和iosSDK 8.1来编译它，如果用最新Xcode打开，swift语法需要做下转换和修改，请自行解决这些兼容问题.</p>
+
+<p>你要研究的项目是由UICollectionView制作的卡片式界面来描述不同的雨林动物，每张信息卡上包含了一个图片，名字以及一个队雨林动物的描述，卡片的背景图是主图片的模糊感，视觉上设计的效果保证了文字的清晰可读。</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20141124/1416797117122129.png" alt="logo" />
+在Xcode中，打开初始项目的 Layers.xcworkspace。</p>
+
+<p>在本教程里，请遵循以下原则以体会AsyncDisplayKit的那些十分吸引人的好处。</p>
+
+<p>将应用运行到真机上，在模拟器上很难看出性能改善。</p>
+
+<p>应用是通用的，但在ipad上看起来最好。</p>
+
+<p>最后，要真正感谢这个库为你所有的事情，请尽量在最旧的ios8.1的设备上去运行该应用，第三代的ipad最好，因为它随让是视网膜屏，但是运行的不是很快。</p>
+
+<p>运行该项目，效果如下:</p>
+
+<p><img src="http://www.raywenderlich.com/wp-content/uploads/2014/10/IMG_0002.png" alt="logo" /></p>
+
+<p>试着滑动CollectionVie并注意那可怜的帧率，在第三代ipad上，帧率只有15-20FPS，实在丢掉太多帧了，在本教程的最后，你能在60 FPS的帧率下滑动它.</p>
+
+<blockquote><p><em>注意</em>
+你所看到的图像都是在App的asset目录里，并不是从网络里获取的。</p></blockquote>
+
+<p>在一个旧项目中使用AsyncDisplayKit前，你应该通过Instruments测量你的UI的性能，这样才能有一个基准线以便对比改动的效果。</p>
+
+<p>最重要的是，你要知道是CPU-绑定，还是GPU-绑定，也就是说是CPU还是GPU拉低了应用的帧率，这个信息会告诉你该充分利用AsyncDisplayKit的那个特性以优化应用的性能。</p>
+
+<p>如果你有时间，看看之前提到的WWDC2012 session 或在真实的设备上使用Instruments来评估初始项目的时间曲线。滑动性能是CPU-绑定的，你能猜到是什么原因导致了 CollectionView 丢掉了这么多帧吗?</p>
+
+<h2>为项目准备好使用 AsyncDisplayKit</h2>
+
+<p>在旧项目里使用AsyncDisplayKit，总结起来就是使用 Display Node 层级结构替换视图层级结构或Layer树，各种Display Node是AsyncDisplayKit的关键所在，它们位于视图之上，而且是线程安全的，也就是说之前在主线程才能执行的任务现在也可以在非主线程中执行。这就是减少主线程的工作量以执行其它操作，例如处理触摸事件，或如下本应用的情况下，处理CollectionView的滑动。</p>
+
+<p>这就意味着在本教程里，你的第一步是移除视图层级结构。</p>
+
+<h3>移除视图的层次结构</h3>
+
+<p>打开 RainForestCardCell.Swift并删除awakeFromNib() 中所有的 addSubview(&hellip;.)调用，然后得到如下:</p>
+
+<pre><code>override func awakeFromNib() {
+  super.awakeFromNib()
+  contentView.layer.borderColor =
+    UIColor(hue: 0, saturation: 0, brightness: 0.85, alpha: 0.2).CGColor
+  contentView.layer.borderWidth = 1
+}
+</code></pre>
+
+<p>接下来，替换LayoutSubviews()的内容如下:</p>
+
+<pre><code>override func layoutSubviews() {
+  super.layoutSubviews()
+}
+</code></pre>
+
+<p>再讲configureCellDisplayWithCardInfo(cardInfo:)的内容替换如下:</p>
+
+<pre><code>func configureCellDisplayWithCardInfo(cardInfo: RainforestCardInfo) {
+  //MARK: Image Size Section
+  let image = UIImage(named: cardInfo.imageName)!
+  featureImageSizeOptional = image.size
+}
+</code></pre>
+
+<p>删除RainforestCardCell的所有视图属性，只留一个如下:</p>
+
+<pre><code>class RainforestCardCell: UICollectionViewCell {
+  var featureImageSizeOptional: CGSize?
+  ...
+}
+</code></pre>
+
+<p>最后编译运行，你看的的是黑洞洞的一片:</p>
+
+<p><img src="http://www.raywenderlich.com/wp-content/uploads/2014/10/IMG_0001.jpg" alt="logo" /></p>
+
+<p>现在所有的cell都空了，滑动起来就很顺滑，你的目标是保证之后添加完各个Node之后，依然顺滑如初。</p>
+
+<h3>添加一个占位图</h3>
+
+<p>打开RainforestCardCell.swift,给RainforestCardCell添加一个可选的 CALayer变量，名为placeholderLayer：</p>
+
+<pre><code>class RainforestCardCell: UICollectionViewCell {
+  var featureImageSizeOptional: CGSize?
+  var placeholderLayer: CALayer!
+  ...
+}
+</code></pre>
+
+<p>你之所以需要一个占位图是因为显示会异步完成，如果这个过程需要一些时间，那用户就会看到空的cell 。就如同如果你要从网络上获取图像，那么就需要用占位图来填充Cell,这能让你的用户知道内容还没准备好。随让在我们这种情况下，你是在后台线程绘制而不是从网络上下载。</p>
+
+<p>在awakeFromNib()里，删除contentView的border设置，再创建并配置一个placeholderLayer.将其添加到cell的contentview的layer上，现在这个方法如下:</p>
+
+<pre><code>override func awakeFromNib() {
+  super.awakeFromNib()
+
+  placeholderLayer = CALayer()
+  placeholderLayer.contents = UIImage(named: "cardPlaceholder")!.CGImage
+  placeholderLayer.contentsGravity = kCAGravityCenter
+  placeholderLayer.contentsScale = UIScreen.mainScreen().scale
+  placeholderLayer.backgroundColor = UIColor(hue: 0, saturation: 0, brightness: 0.85, alpha: 1).CGColor
+  contentView.layer.addSublayer(placeholderLayer)
+}
+</code></pre>
+
+<p>在layoutSubviews()里，你需要布局placeholderLayer.替换这个方法为:</p>
+
+<pre><code>override func layoutSubviews() {
+  super.layoutSubviews()
+
+  placeholderLayer?.frame = bounds
+}
+</code></pre>
+
+<p>编译并运行，你从虚无的边缘回来了:
+<img src="http://www.raywenderlich.com/wp-content/uploads/2014/10/IMG_0003.png" alt="logo" /></p>
+
+<p>普通的CALayer不是由UIview支持的，当它们改变frame时，默认会有隐式动画，这就是你看到layer在布局放大时，要修复这个问题，改动layoutSubviews()如下:</p>
+
+<pre><code>override func layoutSubviews() {
+  super.layoutSubviews()
+
+  CATransaction.begin()
+  CATransaction.setValue(kCFBooleanTrue, forKey: kCATransactionDisableActions)
+  placeholderLayer?.frame = bounds
+  CATransaction.commit()
+}
+</code></pre>
+
+<p>编译运行，问题解决了。</p>
+
+<p>现在占位图不会乱动，不再动画它们的frame了。</p>
+
+<h2>第一个Node</h2>
+
+<p>重建App的第一步就是给每一个UICollectionView cell 添加一个背景图片的Node,步骤如下:</p>
+
+<ol>
+<li>创建，布局并添加一个图像Node到UICollectionView cell</li>
+<li>处理cell重用Node和它们的layer</li>
+<li>模糊图像Node</li>
+</ol>
+
+
+<p>但在做之前，打开 Layers-Bridging-Header.h 并导入 AsyncDisplayKit :</p>
+
+<pre><code>#import &lt;AsyncDisplayKit/AsyncDisplayKit.h&gt;
+#import &lt;AsyncDisplayKit/_ASDisplayLayer.h&gt;
+</code></pre>
+
+<p>这会让所有的Swift文件都能访问AsyncDisplayKit类库。</p>
+
+<p>编译一下，确保没有错误</p>
+
+<p>现在，我们来看看Collectin View的祖成:</p>
+
+<ul>
+<li>View Controller: RainforestViewController没有什么花哨的东西，它只是为所有的雨林卡片获取一个数据数组，并为UIcollectioNView实现DataSource.事实上，你不需要花太多时间在这个上</li>
+<li>DataSource:大部分时间都将花在Cell类的RainforestCardCell上，ViewController出队每个cell，并将雨林卡片的数据用configureCellDisplayWithCardInfo(cardInfo:) 传给它。cell就使用这个数据来配置自身.</li>
+<li>Cell: 在configureCellDisplayWithCardInfo(cardInfo:)里，cell创建，配置，布局以及添加Node到它自己身上。这就意味着每次ViewController出队一个cell,这个cell就会创建并添加它自己一个新的Node层级结构</li>
+</ul>
+
+
+<p>如果你使用View而不是Node，那么这样做对于性能来说就不是最佳策略。但因为你可以异步的创建，配置以及布局，而且Node也是异步地绘制，所以这不会是一个问题。真正的难点是在cell准备重用时取消任何在进行额异步操作并移除旧的node.</p>
+
+<p>然而，在实际生产中，你最好使用ASRangeController来缓存你的Node,这样你就不用每次在cell重用时重建它的Node层级结构，ASRangeController超出了本教程的范围。</p>
+
+<p>OK，动手!</p>
+
+<h3>添加背景图片Node</h3>
+
+<p>现在你要走一遍用Node配置cell的过程，一次一步：
+打开RainforestCardCell.swift 并替换configureCellDisplayWithCardInfo(cardInfo:) 为:</p>
+
+<pre><code>func configureCellDisplayWithCardInfo(cardInfo: RainforestCardInfo) {
+  //MARK: Image Size Section
+  let image = UIImage(named: cardInfo.imageName)!
+  featureImageSizeOptional = image.size
+
+  //MARK: Node Creation Section
+  let backgroundImageNode = ASImageNode()
+  backgroundImageNode.image = image
+  backgroundImageNode.contentMode = .ScaleAspectFill
+}
+</code></pre>
+
+<p>这就创建并配置了一个ASImageNode常量，叫做backgroundImageNode.</p>
+
+<p>AsyncDisplayKit带有好几种Node类型，包括ASImageNode，用于显示图片。它相当于UIImageView,除了ASImageNode是默认异步的解码图片。</p>
+
+<p>添加如下代码到configureCellDisplayWithCardInfo(cardInfo:) 底部:</p>
+
+<pre><code>backgroundImageNode.layerBacked = true
+</code></pre>
+
+<p>这让backgroundImageNode变为layer支持的Node.</p>
+
+<p>Node可由UIview支持或CALayer支持，当node需要处理事件时（例如触摸事件），你就要使用UIView支持的Node.如果你不需要处理事件，只需要显示一下内容，那使用Layer支持的Node会更加轻量，因此可以获得一个小的性能提升。</p>
+
+<p>因为本教程的APP不需要处理事件，所以你可以让所有的Node都设置为Layer支持的。在上面的代码中，由于backgroundImageNode为Layer支持的。AsyncDisplayKit会创建一个CALayer用于雨林动物图像内容的显示.</p>
+
+<p>继续在 configureCellDisplayWithCardInfo(cardInfo:)添加如下代码:</p>
+
+<pre><code>//MARK: Node Layout Section
+backgroundImageNode.frame = FrameCalculator.frameForContainer(featureImageSize: image.size)
+</code></pre>
+
+<p>这里使用FrameCalculator为backgroundImageNode布局.</p>
+
+<p>FrameCalculator是一个帮助类，负责给每个Node布局。注意所有的东西都是手动布局的，没有使用AutoLayout约束。<strong>如果你需要构建自适应布局或者本地化驱动的布局，那就要注意，因为你不能给Node添加约束</strong></p>
+
+<p>接下来，添加如下代码到configureCellDisplayWithCardInfo(cardInfo:)底部:</p>
+
+<pre><code>//MARK: Node Layer and Wrap Up Section
+self.contentView.layer.addSublayer(backgroundImageNode.layer)
+</code></pre>
+
+<p>这句将backgroundImageNode的layer添加到cell ContentView的layer上。</p>
+
+<blockquote><p><strong>注意</strong>
+AsyncDisplayKit会为backgroundImageNode创建一个Layer.然而，你必须要将Node放到某个Layer树中才能在屏幕上显示，这个Node会异步地绘制，所以直到绘制完成，它的内容都不会显示，尽管它的Layer已经在一个Layer树中。</p></blockquote>
+
+<p>从技术的角度来说，layer一直都存在。但渲染图像是异步进行的。layer初始化时没有内容，一旦渲染完成，layer的contents就会更新为包含图像的内容。</p>
+
+<p>在这个点，cell的contentView的layer将会包含两个Sublayer:一个占位图和Node的layer。在node完成绘制前，只有占位图会显示。</p>
+
+<p>注意到configureCellDisplayWithCardInfo(cardInfo:)会在每次cell出队时被调用。每次cell被回收，这个逻辑会添加一个新的sublayer到cell的contentview layer上。不要担心，你很快会解决这个问题。</p>
+
+<p>回到RainforestCardCell.swift开头，给RainforestCardCell添加一个ASImageNode变量存为属性backgroundImageNode，如下:</p>
+
+<pre><code>class RainforestCardCell: UICollectionViewCell {
+  var featureImageSizeOptional: CGSize?
+  var placeholderLayer: CALayer!
+  var backgroundImageNode: ASImageNode? ///&lt; ADD THIS LINE
+  ...
+}
+</code></pre>
+
+<p>你之所以需要这个属性是因为必须要有某个东西将backgroundImageNode的引用保留住，否则ARC就会将其释放，也就不会有任何东西显示出来了&ndash;即使Node的在一个layer树中，你依然需要保留Node.</p>
+
+<p>在configureCellDisplayWithCardInfo(cardInfo:)底部的Node Layer and Wrap Up Section ,设置cell新的backgroundImageNode为之前的backgroundImageNode：</p>
+
+<pre><code>self.backgroundImageNode = backgroundImageNode
+</code></pre>
+
+<p>下面是完整的configureCellDisplayWithCardInfo(cardInfo:) 方法：</p>
+
+<pre><code>func configureCellDisplayWithCardInfo(cardInfo: RainforestCardInfo) {
+  //MARK: Image Size Section
+  let image = UIImage(named: cardInfo.imageName)!
+  featureImageSizeOptional = image.size
+
+  //MARK: Node Creation Section
+  let backgroundImageNode = ASImageNode()
+  backgroundImageNode.image = image
+  backgroundImageNode.contentMode = .ScaleAspectFill
+  backgroundImageNode.layerBacked = true
+
+  //MARK: Node Layout Section
+  backgroundImageNode.frame = FrameCalculator.frameForContainer(featureImageSize: image.size)
+
+  //MARK: Node Layer and Wrap Up Section
+  self.contentView.layer.addSublayer(backgroundImageNode.layer)
+  self.backgroundImageNode = backgroundImageNode
+}
+</code></pre>
+
+<p>编译运行，观察AsyncDisplaytKit是如何异步地使用图像设置Layer的Contents的。这能让你在CPU还在绘制layer的内容的同事上下滑动页面。</p>
+
+<p><img src="http://www.raywenderlich.com/wp-content/uploads/2014/10/IMG_0006.png" alt="logo" /></p>
+
+<p>如果你运行在旧设备上，注意图像是如何弹出到位置&ndash;这是爆米花效果，但不总是让人喜欢。本教程的最后一节将会搞定这个不令人愉快的弹出效果，给你展示图像如何弹入弹出，如同摇滚巨星。</p>
+
+<p>如同之前所讨论的，新的Node会在每次cell被重用时创建，这并不理想，因为这意味着新的Layer会在每次cell被重用时加入。</p>
+
+<p>如果你想看看Sublayer堆积太多的影响，那就不停的滑上滑下，然后加断点打印出cell的contentview的Layer的sublayers属性。你会看到很多layer,这不好.</p>
+
+<h2>处理cell重用</h2>
+
+<p>继续RainforestCardCell.swift,给RainforestCardCell 添加一个contentLayer的CALayer属性，这个属性也是一个可选类型:</p>
+
+<pre><code>class RainforestCardCell: UICollectionViewCell {
+  var featureImageSizeOptional: CGSize?
+  var placeholderLayer: CALayer!
+  var backgroundImageNode: ASImageNode?
+  var contentLayer: CALayer? ///&lt; ADD THIS LINE
+  ...
+}
+</code></pre>
+
+<p>你将使用此属性去移除Cell的ContentView的Layer树中旧的Node Layer.虽然你可以简单地保留Node并访问其Layer属性，但上面的写法更加明确。</p>
+
+<p>添加如下代码到configureCellDisplayWithCardInfo(cardInfo:) 结尾：</p>
+
+<pre><code>self.contentLayer = backgroundImageNode.layer
+</code></pre>
+
+<p>这句让backgroundImageNode的Layer保留到contentLayer属性。</p>
+
+<p>替换prepareForReuse()的实现如下:</p>
+
+<pre><code>override func prepareForReuse() {
+  super.prepareForReuse()
+  backgroundImageNode?.preventOrCancelDisplay = true
+}
+</code></pre>
+
+<p>因为AsyncDisplaytKit能够异步地绘制Node,所以Node让你能预防从头绘制或取消任何在进行的绘制。无论是你需要预防或取消绘制，都可将preventOrcancelDisplay设置为true,如上面的代码所示，在本来中，你要在cell被重用前取消任何正在进行的绘制活动.</p>
+
+<p>接下来，添加如下代码到prepareForReuse（）尾部:</p>
+
+<pre><code>contentLayer?.removeFromSuperlayer()
+</code></pre>
+
+<p>这将contentLayer从其SuperLayer(也就是contentview的Layer)中移除.</p>
+
+<p>每次一个cell被回收时，这个代码就移除Node的旧Layer,因而解决了堆积问题。所以在任何时间，你的Node最多只有两个sublayer:占位图和Node的Layer.</p>
+
+<p>接下来添加如下代码到prepareForReuse()尾部:</p>
+
+<pre><code>contentLayer = nil
+backgroundImageNode = nil
+</code></pre>
+
+<p>这确保cell释放它们的引用，这样如有必要，ARC才好做清理工作。</p>
+
+<p>编译运行，这次，没有sublayer会堆积的问题，且所有不必要的绘制都将被取消.</p>
+
+<p><img src="http://www.raywenderlich.com/wp-content/uploads/2014/10/IMG_0006.png" alt="logo" /></p>
+
+<p>是时候来点模糊效果了!
+<img src="http://www.raywenderlich.com/wp-content/uploads/2014/11/asyncscroll.png" alt="blue" /></p>
+
+<h2>模糊图像</h2>
+
+<p>要实现模糊图像，你要添加一个额外的步骤到图像Node的显示过程里。</p>
+
+<p>继续RainforestCardCell.swift ,在configureCellDisplayWithCardInfo(cardInfo:) 的设置backgroundImageNode.layerBacked 的后面，添加如下代码:</p>
+
+<pre><code>backgroundImageNode.imageModificationBlock = { input in
+  if input == nil {
+    return input
+  }
+  if let blurredImage = input.applyBlurWithRadius(
+    30,
+    tintColor: UIColor(white: 0.5, alpha: 0.3),
+    saturationDeltaFactor: 1.8,
+    maskImage: nil, 
+    didCancel:{ return false }) {
+      return blurredImage
+  } else {
+    return image
+  }
+}
+</code></pre>
+
+<p>ASImageNode的imageModificationBlock给你一个积水在显示之前去处理底层的图像，这是非常实用的功能，它让你对图像Node做一些操作，例如添加滤镜等。</p>
+
+<p>在上面的代码中，你使用imageModificationBlock来为cell的背景图像应用模糊效果。关键点就是图像Node将会绘制它的内容并在后台执行这个闭包，而主线程依然顺滑流畅。这个闭包接受原始的UIImage并返回一个修改过的UIimage.</p>
+
+<p>上面的代码使用了UIImage的模糊category,它由Apple在WWDC2013提供。使用了Accelerate framework 在CPU上模糊图像。因为模糊会消耗很多时间和内存，这个版本的category被修改为包含了取消机制。这个模糊方法将定期调用didCancel闭包来决定是否应该停止模糊。</p>
+
+<p>现在，上面的代码给didCancel简单地返回false,之后你可以重写didCancel闭包.</p>
+
+<blockquote><p><em>注意</em>
+还记得第一次运行APP时collectionView那可怜的滑动效果吗？模糊方法阻塞了主线程。通过使用AsyncDisplayKit将模糊放入后台线程，你就大幅度地提高了CollectionView的滑动性能。简直天壤之别。</p></blockquote>
+
+<p>编译并运行，观察模糊效果:
+<img src="http://www.raywenderlich.com/wp-content/uploads/2014/10/IMG_0009.png" alt="lgo" />
+注意你可以非常流畅的滑动页面了</p>
+
+<p>当Collectionview出队一个cell时，一个模糊操作将开始后台线程，当用户快速滑动时，CollectionView会重用每个cell多次，并开始许多模糊操作。我们的目标是在cell准备重用时取消正在进行中的模糊操作。</p>
+
+<p>你已经在prepareForReuse()里取消了Node的绘制操作，但一旦控制被移交给处理你图像修改的闭包，那就是你的责任来处理Node的preventOrCancelDisplay的设置。</p>
+
+<h2>取消模糊操作</h2>
+
+<p>要取消进行中的模糊操作，你需要实现模糊方法的didCancel闭包.</p>
+
+<p>添加一个捕获列表到imageModificationBlock以捕捉一个backgroundImageNode的weak引用:</p>
+
+<pre><code>backgroundImageNode.imageModificationBlock = { [weak backgroundImageNode] input in
+   ...
+}
+</code></pre>
+
+<p>你需啊哟weak引用来避免闭包和图像Node之间的循环引用问题。你将使用这个weak  backgroundImageNode 来确定是否要取消模糊操作。</p>
+
+<p>是时候构建模糊取消碧波啊了。添加如下代码到imageModificationBlock:</p>
+
+<pre><code>backgroundImageNode.imageModificationBlock = { [weak backgroundImageNode] input in
+  if input == nil {
+    return input
+  }
+
+  // ADD FROM HERE...
+  let didCancelBlur: () -&gt; Bool = {
+    var isCancelled = true
+    // 1
+    if let strongBackgroundImageNode = backgroundImageNode {
+      // 2
+      let isCancelledClosure = {
+        isCancelled = strongBackgroundImageNode.preventOrCancelDisplay
+      }
+
+      // 3
+      if NSThread.isMainThread() {
+        isCancelledClosure()
+      } else {
+        dispatch_sync(dispatch_get_main_queue(), isCancelledClosure)
+      }
+    }
+    return isCancelled
+  }
+  // ...TO HERE
+
+  ...
+}
+</code></pre>
+
+<p>下面解释一下这些代码：</p>
+
+<ol>
+<li>得到backgroundImageNode的Strong引用，准备其干活。如果backgroundImageNode在本次运行时小时，那么isCancelled将保持为true,然后模糊操作会被取消，如果没有Node需要显示，自然没有必要继续模糊操作。</li>
+<li>在此你将操作取消检查包在闭包里，因为一旦Node创建它的Layer或View，那就只能在主线程访问Node的属性。由于你需要访问preventOrCancelDisplay，所以你必须在主线程检查。</li>
+<li>最后，确保isCancelledClosure是在主线程进行，无论是在主线程直接运行，还是不再主线程而通过dispatch_sync来调度。它必须是一个同步的调度，因为我们需要闭包完成，并在didCancelblue闭包返回之前设置isCancelled.</li>
+</ol>
+
+
+<p>在调用applyBlurWithRadius(&hellip;)中，修改传递给didCancel的参数，替换一直返回false的闭包为你刚才定义并保留在didCancelBlur的闭包。</p>
+
+<pre><code>if let blurredImage = input.applyBlurWithRadius(
+  30,
+  tintColor: UIColor(white: 0.5, alpha: 0.3),
+  saturationDeltaFactor: 1.8,
+  maskImage: nil,
+  didCancel: didCancelBlur) {
+  ...
+}
+</code></pre>
+
+<p>编译运行，你看你不会注意到太多差别，但现在任何在cell离开屏幕时还未完成的模糊都会被取消了。这就意味着设备比之前做的更少。你可能观察到轻微的性能提升，特别是在较慢的设备如第三代iPad上运行。</p>
+
+<p><img src="http://www.raywenderlich.com/wp-content/uploads/2014/10/IMG_0009.png" alt="logo" /></p>
+
+<p>你的卡片需要内容，通过下面四个小节，你将学会:</p>
+
+<ul>
+<li>创建一个容器Node,它将所有的SubNode绘制到一个单独的CALayer里</li>
+<li>构建一个Node层次结构</li>
+<li>创建一个自定义的ASDispalyNode子类，并在后台构建并布局Node层次结构</li>
+</ul>
+
+
+<p>做完这些，你就会得到一个看起来和添加AsyncDisplayKit之前一样的APP，但有着黄油版顺滑的滑动体验。</p>
+
+<h2>栅格化的容器Node</h2>
+
+<p>直到现在，你一直在操作cell内的一个单独的Node，接下来，你将创建一个容器Node，它会包含所有卡片内容。</p>
+
+<h3>添加一个容器Node</h3>
+
+<p>继续 RainforestCardCell.swift,在 configureCellDisplayWithCardInfo(cardInfo:) 的backgroundImageNode.imageModificationBlock后面以及Node Layout Section前面添加如下代码：</p>
+
+<pre><code>//MARK: Container Node Creation Section
+let containerNode = ASDisplayNode()
+containerNode.layerBacked = true
+containerNode.shouldRasterizeDescendants = true
+containerNode.borderColor = UIColor(hue: 0, saturation: 0, brightness: 0.85, alpha: 0.2).CGColor
+containerNode.borderWidth = 1
+</code></pre>
+
+<p>这就创建并配置了一个叫做containerNode的ASDisplayNode常量。注意这个容器的shouldRasterizeDescendants,这是一个关于节点如何工作的提示以及一个如何让它们工作的更好的机会.</p>
+
+<p>如单词<code>descendants (子孙)</code>所暗示的，你可以创建 AsyncDisplayKit Node的层次结构或树，就如你可以创建Core Animation Layer 的层次结构一样。例如，如果你有一个都是Layer支持的Node层级结构，那么AsyncDisplaykit将会为每个Node创建一个分离的CALayer,Layer层次结构将会和Node层级结构一样，如同镜像。</p>
+
+<p>这听起来很熟悉：它类似于当你使用UIkit时，Layer层次结构镜像于View层次结构。然而，这个Layer的栈有一些不同的效果。</p>
+
+<p>首先，因为是异步渲染，你就不会看到每个layer一个接一个的显示，当AsyncDisplayKit绘制完成每个layer，它马上制作layer的显示内容，所以如果你有一个layer的绘制比其他layer耗时更长，那么它将会在它们之后显示。用户会看到零碎的layer组件，这个过程通常是不可见的，因为Core Animation会在显示任何东西之前重绘所有必须的Layer。</p>
+
+<p>第二，有需要Layer能够引起性能问题。每个CALayer都需要一个支持存储来保存它的像素位图和内容。同样，CoreAnimation必须将每个Layer通过XPC发给渲染服务器。最后，渲染服务器可能需要重绘一些Layer以复合它们，例如在混合layer时，总的来说，更多的Layer意味着CoreAnimation更多的工作。所以限制layer使用的数量有许多不同的好处。</p>
+
+<p>为了解决这个问题，AsyncDisplayKit有一个方便的特性，它允许你绘制一个Node层次结构到一个单独的Layer容器里。这就是shouldRasterizeDescendants所做的，当你设置它，那在完成素有的subnode的绘制之前，ASDisplayNode将不会设置Layer的Contents。</p>
+
+<p>所以在之前的步骤里，设置容器Node的shouldRasterizeDescendants为true有两个好处:</p>
+
+<ol>
+<li>它确保卡片一次显示所有的Node，如同旧的同步绘制</li>
+<li>而且它通过栅格化Layer栈为单个Layer并较少未来的合成而提高了效率</li>
+</ol>
+
+
+<p>不足之处是，由于你将所有的layer放入了一个位图，你就不能再之后单独动画某个Node了。</p>
+
+<p>接下来，在 Container Node Creation Section后，添加backgroundImageNode为containerNode的subnode:</p>
+
+<pre><code>//MARK: Node Hierarchy Section
+containerNode.addSubnode(backgroundImageNode)
+</code></pre>
+
+<blockquote><p><em>注意</em>
+添加Node的顺序很重要，就如同subview和sublayer,最先添加的Node会被之后添加的阻挡显示</p></blockquote>
+
+<p>替换 Node Layout Section 的第一行为：</p>
+
+<pre><code>//MARK: Node Layout Section
+containerNode.frame = FrameCalculator.frameForContainer(featureImageSize: image.size)
+</code></pre>
+
+<p>最后，使用FrameCalculator布局backgroundImageNode:</p>
+
+<pre><code>backgroundImageNode.frame = FrameCalculator.frameForBackgroundImage(
+  containerBounds: containerNode.bounds)
+</code></pre>
+
+<p>这设置backgroundImageNode填满整个containerNode.</p>
+
+<p>你几乎完成了新的Node层次结构，但首先你需要正确地设置Layer层次结构，因为容器Node现在是根。</p>
+
+<h3>管理容器Node的Layer</h3>
+
+<p>在Node Layer and Wrap Up Section，将backgroundImageNode的Layer添加到containerNode的layer上，而不是containerView的Layer上:</p>
+
+<pre><code>// Replace the following line...
+// self.contentView.layer.addSublayer(backgroundImageNode.layer)
+// ...with this line:
+self.contentView.layer.addSublayer(containerNode.layer)
+</code></pre>
+
+<p>删除下面的backgroundImageNode保留:</p>
+
+<pre><code>self.backgroundImageNode = backgroundImageNode
+</code></pre>
+
+<p>因为cell只需要单独保留容器Node,所以你要移除backgroundImageNode属性。</p>
+
+<p>不再设置cell的contentLayer属性为backgroundImageNode的Layer,现在将其设置为containerNode的layer：</p>
+
+<pre><code>// Replace the following line...
+// self.contentLayer = backgroundImageNode.layer
+// ...with this line:
+self.contentLayer = containerNode.layer
+</code></pre>
+
+<p>给RainforestCardCell添加一个可选的ASDisplayNode实例存储为属性containerNode:</p>
+
+<pre><code>class RainforestCardCell: UICollectionViewCell {
+  var featureImageSizeOptional: CGSize?
+  var placeholderLayer: CALayer!
+  var backgroundImageNode: ASImageNode?
+  var contentLayer: CALayer?
+  var containerNode: ASDisplayNode? ///&lt; ADD THIS LINE
+  ...
+}
+</code></pre>
+
+<p>记住你需要保留你自己的Node，如果你不怎么做它们就会被立即释放。</p>
+
+<p>回到configureCellDisplayWithCardInfo(cardInfo:)，在Node Layer and Wrap Up Section 最后，设置containerNode属性为containerNode常量:</p>
+
+<pre><code>self.containerNode = containerNode
+</code></pre>
+
+<p>编译运行，模糊的图形将会再次显示！但还有最后一件事要去改变，因为现在有了新的Node层次结构，回忆之前cell重用时你将图像停止显示。现在你需要让整个Node层次结构停止显示。</p>
+
+<h3>在新的Node层次结构上处理cell重用</h3>
+
+<p>继续RainforestCardCell.swift ，在prepareForReuse()里，替换设置backgroundImageNode.preventOrCancelDisplay 为在 containerNode 上调用 recursiveSetPreventOrCancelDisplay(&hellip;) 并传递 true：</p>
+
+<pre><code>override func prepareForReuse() {
+  super.prepareForReuse()
+
+  // Replace this line...
+  // backgroundImageNode?.preventOrCancelDisplay = true
+  // ...with this line:
+  containerNode?.recursiveSetPreventOrCancelDisplay(true)
+
+  contentLayer?.removeFromSuperlayer()
+  ...
+}
+</code></pre>
+
+<p>当你要取消整个Node层次结构的绘制，就使用 recursiveSetPreventOrCancelDisplay()。这个方法将会设置这个node以及所有子Node的preventOrCancelDisplay属性，无论true或false。</p>
+
+<p>接下来，依然在prepareForReuse(),用设置containerNode为nil替换设置backgroundImageNode为nil:</p>
+
+<pre><code>override func prepareForReuse() {
+  ...
+  contentLayer = nil
+
+  // Replace this line...
+  // backgroundImageNode = nil
+  // ...with this line:
+  containerNode = nil
+}
+</code></pre>
+
+<p>移除RainforestCardCell的backgroundImageNode属性:</p>
+
+<pre><code>class RainforestCardCell: UICollectionViewCell {
+  var featureImageSizeOptional: CGSize?
+  var placeholderLayer: CALayer!
+  // var backgroundImageNode: ASImageNode? ///&lt; REMOVE THIS LINE
+  var contentLayer: CALayer?
+  var containerNode: ASDisplayNode?
+  ...
+}
+</code></pre>
+
+<p>编译运行，这个APP就如之前一样，但现在你的图像Node在容器Node内，而重用依然和它应有的方式一样.</p>
+
+<p><img src="http://www.raywenderlich.com/wp-content/uploads/2014/10/IMG_0009.png" alt="logo" /></p>
+
+<h2>cell内容</h2>
+
+<p>目前为止你有了一个Node层级结构，但容器内还只有一个Node&ndash;图像Node.现在是时候设置Node层次结构去复制在添加AsyncDisplayKit之前时应用的视图层次结构了。这意味着添加text和一个未模糊的特征图像。</p>
+
+<h3>添加特征图像</h3>
+
+<p>我们要添加特征图像了，它是一个未模糊的图像，显示在卡片的顶部。</p>
+
+<p>打开RainforestCardCell.swift ，并找到configureCellDisplayWithCardInfo(cardInfo:).在Node Creation Section 底部，添加如下代码:</p>
+
+<pre><code>let featureImageNode = ASImageNode()
+featureImageNode.layerBacked = true
+featureImageNode.contentMode = .ScaleAspectFit
+featureImageNode.image = image
+</code></pre>
+
+<p>这会创建并配置一个叫做featureImageNode的ASImageNode常量。它被设置为Layer支持的，放大以适用，并设置显示图像，这次不需要模糊。</p>
+
+<p>在Node Hierarchy Section的最后，添加featureImageNode为containerNode的subNode:</p>
+
+<pre><code>containerNode.addSubnode(featureImageNode)
+</code></pre>
+
+<p>你正在用更多Node填充容器哦!</p>
+
+<p>在Node Layout Section中，使用FrameCalculator布局featureImageNode：</p>
+
+<pre><code>featureImageNode.frame = FrameCalculator.frameForFeatureImage(
+  featureImageSize: image.size,
+  containerFrameWidth: containerNode.frame.size.width)
+</code></pre>
+
+<p>编译运行，你就会看到特征图像在卡片的顶部出现，位于模糊图像的上方，注意特征图像和模糊图像是如何在同一时间跳出。这是你之前添加的shouldRasterizeDescendants在起作用.</p>
+
+<p><img src="http://www.raywenderlich.com/wp-content/uploads/2014/10/IMG_0015.png" alt="logo" /></p>
+
+<h2>添加Title文本</h2>
+
+<p>接下来添加文字Label,以显示动物的名字和描述，首先来添加动物名字吧。</p>
+
+<p>继续configureCellDisplayWithCardInfo(cardInfo:),找到Node Creation Section。添加下列代码到这节尾部，就在创建featureImageNode之后：</p>
+
+<pre><code>let titleTextNode = ASTextNode()
+titleTextNode.layerBacked = true
+titleTextNode.backgroundColor = UIColor.clearColor()
+titleTextNode.attributedString = NSAttributedString.attributedStringForTitleText(cardInfo.name)
+</code></pre>
+
+<p>这就创建了一个叫做titleTextNode的AsTextNode常量。</p>
+
+<p>ASTextNode是另一个AsyncDisplayKit提供的Node子类，其用于显示文本。他是一个具有UIlabel效果的Node.它接受一个attributedString,由TextKit支持，有许多特性如文本链接，要学到更多关于这个Node的功能，去看ASTextNode.h吧。</p>
+
+<p>初始羡慕包含一个NSAttributedString的扩展，它提供了一个工厂方法去生成一个属性字符串用于Title和Description文本以显示在雨林卡片上。上面的代码使用了这个扩展的attributedStringForTitleText(&hellip;) 方法。</p>
+
+<p>现在在Node Hierarchy Section 底部，添加如下代码:</p>
+
+<pre><code>containerNode.addSubnode(titleTextNode)
+</code></pre>
+
+<p>这就添加了titleTextNode到Node层次结构里，它将位于特征图像和背景图像智商，因为它在它们之后添加。</p>
+
+<p>在Node Layout Section底部添加如下代码：</p>
+
+<pre><code>titleTextNode.frame = FrameCalculator.frameForTitleText(
+  containerBounds: containerNode.bounds,
+  featureImageFrame: featureImageNode.frame)
+</code></pre>
+
+<p>一样使用FrameCalculator布局titleTextNode,就像backgroundImageNode和featureImageNode那样。</p>
+
+<p>编译运行，你就有了一个title显示在特征图像的顶部。再次说明，Label只会在整个Cell准备好渲染时才渲染。
+<img src="http://www.raywenderlich.com/wp-content/uploads/2014/10/IMG_0017.png" alt="logo" /></p>
+
+<h2>添加Description文本</h2>
+
+<p>添加一个有着Description文本的Node和添加Title文本的Node类似.</p>
+
+<p>回到configureCellDisplayWithCardInfo(cardInfo:),在 Node Creation Section 最后，添加如下代码。就在之前创建titleTextNode的语句之后:</p>
+
+<pre><code>let descriptionTextNode = ASTextNode()
+descriptionTextNode.layerBacked = true
+descriptionTextNode.backgroundColor = UIColor.clearColor()
+descriptionTextNode.attributedString = 
+  NSAttributedString.attributedStringForDescriptionText(cardInfo.description)
+</code></pre>
+
+<p>这就创建并配置了一个叫做descriptionTextNode的AStextNode实例。</p>
+
+<p>在 Node Hierarchy Section最后，添加descriptionTextNode到containerNode：</p>
+
+<pre><code>containerNode.addSubnode(descriptionTextNode)
+</code></pre>
+
+<p>在 Node Layout Section,一样使用FrameCalculator布局descriptionTextNode：</p>
+
+<pre><code>descriptionTextNode.frame = FrameCalculator.frameForDescriptionText(
+  containerBounds: containerNode.bounds,
+  featureImageFrame: featureImageNode.frame)
+</code></pre>
+
+<p>编译运行，现在你能看到Description文本了。
+<img src="http://www.raywenderlich.com/wp-content/uploads/2014/10/IMG_0018.png" alt="logo" /></p>
+
+<h2>自定义Node子类</h2>
+
+<p>目前为止，你使用了ASImageNode和AStextNode,但有些时候你需要自己定义Node,就如同某些时候在传统的UIKit编程里你需要自己的View一样。</p>
+
+<h3>创建梯度Node类</h3>
+
+<p>接下来，你将给GradientView.swift 添加Core Graphics 代码来构建一个自定义的梯度Display Node,这回被用于创建一个绘制梯度的自定义Node.梯度图会显示在特征图像的地步以便让Title看起来更加明显。</p>
+
+<p>打开Layers-Bridging-Header.h，并添加如下代码</p>
+
+<pre><code>#import &lt;AsyncDisplayKit/_ASDisplayLayer.h&gt;
+</code></pre>
+
+<p>需要这一步是因为这个类没有包含在主头文件中，你在子类化任何ASDisplayNode或者_ASDisplayLayer时都需要访问这个类。</p>
+
+<p>菜单 File\New\File… 。选择 iOS\Source\Cocoa Touch Class 。命名类为 GradientNode 并使其作为 ASDisplayNode 的子类。选择 Swift 语言并点击 Next 。保存文件再打开 GradientNode.swift 。</p>
+
+<p>添加如下方法到这个类:</p>
+
+<pre><code>class func drawRect(bounds: CGRect, withParameters parameters: NSObjectProtocol!,
+    isCancelled isCancelledBlock: asdisplaynode_iscancelled_block_t!, isRasterizing: Bool) {
+
+}
+</code></pre>
+
+<p>如同Uiview或者CALayer,你可以子类化ASDisplayNode去做自定义绘制。你可以使用如同用于UIView的Layer或单独的CALayer的绘制代码，这取决于客户Node如何配置Node.查看ASDisplayNode+Subclasses.h 获取更多关于子类化 ASDisplayNode 的信息。</p>
+
+<p>进一步，ASDisplayNode的绘制方法比在UIView和CALayer里接受更多参数，给你提供方法少做工作，更有效率。</p>
+
+<p>要为你的自定义DisplayNode填充内容，你需要实现来自<em>ASDisplayLayerDelegate协议的drawRect(&hellip;) 或 displayWithParameters(&hellip;)。在继续之前，看看 </em>ASDisplayLayer.h 得到这个方法和它们参数的信息。搜索_ASDisplayLayerDelegate。重点看看头文件注释里关于drawRect(..)的描述。</p>
+
+<p>因为梯度图位于特征图的上方，使用Core Graphics 绘制，所以你需要使用drawRect.</p>
+
+<p>打开GradientView.swift 并拷贝drawRect(&hellip;)的内容到GradientNode.swift 的drawRect(&hellip;)，如下：</p>
+
+<pre><code>class func drawRect(bounds: CGRect, withParameters parameters: NSObjectProtocol!,
+    isCancelled isCancelledBlock: asdisplaynode_iscancelled_block_t!, isRasterizing: Bool) {
+  let myContext = UIGraphicsGetCurrentContext()
+  CGContextSaveGState(myContext)
+  CGContextClipToRect(myContext, bounds)
+
+  let componentCount: UInt = 2
+  let locations: [CGFloat] = [0.0, 1.0]
+  let components: [CGFloat] = [0.0, 0.0, 0.0, 1.0,
+    0.0, 0.0, 0.0, 0.0]
+  let myColorSpace = CGColorSpaceCreateDeviceRGB()
+  let myGradient = CGGradientCreateWithColorComponents(myColorSpace, components,
+    locations, componentCount)
+
+  let myStartPoint = CGPoint(x: bounds.midX, y: bounds.maxY)
+  let myEndPoint = CGPoint(x: bounds.midX, y: bounds.midY)
+  CGContextDrawLinearGradient(myContext, myGradient, myStartPoint,
+    myEndPoint, UInt32(kCGGradientDrawsAfterEndLocation))
+
+  CGContextRestoreGState(myContext)
+}
+</code></pre>
+
+<p>然后删除GradientView.swift,确保编译没有错误</p>
+
+<h3>添加梯度Node</h3>
+
+<p>打开RainforestCardCell.swift并找到configureCellDisplayWithCardInfo(cardInfo:)，在Node Creation Section底部，添加如下代码，就在创建descriptionTextNode的代码之后:</p>
+
+<pre><code>let gradientNode = GradientNode()
+gradientNode.opaque = false
+gradientNode.layerBacked = true
+</code></pre>
+
+<p>这就创建了一个叫做gradientNode的GradientNode常量。</p>
+
+<p>在Node Hierarchy Section，在添加featureImageNode那样下面，添加gradientNode到containerNode:</p>
+
+<pre><code>//MARK: Node Hierarchy Section
+containerNode.addSubnode(backgroundImageNode)
+containerNode.addSubnode(featureImageNode)
+containerNode.addSubnode(gradientNode) ///&lt; ADD THIS LINE
+containerNode.addSubnode(titleTextNode)
+containerNode.addSubnode(descriptionTextNode)
+</code></pre>
+
+<p>梯度Node需要这个位置才能在特征图之后，Title之下。</p>
+
+<p>然后添加如下代码到Node Layout Section底部:</p>
+
+<pre><code>gradientNode.frame = FrameCalculator.frameForGradient(
+  featureImageFrame: featureImageNode.frame)
+</code></pre>
+
+<p>编译运行，你将看到梯度在特征图的底部，title确实看的更清楚了</p>
+
+<p><img src="http://www.raywenderlich.com/wp-content/uploads/2014/10/IMG_0019.png" alt="logo" /></p>
+
+<h2>爆米花特效</h2>
+
+<p>如之前提到的，cell的Node内容会在完成绘制时“弹出”，这不是很理想，所以让我们继续，以修复这个问题，但首先，更加深入AsyncDisplayKit以看看它是怎么工作的。</p>
+
+<p>在configureCellDisplayWithCardInfo(cardInfo:) 的Container Node Creation Section，关闭容器Node的shouldRasterizeDescendants：</p>
+
+<pre><code>containerNode.shouldRasterizeDescendants = false
+</code></pre>
+
+<p>编译运行，你会注意到现在容器层次结构里不同的Node一个接一个的弹出。你会看到文字弹出然后是特征图，然后是模糊背景图。</p>
+
+<p>当shouldRasterizeDescendants关闭后，AsyncDisplayKit就不是绘制一个容器Layer了，它会创建一个镜像卡片Node层次结构的Layer数。记得爆米花特效存在是因为每个Layer都在它绘制结束后立即出现，而某些Layer比另外一个花费更多时间在绘制上。</p>
+
+<p>这不是我们所需要的，但它描述了AsyncDisplayKit的工作方式，我们不想要这个行为，所以还是将shouldRasterizeDescendants打开：</p>
+
+<pre><code>containerNode.shouldRasterizeDescendants = true
+</code></pre>
+
+<h2>在后台构造Node</h2>
+
+<p>除了异步的绘制，使用AsyncDisplayKit,你同样可以异步地创建，配置以及布局。深呼吸一下，接下来开始做事情。</p>
+
+<h3>创建一个Node构造操作(OPeration)</h3>
+
+<p>你要讲Node层次结构的构造包装到一个NSOperation中，这样做很棒，因为这个操作能很容易的在不同的操作队列中执行，包括后台队列。</p>
+
+<p>打开RainforestCardCell.swift ，然后添加如下方法：</p>
+
+<pre><code>func nodeConstructionOperationWithCardInfo(cardInfo: RainforestCardInfo, image: UIImage) -&gt; NSOperation {
+  let nodeConstructionOperation = NSBlockOperation()
+  nodeConstructionOperation.addExecutionBlock { 
+    // TODO: Add node hierarchy construction
+  }
+  return nodeConstructionOperation
+}
+</code></pre>
+
+<p>绘制并不是唯一会拖慢主线程的操作，对于复杂的屏幕，布局计算也有可能变得昂退。目前为止，本教程当前状态的项目，一个缓慢的Node布局会引起Collectionview丢帧。</p>
+
+<p>60FPS意味着你有大约17ms的时间让你的cell准备好显示，否则一个或者多个帧就会被丢掉。这在Table view和 collection view有很复杂的cell时时非常常见的，滑动时丢帧就是这个原因。</p>
+
+<p>AsyncDisplayKit前来救援</p>
+
+<p>你将使用上面的nodeConstructionOperation将所有Node层次结构以及布局从主线程剥离并放入后台NSOperatonQueue，进一步确保Collection view能尽量以接近60 fps的帧率滑动。</p>
+
+<blockquote><p><em>注意</em>
+你可以在后台访问并设置Node的属性，但只能在Node的Layer或View被创建之前，也就是当你第一次访问Node的Layer或View属性时。</p></blockquote>
+
+<p>一旦Node的Layer或View被创建，你必须在主线程才能访问和设置Node的属性，因为Node将会转发这些调用到它的Layer或View.如果你得到一个崩溃log说“Incorrect display node thread affinity”,那就意味着在创建Node的Layer或View之后，你依然尝试在后台访问或设置Node的属性。</p>
+
+<p>修改nodeConstructionOperation 操作Block的内容如下:</p>
+
+<pre><code>nodeConstructionOperation.addExecutionBlock {
+  [weak self, unowned nodeConstructionOperation] in
+  if nodeConstructionOperation.cancelled {
+    return
+  }
+  if let strongSelf = self {
+    // TODO: Add node hierarchy construction
+  }
+}
+</code></pre>
+
+<p>在这个操作运行时，cell可能已经被释放了，在那种情况下，你不需要做任何工作。类似的，如果操作被取消了，那一样也没有工作要做了。</p>
+
+<p>之所以对nodeConstructionOperation使用 unowner无主引用是为了避免在操作和执行必要之间产生循环引用。</p>
+
+<p>现在找到configureCellDisplayWithCardInfo(cardInfo:)。将任何在Image Size Section之后的代码移动到nodeConstructionOperation的执行闭包里，将代码放在strongSelf的条件语句里，即 TODO的位置，之后configureCellDisplayWithCardInfo(cardInfo:)将开起来如下:</p>
+
+<pre><code>func configureCellDisplayWithCardInfo(cardInfo: RainforestCardInfo) {
+  //MARK: Image Size Section
+  let image = UIImage(named: cardInfo.imageName)!
+  featureImageSizeOptional = image.size
+}
+</code></pre>
+
+<p>目前，你会有一些编译错误，这是因为操作Block里的self是weak引用，因此是可选的。但你有一个self的strong引用，因为代码在可选绑定语句内。所以替换错误的几行成下面的样子:</p>
+
+<pre><code>strongSelf.contentView.layer.addSublayer(containerNode.layer)
+strongSelf.contentLayer = containerNode.layer
+strongSelf.containerNode = containerNode
+</code></pre>
+
+<p>最后，添加如下代码到你刚改动的三行之下:</p>
+
+<pre><code>containerNode.setNeedsDisplay()
+</code></pre>
+
+<p>编译确保没有错误。如果你现在运行，那么之后占位图会显示，因为Node的创建操作还没有实际使用。让我们来添加它</p>
+
+<h3>使用Node创建操作</h3>
+
+<p>打开 RainforestCardCell.swift 并添加如下属性：</p>
+
+<pre><code>class RainforestCardCell: UICollectionViewCell {
+  var featureImageSizeOptional: CGSize?
+  var placeholderLayer: CALayer!
+  var backgroundImageNode: ASImageNode?
+  var contentLayer: CALayer?
+  var containerNode: ASDisplayNode?
+  var nodeConstructionOperation: NSOperation? ///&lt; ADD THIS LINE
+  ...
+}
+</code></pre>
+
+<p>这就添加了一个叫做nodeConstructionOperation可选属性。
+当Cell准备回收时，你会使用这个属性取消Node的构造。这会在用户非常快速地滑动Collection View时发生，特别是如果布局还需要一些计算时间的话。</p>
+
+<p>在prepareForReuse()添加如下指示的代码:</p>
+
+<pre><code>override func prepareForReuse() {
+  super.prepareForReuse()
+
+  // ADD FROM HERE...
+  if let operation = nodeConstructionOperation {
+    operation.cancel()
+  }
+  // ...TO HERE
+
+  containerNode?.recursiveSetPreventOrCancelDisplay(true)
+  contentLayer?.removeFromSuperlayer()
+  contentLayer = nil
+  containerNode = nil
+}
+</code></pre>
+
+<p>这就在cell重用时取消了操作，所以如果Node创建还没完成，它也不会完成。</p>
+
+<p>现在找到 configureCellDisplayWithCardInfo(cardInfo:) ,并添加如下指示的代码:</p>
+
+<pre><code>func configureCellDisplayWithCardInfo(cardInfo: RainforestCardInfo) {
+  // ADD FROM HERE...
+  if let oldNodeConstructionOperation = nodeConstructionOperation {
+    oldNodeConstructionOperation.cancel()
+  }
+  // ...TO HERE
+
+  //MARK: Image Size Section
+  let image = UIImage(named: cardInfo.imageName)!
+  featureImageSizeOptional = image.size
+}
+</code></pre>
+
+<p>这个Cell现在会在它准备重用并开始配置时，取消任何进行中的 Node构造操作。这确保了操作被取消，即使cell在准备重用前就被重新配置。</p>
+
+<p>在主线程运行</p>
+
+<p>AsyncDisplayKit允许你在非主线程做许多工作。但当它要面对UIKit和CoreAnimation时，你还是需要在主线程做。目前为止，你从主线程移走了所有的Node创建，但还有一件事需要被放在主线程&ndash;即设置coreAnimation的Layer层次结构。</p>
+
+<p>在RainforestCardCell.swift里，找到nodeConstructionOperationWithCardInfo(cardInfo:image:) 并替换Node Layer and Wrap Up Section 为如下代码:</p>
+
+<pre><code>// 1
+dispatch_async(dispatch_get_main_queue()) { [weak nodeConstructionOperation] in
+  if let strongNodeConstructionOperation = nodeConstructionOperation {
+    // 2
+    if strongNodeConstructionOperation.cancelled {
+      return
+    }
+
+    // 3
+    if strongSelf.nodeConstructionOperation !== strongNodeConstructionOperation {
+      return
+    }
+
+    // 4
+    if containerNode.preventOrCancelDisplay {
+      return
+    }
+
+    // 5
+    //MARK: Node Layer and Wrap Up Section
+    strongSelf.contentView.layer.addSublayer(containerNode.layer)
+    containerNode.setNeedsDisplay()
+    strongSelf.contentLayer = containerNode.layer
+    strongSelf.containerNode = containerNode
+  }
+}
+</code></pre>
+
+<p>下面描述一下:</p>
+
+<ol>
+<li>回忆当Node的Layer属性被第一个访问时，所有的Layer会被创建。这就是为何你必须运行Node Layer并在主线程包装小节，因此代码访问Node的Layer.</li>
+<li>操作被检查以确定是否在添加Layer之前就已经取消了。在操作完成前，cell被重用或者重新配置，就很可能出现这样的情况，那你就不应该添加Layer了。</li>
+<li>作为一个保险，确保Node当前的nodeConstructionOperation和调度闭包的操作是同一个NSOperation</li>
+<li>如果containerNode的preventOrCancel是true就立即返回。如果构造操作完成，但node的绘制还没有被取消，你依然不想Node的layer现在在cell里</li>
+<li>最后，添加Node的Layer到层次结构中，如果必要，这就创建Layer.</li>
+</ol>
+
+
+<p>编译确保没有错误</p>
+
+<h3>开始Node创建操作</h3>
+
+<p>你依然没有实际创建和开始操作，让我们开始吧</p>
+
+<p>继续在RainforestCardCell.swift里，改变configureCellDisplayWithCardInfo(cardInfo:) 的方法签名为:</p>
+
+<pre><code>func configureCellDisplayWithCardInfo(
+  cardInfo: RainforestCardInfo,
+  nodeConstructionQueue: NSOperationQueue)
+</code></pre>
+
+<p>这里添加了一个新的参数nodeConstructionQueue.它就是一个用于Node创建操作入队的NSOperationQueue.</p>
+
+<p>在func configureCellDisplayWithCardInfo(
+  cardInfo: RainforestCardInfo,
+  nodeConstructionQueue: NSOperationQueue) 底部，添加如下代码:</p>
+
+<pre><code>let newNodeConstructionOperation = nodeConstructionOperationWithCardInfo(cardInfo, image: image)
+nodeConstructionOperation = newNodeConstructionOperation
+nodeConstructionQueue.addOperation(newNodeConstructionOperation)
+</code></pre>
+
+<p>这就创建了一个Node构造操作，将其保留在nodeConstructionOperation属性，并将其添加到传入的队列。</p>
+
+<p>最后打开 RainforestViewController.swift ，给RainforestViewController添加一个叫做nodeConstructionQueue 的初始化为常量的属性，如下:</p>
+
+<pre><code>class RainforestViewController: UICollectionViewController {
+  let rainforestCardsInfo = getAllCardInfo()
+  let nodeConstructionQueue = NSOperationQueue() ///&lt; ADD THIS LINE
+  ...
+}
+</code></pre>
+
+<p>接下来，在collectionView(collectionView:cellForItemAtIndexPath indexPath:)里，传递View Controller的 nodeConstructionQueue到 configureCellDisplayWithCardInfo(cardInfo:nodeConstructionQueue:) ：</p>
+
+<pre><code>cell.configureCellDisplayWithCardInfo(cardInfo, nodeConstructionQueue: nodeConstructionQueue)
+</code></pre>
+
+<p>cell将会创建一个新的Node构造操作并将其添加到ViewControler的操作队列里并发运行。记住在cell出队时就会创建一个新的Node层次结构。这并不理想，但足够好。如果你要缓存Node的重用，看看ASRangeController 吧</p>
+
+<p>OK，编译运行，你讲看到和之前一样的效果，但现在布局和渲染都没在主线程执行了，牛！我打赌你从来没有想过你看到这一天你所做的事情，这就是AsyncDisplayKit的威力。你可以将更多不需要再主线程操作从主线程中移除，这将给主线程更多机会处理和用户的交互，让你的App摸起来如黄油般顺滑</p>
+
+<p><img src="http://www.raywenderlich.com/wp-content/uploads/2014/10/IMG_0019.png" alt="logo" /></p>
+
+<h2>淡入Cell</h2>
+
+<p>在这个就简短的章节，你将会学到:</p>
+
+<ul>
+<li>用自定义的Display Layer子类来支持Node</li>
+<li>触发Node Layer的隐式动画</li>
+</ul>
+
+
+<p>这将会确保你的移除爆米花特效并最终带来良好的淡入动画</p>
+
+<p>创建一个新的Layer子类.</p>
+
+<p>菜单 File\New\File… ，选择 iOS\Source\Cocoa Touch Class 并单击Next.命名类为AnimatedContentsDisplayLayer并使其作为_ASDisplayLayer子类。选择 Swift语言并单击Next.最后保存并打开AnimatedContentsDisplayLayer.swift .</p>
+
+<p>现在添加如下方法到类:</p>
+
+<pre><code>override func actionForKey(event: String!) -&gt; CAAction! {
+  if let action = super.actionForKey(event) {
+    return action
+  }
+
+  if event == "contents" &amp;&amp; contents == nil {
+    let transition = CATransition()
+    transition.duration = 0.6
+    transition.type = kCATransitionFade
+    return transition
+  }
+
+  return nil
+}
+</code></pre>
+
+<p>Layer有一个contents属性，它告诉系统为这个Layer绘制什么，AsyncDisplayKit通过在后台渲染contents并最后在主线程设置contents</p>
+
+<p>这个代码将会添加一个过渡动画，这样contents就会淡入到View中，你可以在Apple的 <a href="https://developer.apple.com/library/mac/documentation/cocoa/conceptual/CoreAnimation_guide/ReactingtoLayerChanges/ReactingtoLayerChanges.html">Core Animation Prgramming Guide</a>找到更多关于隐式Layer动画</p>
+
+<p>打开 RainforestCardCell.swift。在nodeConstructionOperationWithCardInfo(cardInfo:image:) 里，在Container Node Creation Section开头，改动如下:</p>
+
+<pre><code>// REPLACE THIS LINE...
+// let containerNode = ASDisplayNode()
+// ...WITH THIS LINE:
+let containerNode = ASDisplayNode(layerClass: AnimatedContentsDisplayLayer.self)
+</code></pre>
+
+<p>这会告诉容器Node使用AnimatedContentsDisplayLayer实例作为其支持Layer,因此自动带来淡入效果</p>
+
+<blockquote><p><em>注意</em>
+只有_ASDisplayLayer的子类才能被异步地绘制</p></blockquote>
+
+<p>编译运行，你讲看到容器Node会在其绘制好之后淡入.</p>
+
+<p><img src="http://www.raywenderlich.com/wp-content/uploads/2014/10/IMG_0023.png" alt="logo" /></p>
+
+<h2>完整工程</h2>
+
+<p><a href="https://cdn3.raywenderlich.com/wp-content/uploads/2014/11/Layers-Finished-7.3.zip">完整工程</a>请在这里下载!</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[通过一个Demo详解UIStackView]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/04/04/tong-guo-%5B%3F%5D-ge-demoxiang-jie-uistackview/"/>
+    <updated>2016-04-04T19:48:29+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/04/04/tong-guo-[?]-ge-demoxiang-jie-uistackview</id>
+    <content type="html"><![CDATA[<p><a href="http://andrew-anlu.github.io/blog/2016/04/04/uistackviewjie-shao/">在上一个章节</a>我们已经介绍了什么是UIStackView了，其实它更类似于Android开发中的LinerLayer排版技术。</p>
+
+<p>这一章节，我们通过一个完整的例子来讲解UIStackView的用法</p>
+
+<!--more-->
+
+
+<h2>开始</h2>
+
+<p>下下载这个<a href="http://www.raywenderlich.com/wp-content/uploads/2015/09/VacationSpots_Starter.zip">开始工程</a>,下载完毕后，用Iphone6 模拟器运行起来，你将会看到一个度假旅游的列表</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/01-table-view-is-now-correct_750x1334-281x500.png" alt="logo" />
+点击第一行cell,咋看，这个视图没有什么问题，但是你仔细观察，就会发现有几个问题:</p>
+
+<ol>
+<li>看视图的下面的那一排按钮，它们中间都有一定间隙规则布局，但是它们并没有适配整个屏幕的布局，看着挺丑的，临时转换屏幕landscape orientation,通过 <code>Command-left</code></li>
+</ol>
+
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/02-issues-visible-in-landscape-view_1334x750-480x270.png" alt="logo" /></p>
+
+<ol>
+<li>在详情页面，点击hidden按钮，它成功地隐藏了文字，但是下面的内容并没有顶上去，中间一片空白
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/03-hide-weather-issue_750x1334-281x500.png" alt="logo" /></li>
+</ol>
+
+
+<p>现在你已经有几点好的建议去提升app的体验，现在让我们开始切入这个工程</p>
+
+<p>打开Main.storyboard然后找到 <code>Spot Info View Controller</code>,这里有一些颜色在stackView中。</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/04-colorful-scene-in-storyboard_504x636-396x500.png" alt="logo" /></p>
+
+<p>这些标签和按钮已经有几种不同颜色的背景色，但是在运行时他们的背景色就是透明的，在这个storyboard中，他们仅仅是为了帮助你展示stackView是怎么改变属性影响嵌套的子视图</p>
+
+<p>你不需要做这些，但是从另一个观点来说你实际上喜欢去看看这些背景色当运行程序的时候，你能临时做些改变在SpotInfoViewController的viewDidLoad()中:</p>
+
+<pre><code>// Clear background colors from labels and buttons
+for view in backgroundColoredViews {
+  view.backgroundColor = UIColor.clearColor()
+}
+</code></pre>
+
+<p>当然，其它标签都有占位符文字说明，他们仅仅是为了让你区分哪些是和后台连接的。哪些是描述什么内容的。例如<code>&lt;whyVisitLabel&gt;</code>是连接</p>
+
+<pre><code>@IBOutlet weak var whyVisitLabel: UILabel!
+</code></pre>
+
+<p>另外一个需要注意的是在这个storyboard中不是默认的 600 x 600,当你使用SizeClass的时候。</p>
+
+<p>SizeClass总是可用的，但是初始化Navigation Controller 默认是总是iPhone 4-inch在模拟器下，这个是容易的在storyboard中，这个模拟器在启动的时候是不受影响的，这个视图将会动态适应不同的设备。
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/05-simulated-metrics-iphone-4-inch_639x173.png" alt="logo" /></p>
+
+<h2>你的第一个StackView</h2>
+
+<p>第一件事是你将通过一个stackView修复最下面一排按钮的间距，一个stackView能描述在不不同轴向的布局（横向坐标和纵向坐标），其中之一就是子视图之间的距离设置。</p>
+
+<p>幸运的是，修改已经存在的View在一个stackView中并不复杂，选中 <code>Spot Info View Controller</code>底部的所有按钮</p>
+
+<p>检查这三个按钮是不是都选择上了，打开左边的控件面板查看，
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/08-verify-button-selection_360x90.png" alt="logo" /></p>
+
+<p>一旦选中了，在storyboard的右下角点击new Stack button
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/09-stack_button_outlined_148x52.png" alt="logo" /></p>
+
+<p>这个按钮将会变成嵌入式的在stackView中</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/10-bottom-row-is-now-in-stack-view_640x100.png" alt="logo" /></p>
+
+<p>这些按钮看起来不是平滑的，稍后我们将会修复</p>
+
+<p>当这个stackView开始嵌套这些按钮的时候，我们将要添加自动布局给这个stackView</p>
+
+<p>当你嵌套一个视图在一个stackView中，这个视图的任何约束都会被移除，例如，在嵌套到stackView之钱，在最前面的那个按钮<code>Submit Rating</code>有个垂直距离的约束和<code>Rating:</code>label之间:
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/11-prior-constraint_420x90.png" alt="logo" /></p>
+
+<p>点击<code>Submit Rating</code>按钮去看看是否还有这个约束:
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/12-no-more-constraints_400x80.png" alt="logo" /></p>
+
+<p>为了给stackView添加约束，首先你必须选中它，一个简单的方式去选择这个stackView在outline View:
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/140040561762600.png" alt="logo" />
+另外一种方式是按住 shift&amp;Right-click 在你想选择的视图上，或者按钮 <code>control</code>+<code>shift</code>+<code>左键点击</code>在你想要选择的视图上，你将会看到一个菜单视图，供你选择。
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/15-select-stack-view-in-view-hierarchy-menu_400x280.png" alt="logo" /></p>
+
+<p>现在，点击pin按钮在自动布局的工具条上  去 添加约束。</p>
+
+<p>首先检查Constrain to margins，然后添加下载的约束:</p>
+
+<pre><code>Top: 20, Leading: 0, Trailing: 0, Bottom: 0
+</code></pre>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/17-bottom-stack-view-constraints_264x364.png" alt="logo" /></p>
+
+<p>现在，这个stackVeiw是正确的尺寸，但是它有一点拉伸第一个按钮，因为它要去利用多余的空间。</p>
+
+<p>stackView有个<code>distribution</code>属性来决定子视图的布局，当前，它是fill,这意味着包含的子视图都会完全填充stackview剩下的空间，为了修补这个，这个stackView将要展开其中的一个子视图去填补这个多余的空间</p>
+
+<p>然而，你并不期望这个按钮完全填充stackView，你想让他们占用相同的空间。</p>
+
+<p>选中这个stackView,然后修改它的属性<code>Distribution</code>从<code>Fill</code>到<code>Equal Spacing:</code>
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/19-change-distribution-to-equal-spacing_640x148.png" alt="logo" /></p>
+
+<p>现在编译运行，点击这个cell.旋转屏幕，你将会看到底部的按钮平分在屏幕的底部，是不是很酷呢!
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/20-now-buttons-are-equally-spaced_1334x750-480x270.png" alt="logo" /></p>
+
+<p>如果不使用stackView来解决这个问题，你不得不使用sapce views，在没两个按钮之间，你的加入等比宽度的约束。很是麻烦。
+它看起来像是下面这样，这中间的space View看起来有点灰色</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/21-alternate-solution-1_346x76.png" alt="logo" /></p>
+
+<p>这个问题还是不是很大在一个storyboard中，但是很多视图都是动态的，这就不是一个简单的任务了，在运行时去增加一个按钮或者隐藏一个按钮，因为需要去调节视图和约束之间的关系。</p>
+
+<p>为了在一个stack view中隐藏一个视图，你不得不设置子视图的hidden属性为true.现在你将要修复之前说过的那个问题，就是当点击 hidden之后，文字消失，下面的多余空间要顶上去。</p>
+
+<h2>转换Sections</h2>
+
+<p>你将要转换所有的section用stack view中，这将要确保你容易的完成你的任务，下一步你将要转换 rating section.</p>
+
+<h3>Rating section</h3>
+
+<p>定位到你刚才的页面，然后选择<code>RATING</code>标签和 星星的视图：
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/22-select-rating-label-and-stars-label_640x74.png" alt="logo" />
+然后点击 stack按钮让其嵌套在一个stackView中。
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/23-after-clicking-stack-button_640x74.png" alt="logo" />
+ 现在，点击PIN按钮，添加下面三个属性:</p>
+
+<pre><code class="`"> Top: 20, Leading: 0, Bottom: 20
+</code></pre>
+
+<p> <img src="http://7xkxhx.com1.z0.glb.clouddn.com/24-add-second-stack-view-constraints_264x171.png" alt="logo" /></p>
+
+<p> 现在切换到<code>Attributes inspector</code>，设置 spacing为8:
+ <img src="http://7xkxhx.com1.z0.glb.clouddn.com/25-set-spacing-to-8_259x87.png" alt="logo" /></p>
+
+<p> 这时，你看到视图上的两个控件之间已经有些间距了，
+ <img src="http://7xkxhx.com1.z0.glb.clouddn.com/26-stars-label-weirdly-stretched_640x85.png" alt="logo" />
+ 有时候，xcode可能提示你stackview的位置是不正确的，但是这些警告将会消失，当你更新其它控件的时候，你通常可以忽略他们。</p>
+
+<p>为了证明这个，改变 <code>Alignment</code>从<code>Fill</code>到<code>Top</code>然后再改为Fill,你将会看到这个stars 标签变成正确的位置了。</p>
+
+<p>编译运行你的app,一切看起来还是和从前一样.</p>
+
+<h2>取消嵌套一个Stack View</h2>
+
+<p>在你深入学习之前，去进行一些"急救"训练，有时，你会发现你的视图上有一个你不再需要的stackview,或许你为了练习而导致的事故。</p>
+
+<p>幸运的是，这里有容易的方式去移除一个嵌套的view从stack view中。</p>
+
+<p>首先，你最好选择你想要删除的stack view,按住<code>Option</code>键，然后点击 <code>stack</code>按钮，点击 <code>Unembed</code>菜单就可以了:
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/28-how-to-unembed_186x71.png" alt="logo" /></p>
+
+<h2>你的第一个垂直Stack view</h2>
+
+<p>现在，你将要创建一个垂直的stack view,选中<code>WHY VISIT</code>标签和<code>&lt;whyVisitLabel&gt;</code>：
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/29-select-why-visit-labels_640x90.png" alt="logo" />
+Xcode将会正确的推断出这个视图将会需要一个垂直的stack view,点击<code>Stack</code>按钮去嵌套它们到一个stack view中。</p>
+
+<p>当stack view添加成功之后，嵌套的视图的约束将会给删除，当前的这个stack view没有任何约束，所以它会适配子视图中最大尺寸的。</p>
+
+<p>当这个stack view选中的时候，点击 Pin按钮，设置如下属性:
+Top, Leading and Trailing 都为0</p>
+
+<p>然后，点击dropdown在右下角，然后选择<code>WEATHER (current distance = 20):</code></p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/31-dont-select-nearest-neighbor-constraint_463x417.png" alt="logo" /></p>
+
+<p>最后，添加这4个约束，你将会看到如下结果：
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/32-why-visit-stack-view-stretched_640x90.png" alt="logo" />
+现在你有两个一个展开的stackview,它的右边界是定位到了视图的右边界，然而，这下面的标签依然是同样宽的，你将要修复它通过stack view的<code>alignment</code>属性</p>
+
+<h2>Alignment属性</h2>
+
+<p>这个alignment属性决定了stack view在其轴向上的布局方式，可能是Fill,Leading,Center和Trailing.</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/33-horizontal-and-vertical-alignment_594x171.png" alt="logo" /></p>
+
+<p>在垂直的stackview中，选择不同的属性，将会看到不同的布局:</p>
+
+<p>Fill:
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/34-alignment-fill_640x64.png" alt="logo" /></p>
+
+<p>Leading:
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/35-alignment-leading_640x64.png" alt="logo" /></p>
+
+<p>Center:
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/36-alignment-center_640x64.png" alt="lgo" /></p>
+
+<p>Trailing:
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/37-alignment-trailing_640x64.png" alt="lgo" /></p>
+
+<p>当你测试完每个属性值后，最后设置成Fill</p>
+
+<p>编译运行程序看起来是OK的，特别需要指出的是，<code>Fill</code>意味着你想要所有的视图都是完全占用空间在其轴向上，这将引起<code>WHY VISIT</code>标签去展开它到右边缘。</p>
+
+<p>但是如果你只想下面的label张开到右边缘，此时该怎么做呢?</p>
+
+<h2>转换"what to see"模块</h2>
+
+<p>这个转换和上面的那个很相似，介绍如下:</p>
+
+<ol>
+<li>首先，选择<code>WHAT TO SEE</code>标签和<code>&lt;whatToSeeLabel&gt;</code></li>
+<li>点击<code>Stack</code>按钮</li>
+<li>点击<code>Pin</code>按钮</li>
+<li>设置<code>margins</code>约束，添加下面4个约束</li>
+</ol>
+
+
+<pre><code>Top: 20, Leading: 0, Trailing: 0, Bottom: 20
+</code></pre>
+
+<ol>
+<li>设置stack view的Alignment为FIll</li>
+</ol>
+
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/39-after-what-to-see-section_640x308.png" alt="logo" />
+编译运行你的工程，验证页面是不是看起来和之前一样。</p>
+
+<p>剩下就是这个<code>weather</code>模块了</p>
+
+<h2>转换weather模块</h2>
+
+<p>这个weather模块比其他几个稍微复杂一些，因为它包含了一个hidden按钮</p>
+
+<p>一种方法是你将会创建一个最近的stacview通过嵌套<code>WEATHER</code>标签和<code>Hide</code>按钮在一个水平的stackview中，然后嵌套水平的stackview和<code>&lt;weatherInfoLabel&gt;</code>到一个垂直的stackview中。</p>
+
+<p>看起来你像是这样:
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/40-weather-stack-in-stack_640x92.png" alt="lgo" /></p>
+
+<p>点击<code>Stack</code>按钮:
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/43-weather-click-stack-button_640x92.png" alt="logo" /></p>
+
+<p>然后点击 Pin按钮，设置margin约束,设置如下:</p>
+
+<pre><code>Top: 20, Leading: 0, Trailing: 0, Bottom: 20
+</code></pre>
+
+<p>设置 stack view的Alignment为Fill
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/44-weather-alignment-fill_640x92.png" alt="logo" /></p>
+
+<p>你需要一个在hide按钮和<code>WEATHER</code>标签的右边加一个约束，因为<code>WEATHER</code>标签被加到了stack view中，它的所有约束都被自动去掉了.</p>
+
+<p>然后，你希望底部的<code>&lt;weatherInfoLabel&gt;</code>去填充整个stack view.</p>
+
+<p>你可以完成这个通过把<code>WEATHER</code>嵌套进一个垂直的stack view中，记住垂直stackview可以设置alignment为 .Leading,假如stack view是拉伸的超出了它固有的边界，它包含的子视图将会到达它的边界。</p>
+
+<p>选择<code>WEATHER</code>标签通过document outline，或者通过<code>Control-Shift-click</code>方法:
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/45-select-just-the-weather-label_640x92.png" alt="logo" /></p>
+
+<p>点击 stack按钮:
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/46-weather-in-horizontal-stack_640x92.png" alt="lgo" /></p>
+
+<p>设置Alignment为Leading,然后确保axis是垂直方向:
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/47-vertical-and-leading_640x92.png" alt="log" /></p>
+
+<p>完美！你已经完成了外部的stackview平铺，在嵌套的stackView中去填充它的宽度，但是内部的stackview允许这个标签去保持它原有的宽度。</p>
+
+<p>编译运行，为什么hide按钮现在飘到上面去了呢？
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/48-hide-label-incorrect-position_750x573-419x320.png" alt="dlo" /></p>
+
+<p>它是因为当你嵌套<code>WEATHER</code>标签到一个stackview中时，它的所有和hide按钮相关的约束都被移除掉了。</p>
+
+<p>现在你需要给hide按钮和<code>WEATHER</code>标签之间增加新的约束,按住<code>control-drag</code>从Hide按钮拖向<code>WEATHER</code>标签:
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/49-drag-to-weather-label_380x94.png" alt="logo" /></p>
+
+<p>添加两个约束:</p>
+
+<ol>
+<li>Horizontal Spacing</li>
+<li>Baseline</li>
+</ol>
+
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/50-add-multiple-constraints_380x224.png" alt="logo" />
+编译运行，这个Hide按钮看起来正常了。</p>
+
+<p>现在所有的模块都是在唯一的stackview中了，你把他们全部都嵌套进了stackview中。</p>
+
+<h2>设置第一级Stack view</h2>
+
+<p>点击 <code>command</code> 然后选择所有的5个顶级的stackview在 outline view中
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/52-select-all-stack-views-in-outline_640x260.png" alt="log" /></p>
+
+<p>然后点击stack按钮：
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/53-stack-all-the-views_640x185.png" alt="lgo" /></p>
+
+<p>点击Pin按钮，设置约束属性:
+全部都设置成0.然后设置Spacing为20, Alignment为Fill,你的storyboard看起来像是这样:
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/54-set-the-spacing-to-20-and-alignment-to-fill_640x300.png" alt="g" /></p>
+
+<p>编译运行，此时你的 hide按钮又跑偏了，和之前设置的一样，需要把hide和<code>WEATHER</code>重新建立约束:
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/56-add-constraints-to-button-again_380x223.png" alt="d" /></p>
+
+<p>编译运行，此时hide按钮在正确的位置上了。</p>
+
+<h2>重新布局视图</h2>
+
+<p>现在所有的的模块都在顶级的stackview中，你现在可以更改<code>what to see</code>模块的位置，比如和<code>weather</code>模块的位置进行互换。</p>
+
+<p>选择<code>middle stack view</code>从outline view然后拖拽它和weather的那个stackview进行互换，
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/57-drag-and-drop-to-reposition-section_639x130.png" alt="log" /></p>
+
+<p>此时，<code>weather</code>模块是第三个模块，但是这个 hide按钮不是在stackview中，它不会被移动。</p>
+
+<p>选中 Hide按钮 :
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/58-hide-button-not-moved_640x130.png" alt="logo" />
+然后点击<code>Resolve Auto Layout Issues</code>在自动布局的菜单上点击 update frame:
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/59-resolve-auto-layout-issues_356x269.png" alt="logo" /></p>
+
+<h2>Size class based configuration</h2>
+
+<p>最后，你能把你注意力集中到之前的任务清单上，在加载模式中，垂直空间是昂贵的，所以你想让stackview中的模块靠近些，为了做到这些，你将要使用size classes去设置顶部stackview的空间从20修改成10.</p>
+
+<p>选中顶部的stackview然后点击小小的<code>+</code>号，设置spacing:</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/61-select-plus-button_260x120.png" alt="log" /></p>
+
+<p>选择 Any Width > Compact Height:</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/62-anywidth-compact-height_403x108.png" alt="lgo" /></p>
+
+<p>然后设置Spacing 为10,在 new wAny hC文本框中:
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/63-set-spacing-to-10_260x160.png" alt="lgo" /></p>
+
+<h2>动画</h2>
+
+<p>打开SpotInfoViewController.swift文件，然后找到<code>updateWeatherInfoViews(hideWeatherInfo:animated:).</code>方法</p>
+
+<p>你将要替换这一行代码:</p>
+
+<pre><code>weatherInfoLabel.hidden = shouldHideWeatherInfo
+</code></pre>
+
+<p>改成如下:</p>
+
+<pre><code>if animated {
+  UIView.animateWithDuration(0.3) {
+    self.weatherInfoLabel.hidden = shouldHideWeatherInfo
+  }
+} else {
+  weatherInfoLabel.hidden = shouldHideWeatherInfo
+}
+</code></pre>
+
+<p>编译运行，点击<code>hide</code>和<code>show</code>按钮，会不会感觉出来有点动画效果呢?</p>
+
+<p>在stackview中增加动画效果也是很容易的，比如hidden, alignment, distribution, spacing，甚至axis。</p>
+
+<h2>完整工程下载</h2>
+
+<p>你可以下载完整的工程 <a href="http://www.raywenderlich.com/wp-content/uploads/2015/09/VacationSpots_Complete.zip">完整工程</a></p>
+
+<p>希望能够帮到你~</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[UIStackView介绍]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/04/04/uistackviewjie-shao/"/>
+    <updated>2016-04-04T15:47:37+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/04/04/uistackviewjie-shao</id>
+    <content type="html"><![CDATA[<p>UIStackView类提供了一个高效的接口用于平铺一行或一列的视图组合.Stack视图使你的依靠自动布局的能力，创建用户接口使得可以动态的调整设备的朝向，屏幕尺寸以及任何可用范围内的变化。Stack视图管理着所有它的 arrageedSubviews属性中视图的布局，这些视图根据它们在arrangedSubviews数组中的顺序沿着stack视图的轴向排列，精确的布局变量根据Stack视图的 axixs,distribution,allignment,spcing,和其它属性决定。</p>
+
+<!--more-->
+
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/130054395519774.png" alt="logo" /></p>
+
+<p>使用 Stack视图，打开一个你希望编辑的storyboard,从对象库中拖出一个Horizontal Stack View或者Vertical Stack View,并放置到你希望的位置上，下一步，将控件或视图拖拽到stack中，如果需要你可以继续添加视图或者控件给指定的statck.Interface buider将根据stack内容自动调节尺寸，你可以通过修改尚需经面板中stack视图的属性调整statck的外观.</p>
+
+<h2>Stack视图与自动布局</h2>
+
+<p>Stack视图使用自动布局来定位和控制其管理的视图的尺寸，stack视图沿着它的轴向拼凑第一个和最后一个被管理的视图，使其便捷平齐。对一个月水平stack视图，这意味着第一个被管理的视图的左边界是与stack的左边界对齐的，并且最后一个被管理的视图右边界与stack右边界是平齐的。对于垂直stack,上边界和下边界格式对齐的。如果你设置了stack视图的 <code>layoutMarginsRelativeArrangement</code>为YES,stack视图将使用相关的边距与其内容对齐，而不是边界。</p>
+
+<p>对于除去<code>UIStackViewDistributionFillEqually</code>分布以外的分布方式，stack视图使用被管理视图的<code>intrinsicContentSize</code>属性来计算沿着stack轴向的视图尺寸，<code>UIStackViewDistributionFillEqually</code>分布将调节所有被管理视图的在stack轴向上拥有相同尺寸，以填充stack视图。如果可能，stack视图将拉伸所有被管理的视图，来匹配其在stack轴向上最长的原有尺寸。</p>
+
+<p>对于除去<code>UIStackViewAlignmentFill</code>对齐以外的对齐方式，stack视图使用其管理的视图的<code>intrinsicContentSize</code>属性来计算视图垂直于stack轴向的尺寸。<code>UIStackViewAlignmentFill</code>重新调节了所有其管理的视图，使这些视图填充stack视图垂直于其轴向空间。如果可能，stack视图将拉伸所有管理的视图来匹配其垂直于stack轴向的最大固有尺寸。</p>
+
+<h2>定位和调整Stack视图尺寸</h2>
+
+<p>当stack视图允许你布局其内容而不直接使用自动布局，你将仍然需要使用自动布局来定位stack视图，通常情况下，这意味着需要皮凑至少两个边界相邻的stack来定义它的位置，没有额外约束的情况下，系统会为stack视图计算一个尺寸来适应其内容:</p>
+
+<ul>
+<li>沿着stack视图轴向，其适应尺寸等于其管理的视图尺寸与间距的和</li>
+<li>垂直于stack视图轴向，其适应尺寸等于其管理的视图中最大视图的尺寸</li>
+<li>如果stack视图的<code>layoutMarginsRelativeArrangement</code>为YES,stack视图的适应尺寸会包括边距空间</li>
+</ul>
+
+
+<p>你可以提供额外的约束来具体说明stack视图的高度，宽度或者两者兼有，在这些情况下，stack视图调整了其管理的视图的布局和尺寸来填充指定区域。精确的布局变量根据stack视图的属性获得。可以通过查看<code>UIStackViewDistribution</code>和<code>UIStackViewAlignment</code>枚举，已获得一个完整的stack视图。</p>
+
+<p>你也可以根据stack视图的第一条或最后一条基线定位它，而不是使用顶部，底部或者中心Y值，类似于stack视图的适应尺寸，这些基线都是基于stack视图的内容计算得到的</p>
+
+<ul>
+<li><p>一个水平的stack视图调用 <code>viewForFirstBaselineLayout</code>方法或者 <code>viewForLastBaselineLayout</code>方法时返回它最高的视图。如果最高的视图也是一个stack视图，那么其返回的将是在嵌套的stack视图上调用<code>viewForFirstBaselineLayout</code>方法或者<code>viewForLastBaselineLayout</code>方法的结果。</p></li>
+<li><p>一个垂直的stack视图当调用 <code>viewForFirstBaselineLayout</code>方法时返回的是其管理的第一个视图，当调用<code>viewForLastBaselineLayout</code>方法时返回的是其管理的最后一个视图。如果这两个视图之一也是stack视图，那么其返回的将是在嵌套的stack视图上对应调用<code>viewForFirstBaselineLayout</code>方法或<code>viewForLastBaselineLayout</code>方法的结果。</p></li>
+</ul>
+
+
+<blockquote><p><em>注意</em>
+基线对齐方式只作用于那些高度匹配其原本内容高度的视图，如果视图被拉伸或压缩过，那么基线将出现在错误的位置上。</p></blockquote>
+
+<h2>通过Stack视图布局</h2>
+
+<p>这有一些通用方法用于stack视图。这个清单是要高亮一些有用的实例来显示 stack视图的灵活性，目前这还不是一个完整的清单。</p>
+
+<ul>
+<li>只是定义位置. 你可以通过固定两个与其父视图相邻的边界来定义stack视图的位置。在这里，stack视图的尺寸将根据其管理的视图在两个维度上自由扩展。</li>
+</ul>
+
+
+<p>举个例子，在Figure 1中，stack视图的左边界和上边界都已经相对固定于其父视图。这些标签将根据带有8个点的两者之间的空间作为第一基准线。这对于相对于其本身左对齐的stack视图内容是有效的。</p>
+
+<p>Figure1定义位置
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/140040561762600.png" alt="logo" /></p>
+
+<ul>
+<li>定义沿着 stack视图轴向的尺寸。这里，你固定了沿着stack视图轴向相对于其父视图的两个边界，定义了stack视图沿着其轴向的尺寸。你将需要固定其它边界中的一个来定义stack视图的位置。stack视图将沿着其轴向改变尺寸和位置来填充定义的空间:然而，未固定的边界将根据其管理的最大视图的尺寸自动移动。</li>
+</ul>
+
+
+<p>举例Figure 2,stack视图的左，上，右边界都已经相对于其父视图固定了。使用<code>UIStackViewDistributionFill</code>分布是的其内容重设尺寸来填充它的高度，并且从文本框有比标签更低的内容紧凑优先级开始，它将在必要的时候被拉伸。</p>
+
+<p>Figure2定义沿着stack视图轴向的尺寸</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/140059516762099.png" alt="logo" /></p>
+
+<ul>
+<li>定义垂直于stack视图轴向的尺寸。这类似于上一个实例，但是你固定了垂直于stack视图轴向的连个边界和沿着轴向的一个边界。这使得stack视图在你增加或移除其管理的视图时将沿着其轴向扩展或回缩。除非你使用了
+<code>UIStackViewDistributionFillEqually</code>分布，被管理的视图将跟根据其原有尺寸调节尺寸。垂直于其轴向的视图将根据其stack视图的对齐模式在其定义的范围内平铺。</li>
+</ul>
+
+
+<p>举例，Figure3展示了一个包含了四个标签和一个按钮的垂直stack视图。这个stack视图使用了8个点的间隙和<code>UIStackViewAlignmentCenter</code>对齐方式。stack视图的高度将根据stack内部元素的增减而增大或回缩。</p>
+
+<p>FIgure3.定义垂直于stack视图轴向的尺寸
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/140110013482874.png" alt="logo" /></p>
+
+<ul>
+<li>同时定义stack视图的位置和尺寸。这里你固定了stack视图的所有四个边界。stack视图将在提供的范围之内平铺其内容，举例，Figure4展示了一个所有四个边界都相对于其父视图固定的垂直stack视图。通过使用<code>UIStackViewAlignmentCenter</code>对齐方式和<code>UIStackViewDistributionFill</code>分布方式，stack视图确保其内容将水平和垂直居中填充屏幕，然后，获得想要的布局需要两个额外的步骤，默认情况下，stack视图会垂直拉伸标签而不是图片，要缩放图片控件，就要降低其内容紧凑优先级到低于标签，额外的，为了保持图片缩放时的长宽比，你必须设置图片视图的模式为 Aspect Fit.增加一个图片视图月stack视图间相等约束将有助于确保图片将被缩放来填充可用范围。</li>
+</ul>
+
+
+<p>Figure 4.同时定义stack视图的位置和尺寸
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/140122324105787.png" alt="logog" /></p>
+
+<h2>管理stack视图的展现</h2>
+
+<p>UistackView是UIview的非渲染型子类。它没提供其自由的任何用户接口，相反地，它只管理被其管理的视图的位置和尺寸。因此，有些属性(如backgroundCOlor)在stack视图上是无效的。类似的，你无法重写layerClass,drawRect等方法。</p>
+
+<p>这里有一系列的属性来定义stack视图如何平铺其内容。</p>
+
+<ul>
+<li>axis(轴向)属性决定了stack的朝向，只有垂直和水平</li>
+<li>distributin(分布)属性决定了其管理的视图在沿着其轴向上的布局</li>
+<li>alignment(对齐)属性决定了其管理的视图在垂直于其轴向上的布局</li>
+<li>spacing(空隙)属性决定了其管理的视图间的最小间隙</li>
+<li>baselineRelativeArragement 属性决定了其视图间的垂直间隙是否根据基线测量得到</li>
+<li>layoutMarginsRelativeArrangement 属性决定了 stack 视图平铺其管理的视图时是否要参照它的布局边距</li>
+</ul>
+
+
+<p>通常情况下，你会使用一个stack视图来布局小数量的视图，你可以通过在其他stack视图上嵌套多个stack视图的方式创建更加复杂的视图层次结构。举例：Figure5展示乐意个包含两个水平stack视图的垂直stack视图。每一个水平stack视图各包含一个标签和一个文本框.</p>
+
+<p>Figure 5.Stack 视图的嵌套
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/140146204108925.png" alt="logo" /></p>
+
+<p>你也可以通过增加被管理的视图的额外约束来完备的吊接一个被管理视图的展现，举例说明，你可以使用约束类设置视图的最小或最大的高度或宽度，或者你可以定义一个长宽比。当平铺其内容时，stack视图将使用这些约束。举例来说，在Figure4中，当图片被压缩时，图片视图的一个长宽比约束被强行赋予了一个长宽比数。</p>
+
+<blockquote><p><strong>注意</strong>
+当给一个stack视图内的视图增加约束时要特别注意避免传入冲突，作为惯例，如果一个视图的尺寸在一个指定的维度上默认回到其原本内容的尺寸，那么你可以安全的在这个维度上增加约束</p></blockquote>
+
+<h2>维护其惯例的视图与子视图之间的统一性</h2>
+
+<p>Stack视图确保它的arragedSubveiws属性将一直是其 subviews属性的子集合。明确的说，stack视图强制实施了以下规定:</p>
+
+<ul>
+<li>无论何时stack视图增加了一个视图到它的arrangedSubviews数组，其也将把这个视图作为子视图增加，如果还未增加的话。</li>
+<li>无论何时一个子视图从stack视图中移除，那么stack视图也将从从arrangedSubviews数组中移除.</li>
+<li>从arrangedSubviews移除一个视图并不会将其作为姿势图移除。stack视图将不再管理改视图的尺寸和位置，但是该视图扔将是视图结构的一部分，并且当其可见的狂下仍会被渲染到屏幕上。</li>
+</ul>
+
+
+<p>当arrangedSubviews数组一直包含着subviews数组的自己和，这些数组间的顺序仍然是独立的。</p>
+
+<ul>
+<li>arrangedSubviews数组的顺序定义了展现在stack中的视图的顺序。对于水平stack视图，这些视图将以阅读顺序平铺，即最小索引的视图在较大索引视图的左侧。对于垂直stack视图，这些视图是从上到下平铺的，及较小索引的视图在较大索引视图的上方。</li>
+<li>subviews数组中的顺序定义了子视图在z轴上的顺序。如果视图重叠，有较小索引的子视图将出现在有家多音的子视图后方。</li>
+</ul>
+
+
+<h2>动态改变stack视图内容</h2>
+
+<p>当视图被加入，移除或插入arrangedSubviews数组时，或当一个被管理的子视图的hidden属性改变时，stack视图都会自动更新它的布局。</p>
+
+<p>Oc代码如下:</p>
+
+<pre><code>// Appears to remove the first arranged view from the stack.
+// The view is still inside the stack, it's just no longer visible, and no longer contributes to the layout.
+UIView * firstView = self.stackView.arrangedSubviews[0];
+firstView.hidden = YES;
+</code></pre>
+
+<p>swift代码如下:</p>
+
+<pre><code>// Appears to remove the first arranged view from the stack.
+// The view is still inside the stack, it's just no longer visible, and no longer contributes to the layout.
+let firstView = stackView.arrangedSubviews[0]
+firstView.hidden = true
+</code></pre>
+
+<p>stack视图也会自动响应其任何属性的改变。举例，你可以更新stack视图的axis属性来动态改变朝向</p>
+
+<p>OC代码如下:</p>
+
+<pre><code>// Toggle between a vertical and horizontal stack
+if (self.stackView.axis == UILayoutConstraintAxisHorizontal) {
+    self.stackView.axis = UILayoutConstraintAxisVertical;
+}else {
+    self.stackView.axis = UILayoutConstraintAxisHorizontal;
+}
+</code></pre>
+
+<p>Swift代码如下:</p>
+
+<pre><code>// Toggle between a vertical and horizontal stack
+if stackView.axis == .Horizontal {
+    stackView.axis = .Vertical
+}else {
+    stackView.axis = .Horizontal
+}
+</code></pre>
+
+<p>对于被管理的子视图的hidden属性的变化和stack视图属性的变化，你可以通过将这些改变内置到一个动画块代码的方式以动画的方式展现。</p>
+
+<p>OC代码如下:</p>
+
+<pre><code>// Animates removing the first item in the stack.
+[UIView animateWithDuration:0.25 animations:^{
+    UIView * firstView = self.stackView.arrangedSubviews[0];
+    firstView.hidden = YES;
+}];
+</code></pre>
+
+<p>Swift代码如下:</p>
+
+<pre><code>// Animates removing the first item in the stack.
+UIView.animateWithDuration(0.25) { () -&gt; Void in
+    let firstView = stackView.arrangedSubviews[0]
+    firstView.hidden = true}
+</code></pre>
+
+<h2>常用方法</h2>
+
+<h3>创建Stack视图</h3>
+
+<pre><code>- initWithArrangedSubviews:  (New in iOS 9.0)
+</code></pre>
+
+<h3>管理安排的子视图</h3>
+
+<pre><code>- addArrangedSubview: (New in iOS 9.0)
+  arrangedSubviews Property (New in iOS 9.0)
+- insertArrangedSubview:atIndex: (New in iOS 9.0)
+- removeArrangedSubview: (New in iOS 9.0)
+</code></pre>
+
+<h3>设置布局</h3>
+
+<pre><code>alignment Property  (New in iOS 9.0)
+axis Property  (New in iOS 9.0)
+baselineRelativeArrangement Property  (New in iOS 9.0)
+distribution Property  (New in iOS 9.0)
+layoutMarginsRelativeArrangement Property  (New in iOS 9.0)
+spacing Property  (New in iOS 9.0)
+</code></pre>
+
+<h3>常量</h3>
+
+<pre><code>UIStackViewDistribution
+UIStackViewAlignment
+</code></pre>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Swift-泛型]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/03/24/swift-fan-xing/"/>
+    <updated>2016-03-24T10:11:56+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/03/24/swift-fan-xing</id>
+    <content type="html"><![CDATA[<p>泛型代码可以让你编写使用自定义需求以及任意类型的灵活可冲中的函数和类型，它可以让你避免重复的代码，用一种清晰和抽象的方式来表达代码的意图。</p>
+
+<!--more-->
+
+
+<p>泛型是swift的强大特性之一，许多swift标准库是通过泛型代码构建的。事实上，泛型的使用贯穿饿了正本语言手册，只是你可能没有发现而已。例如,swift的<code>Array</code>和<code>Dictionary</code>都是泛型集合。你可以创建一个<code>Int</code>数组，也可以创建一个<code>String</code>数组，甚至可以是任意其它Swift类型的数组。同样的，你也可以创建存储任意指定类型的字典。</p>
+
+<h2>泛型所解决的问题</h2>
+
+<p>下面是一个标准的非泛型函数 <code>swapTwoInts(_:_:)</code>，用来交换两个<code>Int</code>值:</p>
+
+<pre><code>func swapTwoInts(inout a: Int, inout _ b: Int) {
+    let temporaryA = a
+    a = b
+    b = temporaryA
+}
+</code></pre>
+
+<p>这个函数使用输入输出函数(<code>inout</code>)来交换<code>a</code>和<code>b</code>的值。</p>
+
+<p><code>swapTwoInts(_:_:)</code>函数交换<code>b</code>的原始值到<code>a</code>,并交换<code>a</code>的原始值到<code>b</code>,你可以调用这个函数交换两个<code>Int</code>变量的值:</p>
+
+<pre><code>var someInt = 3
+var anotherInt = 107
+swapTwoInts(&amp;someInt, &amp;anotherInt)
+print("someInt is now \(someInt), and anotherInt is now \(anotherInt)")
+// 打印 “someInt is now 107, and anotherInt is now 3”
+</code></pre>
+
+<p>诚然，<code>swapTwoInts(_:_:)</code>函数挺有用，但是它只能交换<code>Int</code>值，如果你想要交换两个<code>String</code>值或者<code>Double</code>值，就不能不写更多的函数，例如<code>swapTwoStrings(_:_:)</code>和<code>swapTwoDoubles(_:_:)</code>,如下所示:</p>
+
+<pre><code>func swapTwoStrings(inout a: String, inout _ b: String) {
+    let temporaryA = a
+    a = b
+    b = temporaryA
+}
+
+func swapTwoDoubles(inout a: Double, inout _ b: Double) {
+    let temporaryA = a
+    a = b
+    b = temporaryA
+}
+</code></pre>
+
+<p>你可能注意到<code>swapTwoInts(_:_:) 和 swapTwoDoubles(_:_:)</code>,的函数功能都是相同的，唯一不同之处就在于传入的变量类型不同，分别是 int,String,Double.</p>
+
+<p>在实际的应用中，通常需要一个更实用更灵活的函数来交换两个任意类型的值，幸运的是，泛型代码帮你解决了这种问题。</p>
+
+<blockquote><p><em>注意</em>
+在上面的三个函数中，<code>a</code>和<code>b</code>类型相同，如果<code>a</code>和<code>b</code>类型不同，那他们俩就不能交换值。Swift是类型安全的语言，所以不会允许一个<code>String</code>类型的变量和一个<code>Double</code>类型的变量互换值。视图这样做将导致编译错误。</p></blockquote>
+
+<h2>泛型函数</h2>
+
+<p>泛型函数可以适用于任何类型，下面的<code>swapTwoValues(_:_:)</code>函数是上面三个函数的泛型版本:</p>
+
+<pre><code>func swapTwoValues&lt;T&gt;(inout a:T,inout _ b:T){
+ let temporaryA=a;
+ a=b;
+ b= temporaryA;
+}
+</code></pre>
+
+<p><code>swapTwoValues(_:_:)</code>的函数主体和<code>swapTwoInts(_:_:)</code>函数是一样的。他们只在第一行有所不同，如下所示:</p>
+
+<pre><code>func swapTwoInts(inout a: Int, inout _ b: Int)
+func swapTwoValues&lt;T&gt;(inout a: T, inout _ b: T)
+</code></pre>
+
+<p>这个函数的泛型版本使用了占位类型名(在这里用字母<code>T</code>来表示)来代替实际的类型名(例如<code>Int</code>,<code>String</code>或者<code>Double</code>).占位类型名没有指明<code>T</code>必须是什么类型，但是它指明了<code>a</code>和<code>b</code>必须是同一类型<code>T</code>,而不论<code>T</code>代表什么类型，只有<code>swapTwoValues(_:_:)</code>函数在调用时，才能根据所传入的实际类型决定<code>T</code>所代表的类型。</p>
+
+<p>另外一个不同之处在于这个泛型函数名后面跟着占位类型名(T),而且使用尖括号括起来的(<code>&lt;T&gt;</code>).这个尖括号告诉Swift那个<code>T</code>是<code>swapTwoValues(_:_:)</code>函数定义的一个占位类型名，因此swift不会去查找名为<code>T</code>的实际类型。</p>
+
+<p>swapTwoValues(<em>:</em>:) 函数现在可以像 swapTwoInts(<em>:</em>:) 那样调用，可以传入任意类型的值，只要两个值的类型相同。<code>swapTwoValues(_:_:)</code>函数调用时，<code>T</code>所代表的类型都会由传入的值的类型判断出来.</p>
+
+<p>在下面的两个例子中，<code>T</code>分别代表<code>Int</code>和<code>String</code></p>
+
+<pre><code>var someInt = 3
+var anotherInt = 107
+swapTwoValues(&amp;someInt, &amp;anotherInt)
+// someInt is now 107, and anotherInt is now 3
+
+var someString = "hello"
+var anotherString = "world"
+swapTwoValues(&amp;someString, &amp;anotherString)
+// someString is now "world", and anotherString is now "hello"
+</code></pre>
+
+<h2>类型参数</h2>
+
+<p>在上面的<code>swapTwoValues(_:_:)</code>例子中，占位类型<code>T</code>是类型参数的一个例子。类型参数指定并命名一个占位类型，并且紧随在函数名后面，使用一对尖括号括起来(<T>).</p>
+
+<p>一旦一个类型参数被指定，你可以用它来定义一个函数的参数类型，或者作为函数的返回类型，还可以用作函数主题中的注释类型。在这些情况下，类型参数在函数调用时被实际类型所代替。</p>
+
+<h2>命名类型参数</h2>
+
+<p>在大多数情况下，类型参数具有一个描述性名字，例如<code>Dictionary&lt;Key,Value&gt;</code>中的key和value,以及<code>Array&lt;Element&gt;</code>中的<code>Element</code>，这可以告诉阅读代码的人这些类型参数和泛型函数之间的关系。然而，当他们之间的关系没有意义时，通常使用单一的字母来命名，例如<code>T</code>,<code>U</code>,<code>V</code>，正如上面演示的<code>swapTwoValues(_:_:)</code>函数中的<code>T</code>一样.</p>
+
+<h2>泛型类型</h2>
+
+<p>除了泛型函数，Swift还允许你定义泛型类型。这些自定义类，结构体和枚举可以适用于任何类型，如同<code>Array</code>和<code>Dictionary</code>的用法。</p>
+
+<p>这部分内容将向你展示如何编写一个名为<code>stack</code>（栈）的泛型集合类型。栈是一系列值的有序集合，如<code>Array</code>类型，但它比Swift的array类型有更多的操作限制。数组允许对其中任意位置的元素执行插入或删除操作。而栈，只允许在集合的末端添加新的元素，称为入栈。同样滴，栈也只能从末端移除元素。</p>
+
+<p>下面展示了一个如何编写一个非泛型版本的栈，在这种情况下是<code>Int</code>型的栈.</p>
+
+<pre><code>struct IntStack {
+    var items=[Int]()
+
+    mutating func push(item:Int){
+        items.append(item);
+    }
+
+    mutating func pop()-&gt;Int{
+        return items.removeLast();
+    }
+}
+</code></pre>
+
+<p>这个结构体在栈中使用一个名为<code>items</code>的<code>array</code>属性来存储值。<code>Stack</code>提供了两个方法:<code>push(_:)</code>和<code>pop()</code>，用来向栈中压入值以及从栈中移除值。这些方法被标记为<code>mutating</code>，因为他们需要修改结构体的<code>items</code>数组。</p>
+
+<p>上面的<code>IntStack</code>结构体只能用于Int类型，不过可以定义一个泛型的<code>Stack</code>结构体，从而能够处理任意类型的值。</p>
+
+<p>下面是相同代码的泛型版本:</p>
+
+<pre><code>struct Stack&lt;Element&gt; {
+    var items=[Element]();
+
+    mutating func push(item:Element){
+        items.append(item);
+    }
+
+    mutating func pop()-&gt;Element{
+        return items.removeLast();
+    }
+
+}
+</code></pre>
+
+<p>注意，<code>Stack</code>基本上和<code>IntStack</code>相同，只是占位类型参数<code>Element</code>代替了实际的<code>Int</code>类型。这种类型参数包裹在一对尖括号里(<code>&lt;Element&gt;</code>)，紧跟在结构体名后面、</p>
+
+<p><code>Element</code>为尚未提供的类型定义了一个占位名。这种尚未提供的类型可以在结构体定义中通过<code>Element</code>来引用。在这种情况下，<code>Element</code>在如下三个地方被用作占位符:</p>
+
+<ul>
+<li>创建 items 属性，使用<code>Element</code>类型的空数组进行初始化</li>
+<li>执行<code>psh(_:)</code>方法的单一参数<code>item</code>的类型必须是<code>Element</code>类型</li>
+<li>指定<code>pop()</code>方法的返回值类型必须是<code>Element</code>类型.</li>
+</ul>
+
+
+<p>由于<code>stack</code>是泛型类型，因此可以用来创建Swift中任意有效类型的栈，如同<code>Array</code>和<code>Dictionary</code>.</p>
+
+<p>你可以通过在尖括号中写出栈中需要存储的数据类型来创建并初始化一个<code>Stack</code>实例。例如，要创建一个<code>String</code>类型的栈，可以写成<code>Stack&lt;String&gt;</code>：</p>
+
+<pre><code>var stackOfStrings = Stack&lt;String&gt;()
+stackOfStrings.push("uno")
+stackOfStrings.push("dos")
+stackOfStrings.push("tres")
+stackOfStrings.push("cuatro")
+// 栈中现在有 4 个字符串
+</code></pre>
+
+<p>移除并返回栈顶部的值</p>
+
+<pre><code>let fromTheTop = stackOfStrings.pop()
+// fromTheTop 的值为 "cuatro"，现在栈中还有 3 个字符串
+</code></pre>
+
+<h2>扩展一个泛型类型</h2>
+
+<p>当你扩展一个泛型类型的时候，你并不需要在扩展的定义中提供类型的参数列表。更加方便的是，原始类型定义中声明的类型参数列表在扩展中可以直接使用，并且这些来自原始类型中的参数名称会被用作原始定义中类型参数的引用。</p>
+
+<p>下面的例子扩展了泛型类型<code>Stack</code>，为其添加了一个名为<code>topItem</code>的只读计算型属性，它将会返回当前栈顶端的元素而不会将其从栈中移除:</p>
+
+<pre><code>extension Stack{
+    var topItem:Element?{
+        return items.isEmpty ? nil:items[items.count];
+    }
+}
+</code></pre>
+
+<p><code>topItem</code>属性会返回一个<code>Element</code>类型的可选值。当栈为空的时候，<code>topItem</code>会返回<code>nil</code>;当栈不为空的时候，<code>topItem</code>会返回<code>nil</code>;当栈不为空的时候，<code>topItem</code>会返回<code>items</code>数组中的最后一个元素.</p>
+
+<p>注意，这个扩展并没有定义一个类型参数列表。相反地，<code>Stack</code>类型已有的类型参数名<code>Element</code>，被用在扩展中表示计算型属性<code>topItem</code>的可选类型，<code>topItem</code>现在可以用来访问任意<code>Stack</code>实例的顶端元素而不是移除它</p>
+
+<pre><code>if let topItem = stackOfStrings.topItem {
+    print("The top item on the stack is \(topItem).")
+}
+// 打印 “The top item on the stack is tres.”
+</code></pre>
+
+<h2>类型约束</h2>
+
+<p><code>swapTwoValues(_:_:)</code>函数和<code>Stack</code>类型可以作用于任何类型。不过，有的时候如果能将使用在泛型函数和泛型类型中的类型，强制约束为某种特定类型，将会是非常有用的。类型约束可以指定一个类型参数必须集成自特定类，或者符合一个特定的协议或者协议组合。</p>
+
+<p>例如,Swift的<code>Dictionary</code>类型对字典的键的类型做了限制，在字典的描述中，字典的键必须是可哈希的。也就是说，必须有一种方法能作为其唯一的表示。<code>Dictionary</code>之所以需要其键是可哈希的，是为了便于检查字典是否已经包含了某个特定键的值。如无此要求，Dictionary将无法判断是否可以插入或者替换某个指定键的值，也不能查找到已经存储在字典中指定键的值。</p>
+
+<p>这个要求强制加上了一个类型约束作用域<code>Dictionary</code>的键类型上，其键类型必须符合<code>Hashable</code>协议，这是swift标准库中定义的一个特定协议。所有的swfit基本类型(String,Int,Double)默认都是可哈希的。</p>
+
+<p>当你创建自定义反省类型时，你可以定义你自己的类型约束，这些约束将提供更为强大的泛型编程能力。抽象概念，例如可哈希的。</p>
+
+<h2>类型约束语法</h2>
+
+<p>你可以在一个类型参数名后面放置一个类名或者协议名，通过冒号分割，从而定义类型约束，它们将作为类型参数列表的一部分。这种基本的类型约束作用于泛型函数时的语法如下：</p>
+
+<pre><code>func someFunction&lt;T: SomeClass, U: SomeProtocol&gt;(someT: T, someU: U) {
+    // 这里是泛型函数的函数体部分
+}
+</code></pre>
+
+<p>上面的这个函数有两个类型参数。第一个类型是参数<code>T</code>,有一个要求<code>T</code>必须是<code>SomeClass</code>自雷的类型约束；第二个类型参数<code>U</code>,有一个要求<code>U</code>必须符合<code>someProtocol</code>协议的类型约束.</p>
+
+<h2>类型约束实践</h2>
+
+<p>这里有个名为<code>findStringIndex</code>的非泛型函数，该函数的功能在<code>String</code>值的数组中查找指定<code>String</code>值的索引。弱查找到匹配的字符串，<code>findStringIndex(_:_:)</code>函数返回该字符串在数组中的索引值，反之则返回<code>nil</code>:</p>
+
+<pre><code>func findStringIndex(array: [String], _ valueToFind: String) -&gt; Int? {
+    for (index, value) in array.enumerate() {
+        if value == valueToFind {
+            return index
+        }
+    }
+    return nil
+}
+</code></pre>
+
+<p>该函数可以用于查找字符串数组中的某个字符串:</p>
+
+<pre><code>let strings = ["cat", "dog", "llama", "parakeet", "terrapin"]
+if let foundIndex = findStringIndex(strings, "llama") {
+    print("The index of llama is \(foundIndex)")
+}
+// 打印 “The index of llama is 2”
+</code></pre>
+
+<p>如果只能查找字符串在数组中的索引，用处不是很大，不过，你可以写出相同功能的泛型函数<code>findIndex(_:_:)</code>,用占位类型<code>T</code>代替<code>String</code>类型。</p>
+
+<p>下面展示了<code>findStringIndex(_:_:)</code>函数的泛型版本<code>findIndex(_:_:)</code>.请注意这个函数仍然返回<code>Int?</code>，那是因为函数返回的是一个可选的索引数，而不是从数组中得到一个可选值。需要提醒的是，这个函数无法通过编译，原因例子后面说明:</p>
+
+<pre><code>
+func findIndex&lt;T&gt;(array:[T], valueToField:T)-&gt;Int?{
+    for (index, value)in array.enumerate(){
+        if value == valueToField{
+            return index;
+        }
+    }
+
+    return nil;
+}
+</code></pre>
+
+<p>上面所写的函数无法通过编译。这个问题出在相等性检查上，即<code>if vlaue == valueToField</code>。不是所有的Swift类型都可以用等号(==)进行比较。例如，如果你创建一个你自己的类活结构体表示一个复杂的数据模型，那么Swift无法猜到对于这个类或者结构体而言 “相等”意味着什么。正因为如此，这部分代码无法保证适用于每个可能的类型<code>T</code>,当你试图编译这部分代码的时候会出现相应的错误。</p>
+
+<p>不过所有的这些并不会让我们无从下手。Swift标准库中定义了一个<code>Equatable</code>协议，该协议要求任何符合该协议的类型必须实现等式符号(==),从而对符合该协议的类型的任意两个值进行比较。所有的Swift标准类型自动支持Equatable协议。</p>
+
+<p>任何<code>Equatable</code>类型都可以安全地使用在<code>findIndex(_:_:)</code>函数中，因为其保证支持等式操作符。为了说明事实，当你定义一个函数时，你可以定义一个<code>Equatable</code>类型约束作为类型参数定义的一部分:</p>
+
+<pre><code>func findIndex&lt;T: Equatable&gt;(array: [T], _ valueToFind: T) -&gt; Int? {
+    for (index, value) in array.enumerate() {
+        if value == valueToFind {
+            return index
+        }
+    }
+    return nil
+}
+</code></pre>
+
+<p><code>findIndex(_:_:)</code>中的这个单一类型参数协作<code>T:Equatable</code>，也就意味着<code>任何符合Equatable</code>协议的<code>T</code>类型。</p>
+
+<p>findIndex函数现在可以成功编译了。并且可以作用于任何符合<code>Equatable</code>的类型，如<code>Double</code>或<code>String</code>:</p>
+
+<pre><code>let doubleIndex = findIndex([3.14159, 0.1, 0.25], 9.3)
+// doubleIndex 类型为 Int?，其值为 nil，因为 9.3 不在数组中
+let stringIndex = findIndex(["Mike", "Malcolm", "Andrea"], "Andrea")
+// stringIndex 类型为 Int?，其值为 2
+</code></pre>
+
+<h2>关联类型</h2>
+
+<p>下面例子定义了一个<code>Container</code>协议，该协议定义了关联类型<code>ItemType</code>:</p>
+
+<pre><code>protocol Container{
+   typealias ItemType
+    mutating func append(item:ItemType)
+
+    var count:Int{get}
+
+    subscript(i:Int)-&gt;ItemType{get}
+}
+</code></pre>
+
+<p><code>Container</code>协议定义了三个任何采纳协议的类型必须提供的功能：</p>
+
+<ul>
+<li>必须可以通过<code>append</code>方法添加一个新元素到容器里。</li>
+<li>必须可以通过<code>count</code>属性获取容易中元素的数量，并返回一个Int</li>
+<li>必须可以通过接受<code>Int</code>索引值的下标检索到每一个元素</li>
+</ul>
+
+
+<p>这个协议没有指定容易中元素该如何存储，以及元素必须是何种类型。这个协议只指定了三个任何采纳<code>Container</code>协议的类型必须是提供的功能。采纳协议的类型在满足这三个条件的情况下也可以提供其他额外的功能。</p>
+
+<p>任何采纳<code>Container</code>协议的类型必须能够指定其存储的元素的类型，必须保证只有正确类型的元素可以加进容器中，必须明确通过其下标返回的元素类型。</p>
+
+<p>为了定义这三个条件，<code>Container</code>协议需要在不知道容易中元素具体类型的情况下引用这种类型。</p>
+
+<p><code>Container</code>协议声明了一个关联类型<code>ItemType</code>，协作<code>typealias Itemtype</code>.这个协议无法定义<code>ItemType</code>是什么类型的别名，这个信息将留给采纳协议的类型来提供。尽管如此，<code>ItemType</code>别名提供了一种方式来引用<code>Container</code>中元素的类型，并将之用于<code>append</code>方法和下标，从而保证任何<code>Container</code>的预期行为都能够被执行。</p>
+
+<p>下面采用复合<code>Container</code>协议:</p>
+
+<pre><code>struct IntStackContainer:Container {
+    var items:[Int]
+
+    mutating func push(item:Int){
+     items.append(item)
+    }
+
+    mutating func pop()-&gt;Int{
+        return items.removeLast();
+    }
+
+    //Container协议的实现部分
+    typealias ItemType=Int
+
+    mutating func append(item: ItemType) {
+        self.push(item)
+    }
+
+    var count:Int{
+      return items.count
+    }
+
+    subscript(i:Int)-&gt;Int{
+        return items[i];
+    }
+
+}
+</code></pre>
+
+<p><code>IntStackContainer</code>结构体实现了<code>Container</code>协议的三个要求，其原有功能也不会和这些要求冲突。</p>
+
+<p>此外，<code>IntStackContainer</code>指定 ItemType为Int类型，即<code>typealias ItemType = Int</code>，从而将<code>Container</code>协议中抽象的<code>ItemType</code>类型转为具体的<code>Int</code>类型。</p>
+
+<h2>通过扩展一个存在的类型来指定关联类型</h2>
+
+<p>Swift的<code>Array</code>已经提供了<code>append(_:_:)</code>方法，一个<code>count</code>属性，以及一个接受<code>Int</code>型索引值的可用来检索数组元素的下标。这三个功能都符合<code>Container</code>协议的要求，也就意味着你可以扩展<code>Array</code>去符合<code>Container</code>协议，只需简单滴声明<code>Array</code>采纳该协议即可。你可以通过一个空扩展来实现这点</p>
+
+<pre><code>extension Array:Container{}
+</code></pre>
+
+<p>如何上面的泛型<code>Stack</code>结构一样，array的<code>append(_:)</code>方法和下标确保了Swift可以推断出<code>ItemType</code>的类型，定义了这个扩展后，你可以将任意<code>Array</code>当做<code>Container</code>来使用</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Swift-可选链]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/03/22/swift-ke-xuan-lian/"/>
+    <updated>2016-03-22T09:35:29+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/03/22/swift-ke-xuan-lian</id>
+    <content type="html"><![CDATA[<p>可选链式调用(Optional Chaining)是一种可以在当前值可能为<code>nil</code>的可选值上请求和调用属性，方法及下标的方法。如果可选值有值，那么调用就会成功；如果可选值为nil,那么调用将返回<code>nil</code>.多个调用可以连接在一起形成一个链，如果其中任何一个点为<code>nil</code>,整个调用链就会失败，即返回nil.</p>
+
+<!--more-->
+
+
+<h2>使用可选链式调用代替强制展开</h2>
+
+<p>通过在想调用的属性，方法，下标的可选值后面放一个问号(?),可以定义一个可选链，这一点很像在可选值后面加一个(!)来强制展开它的值。它们的主要区别在于当可选值为空时，可选链式就会调用失败，然而强制展开就会触发运行时错误。</p>
+
+<p>为了反映可选链时调用可以在空值(nil)上调用的事实，不论这个调用的属性，方法及下标返回的值是不是可选值，它的返回结果都是一个可选值。你可以利用这个返回值来判断你的可选链时调用是否成功，如果调用有返回值则说明调用成功，返回 <code>nil</code>则说明调用失败。</p>
+
+<p>特别地，可选链式调用的返回结果与原本的返回结果具有相同的类型，但是被包装成一个可选值。例如，使用可选链式调用访问属性，当可选链式调用成功时，如果属性原本的返回结果是<code>Int</code>类型，则会变成<code>Int?</code>类型。</p>
+
+<p>下面几段代码将解释可选链式调用和强制展开的不同。</p>
+
+<p>首先定义两个类<code>Person</code>和<code>Residence</code></p>
+
+<pre><code>class Person {
+    var residence:Residence?
+}
+
+class Residence {
+    var numberOfRooms=1
+}
+</code></pre>
+
+<p><code>Residence</code>有一个<code>Int</code>类型的属性<code>numberOfRooms</code>,其默认是值是1，<code>Person</code>具有一个可选的<code>residence</code>属性，其类型为<code>Residence?</code></p>
+
+<p>如果创建一个新的<code>Person</code>实例，因为它的<code>residence</code>属性是可选的，<code>john</code>属性将初始化为<code>nil</code>:</p>
+
+<pre><code>let john=Person()
+</code></pre>
+
+<p>如果使用叹号(!)强制展开获得这个<code>john</code>的<code>Residence</code>属性中的<code>numberofRooms</code>值，会触发运行时错误，因为这时<code>residence</code>没有可以展开的值:</p>
+
+<pre><code>let roomCount = john.residence!.numberOfRooms
+// 这会引发运行时错误
+</code></pre>
+
+<p><code>john.residence</code>为非nil值的时候，上面的调用会成功，并且把<code>roomCount</code>设置为<code>Int</code>类型的房间数量，正如上面所提到的，当<code>residence</code>为<code>nil</code>的时候上面这段代码会触发运行时错误。</p>
+
+<p>可选链时调用提供了另一种访问<code>numberOfRooms</code>的方式，使用问号(?)来代替原来的叹号(!)</p>
+
+<pre><code>if let roomCount = john.residence?.numberOfRooms {
+    print("John's residence has \(roomCount) room(s).")
+} else {
+    print("Unable to retrieve the number of rooms.")
+}
+// 打印 “Unable to retrieve the number of rooms.”
+</code></pre>
+
+<p>在<code>residence</code>后面添加问号之后，Swift就会在<code>residence</code>不为nil的情况下访问<code>numberOfRooms</code>.</p>
+
+<p>因为访问<code>numberOfRooms</code>又看呢过失败，可选链式调用会返回<code>Int?</code>类型，或称为'可选的Int'。如上例所示，当<code>residence</code>为<code>nil</code>的时候，可选的<code>Int</code>将会为<code>nil</code>,表明无法访问<code>numberOfRooms</code>。访问成功时，可选的<code>Int</code>值会通过可选绑定展开，并复制给非可选类型的<code>roomCount</code>常量。</p>
+
+<p>要注意的是，及时<code>numberOfRooms</code>是非可选的<code>Int</code>时，这一点也成立。只要使用可选链式调用就意味着<code>numberOfRooms</code>会返回一个<code>Int?</code>而不是<code>Int</code>.</p>
+
+<p>可以将一个<code>Residence</code>的实例赋值给<code>john.residence</code>，这样它就不在是<code>nil</code>了:</p>
+
+<pre><code>john.residence=Residenc();
+</code></pre>
+
+<p>john.residence现在包含一个实际的<code>Residence</code>实例，而不再是<code>nil</code>.如果你试图使用先前的可选链式调用访问<code>numberOfRooms</code>，它现在将返回值为1的<code>Int?</code>类型的值:</p>
+
+<pre><code>if let roomCount = john.residence?.numberOfRooms {
+    print("John's residence has \(roomCount) room(s).")
+} else {
+    print("Unable to retrieve the number of rooms.")
+}
+// 打印 “John's residence has 1 room(s).”
+</code></pre>
+
+<h2>可选链式调用定义模型类</h2>
+
+<p>通过使用可选链式调用可以调用多层属性，方法和下标。这样可以在复杂的模型中向下访问各种子属性，并且判断能否访问子属性的属性，方法和下标。</p>
+
+<p>下面这段代码定义了四个模型类，这些例子包括多层可选链式调用。为了方便说明，在<code>person</code>和<code>Residence</code>的基础上增加了<code>Room</code>类和<code>Address</code>类，一级相关的属性，方法和下标.</p>
+
+<p><code>Person</code>类的定义基本保持不变:</p>
+
+<pre><code>class Person {
+    var residence: Residence?
+}
+</code></pre>
+
+<p>Residence类比之前复杂些。增加了一个名为<code>Rooms</code>的变量属性，该属性被初始化为<code>[Room]</code>类型的空数组:</p>
+
+<pre><code>class Residence {
+    var rooms = [Room]()
+    var numberOfRooms: Int {
+        return rooms.count
+    }
+    subscript(i: Int) -&gt; Room {
+        get {
+            return rooms[i]
+        }
+        set {
+            rooms[i] = newValue
+        }
+    }
+    func printNumberOfRooms() {
+        print("The number of rooms is \(numberOfRooms)")
+    }
+    var address: Address?
+}
+</code></pre>
+
+<p>现在<code>Residence</code>有了一个存储<code>Room</code>实例的数组，<code>numberOfRooms</code>属性被实现为计算型属性，而不是存储型属性。<code>numberOfRooms</code>属性简单地返回<code>Rooms</code>数组的count属性的值。。</p>
+
+<p>residence还提供了rooms数组的快捷方式，即提供可读写的下标来访问<code>rooms</code>数组中指定位置的元素。</p>
+
+<p>此外，<code>Residence</code>还提供了<code>printNUmberOfRooms()</code>方法，这个方法的作用是打印<code>numberOfRooms</code>的值。</p>
+
+<p>最后，<code>Residence</code>还定义了一个可选属性<code>address</code>,其类型为<code>Address?</code>.Address类的定义在下面会说明。</p>
+
+<p><code>Room</code>类是一个简单类，其实例被存储在<code>rooms</code>数组中。该类只包含一个属性<code>name</code>,以及一个用于将该属性设置为适当的房间名的初始化函数:</p>
+
+<pre><code>class Room {
+    let name: String
+    init(name: String) { self.name = name }
+}
+</code></pre>
+
+<p>最后一个类是<code>Address</code>,这个类有三个<code>String?</code>类型的可选属性，<code>buildingName</code>以及<code>buildingNuber</code>属性分别表示某个大厦的名称和号码，第三个属性<code>street</code>表示大厦所在街道的名称:</p>
+
+<pre><code>class Address {
+    var buildingName: String?
+    var buildingNumber: String?
+    var street: String?
+    func buildingIdentifier() -&gt; String? {
+        if buildingName != nil {
+            return buildingName
+        } else if buildingNumber != nil &amp;&amp; street != nil {
+            return "\(buildingNumber) \(street)"
+        } else {
+            return nil
+        }
+    }
+}
+</code></pre>
+
+<p><code>Address</code>类提供了<code>buildingIdentifier ()</code>方法，返回值为<code>String?</code>,如果<code>buildingName</code>有值则返回<code>buildingName</code>.或者，如果<code>buildingName</code>和<code>street</code>均有值则返回<code>buildingNumber</code>.否则，返回<code>nil</code>.</p>
+
+<h2>通过可选链式访问属性</h2>
+
+<p>下面的代码创建了一个<code>Person</code>实例，然后像志强一样，尝试访问<code>nubmerOfRooms</code>属性:</p>
+
+<pre><code>let john = Person()
+if let roomCount = john.residence?.numberOfRooms {
+    print("John's residence has \(roomCount) room(s).")
+} else {
+    print("Unable to retrieve the number of rooms.")
+}
+// 打印 “Unable to retrieve the number of rooms.”
+</code></pre>
+
+<p>因为<code>john.residence</code>为<code>nil</code>,所以这个可选链式调用依旧会像先前一样失败.</p>
+
+<p>还可以通过可选链式调用来设置属性的值:</p>
+
+<pre><code>let someAddress = Address()
+someAddress.buildingNumber = "29"
+someAddress.street = "Acacia Road"
+john.residence?.address = someAddress
+</code></pre>
+
+<p>在这个例子中，通过<code>john.residence</code>来设定<code>address</code>属性也会失败，因为<code>john.residence</code>当前为<code>nil</code>.</p>
+
+<p>上面代码中的赋值过程是可选链式调用的一部分，这意味着可选链式调用失败时，等号右侧的代码不会被执行。对于上面的代码来说，很难验证这一点，因为像这样赋值一个常量没有任何副作用。下面的代码完成了同样的适应，但是它使用一个函数来创建<code>Address</code>实例，然后将该实例返回用于赋值。该函数会在返回前答应<code>Funcation was called</code>，这使你能验证等号右侧的代码是否被执行.</p>
+
+<pre><code>func createAddress() -&gt; Address {
+    print("Function was called.")
+
+    let someAddress = Address()
+    someAddress.buildingNumber = "29"
+    someAddress.street = "Acacia Road"
+
+    return someAddress
+}
+john.residence?.address = createAddress()
+</code></pre>
+
+<p>没有答应任何消息，可以看出<code>createAddress()</code>函数并未被执行。</p>
+
+<h2>通过可选链式调用方法</h2>
+
+<p>可以通过可选链式调用来调用方法，并判断是否调用成功，即使这个方法没有返回值.</p>
+
+<p><code>Residence</code>类中的<code>printNumberOfRooms()</code>方法打印当前的<code>numberOfRooms</code>值，如下所示:</p>
+
+<pre><code>func printNumberOfRooms() {
+    print("The number of rooms is \(numberOfRooms)")
+}
+</code></pre>
+
+<p>这个方法没有返回值，然而，没有返回值的方法具有隐式的返回类型<code>Void</code>,这意味着没有返回值的方法也会返回<code>()</code>,或者或空的数组.</p>
+
+<p>通过可选链式调用得到的返回值都是可选的。这样我们就可以使用<code>if</code>语句来判断是否成功调用<code>printNumberOfRooms()</code>方法，就是方法本身没有定义返回值，通过判断返回值是否为<code>nil</code>可以判断调用是否成功:</p>
+
+<pre><code>if john.residence?.printNumberOfRooms() != nil {
+    print("It was possible to print the number of rooms.")
+} else {
+    print("It was not possible to print the number of rooms.")
+}
+// 打印 “It was not possible to print the number of rooms.”
+</code></pre>
+
+<p>同样滴，可以据此判断通过可选链式调用为属性赋值是否成功，我们尝试给<code>john.residence</code>中的 address 属性赋值，即使<code>residence</code>为nil,通过可选链式调用给属性赋值会返回<code>Void?</code>,通过判断返回值是否为nil就可以知道赋值是否成功:</p>
+
+<pre><code>if (john.residence?.address = someAddress) != nil {
+    print("It was possible to set the address.")
+} else {
+    print("It was not possible to set the address.")
+}
+// 打印 “It was not possible to set the address.”
+</code></pre>
+
+<h2>通过可选链式调用访问下标</h2>
+
+<p>通过可选链式的调用，我们可以在一个可选值上访问下标，并且判断下标调用是否成功。</p>
+
+<blockquote><p><strong>注意</strong>
+通过可选链式调用访问可选值的下标时，应该将问号放在下标方括号的前面而不是后面，可选链式调用的问号一般直接跟在可选表达式的后面。</p></blockquote>
+
+<p>下面这个例子用下标访问<code>john.residence</code>属性存储的<code>Residences</code>实例的<code>Rooms</code>数组中的第一个房间的名称，因为<code>john.residence</code>为<code>nil</code>,所以下标调用失败了.</p>
+
+<pre><code>if let firstRoomName = john.residence?[0].name {
+    print("The first room name is \(firstRoomName).")
+} else {
+    print("Unable to retrieve the first room name.")
+}
+// 打印 “Unable to retrieve the first room name.”
+</code></pre>
+
+<p>在这个例子中，问号直接放在<code>john.residence</code>的后面，并且在方括号的前面，因为<code>john.residence</code>是可选值.</p>
+
+<p>类似的，可以通过下标，用可选链式调用来赋值:</p>
+
+<pre><code>john.residence?[0] = Room(name: "Bathroom")
+</code></pre>
+
+<p> 这样赋值同样会失败，因为<code>residence</code>目前是<code>nil</code>.</p>
+
+<p> 如果你创建一个<code>Residence</code>实例，并未其<code>rooms</code>数组添加一些<code>Room</code>实例，然后将<code>Residence</code>实例赋值给<code>john.residence</code>，那就可以通过可选链和下标来访问数组中的元素:</p>
+
+<pre><code>let johnsHouse = Residence()
+johnsHouse.rooms.append(Room(name: "Living Room"))
+johnsHouse.rooms.append(Room(name: "Kitchen"))
+john.residence = johnsHouse
+
+if let firstRoomName = john.residence?[0].name {
+    print("The first room name is \(firstRoomName).")
+} else {
+    print("Unable to retrieve the first room name.")
+}
+// 打印 “The first room name is Living Room.”
+</code></pre>
+
+<h2>访问可选类型的下标</h2>
+
+<p>如果下标返回可选类型的值，比如Swift中<code>Dictionary</code>类型的键下标，可以在下标的结尾处放一个问号来在其可选值上进行可选链式调用:</p>
+
+<pre><code>var testScores = ["Dave": [86, 82, 84], "Bev": [79, 94, 81]]
+testScores["Dave"]?[0] = 91
+testScores["Bev"]?[0]++
+testScores["Brian"]?[0] = 72
+// "Dave" 数组现在是 [91, 82, 84]，"Bev" 数组现在是 [80, 94, 81]
+</code></pre>
+
+<p>上面的例子中定义了一个<code>testScores</code>数组，包含了两个键值对，把String类型的键映射到一个<code>Int</code>值的数组。第三个键值不存在，故调用失败。</p>
+
+<h2>连接多层可选链式的调用</h2>
+
+<p>可以通过连接多个可选链式调用在更深的模型层级中访问属性，方法及下标，然而，多层可选链式调用不会增加返回值的可选层级。</p>
+
+<p>也就是说：</p>
+
+<ul>
+<li>如果你访问的值不是可选的，可选链式调用将会返回可选值</li>
+<li>如果你返回的值就是可选的，可选链式调用不会让可选返回值变得'更可选'</li>
+</ul>
+
+
+<p>因此:</p>
+
+<ul>
+<li>通过可选链式调用访问一个<code>Int</code>值，将会返回<code>Int?</code>,无论使用了多少层可选链式调用</li>
+<li>类似的，通过可选链式调用访问<code>Int?</code>值，依旧会返回<code>Int?</code>值，并不会返回<code>Int??</code></li>
+</ul>
+
+
+<p>下面的例子尝试访问<code>john</code>中的<code>residence</code>属性中的<code>address</code>属性中的street   属性，这里使用了两层可选链式调用，<code>residence</code>以及adress都是可选值:</p>
+
+<pre><code>if let johnsStreet = john.residence?.address?.street {
+    print("John's street name is \(johnsStreet).")
+} else {
+    print("Unable to retrieve the address.")
+}
+// 打印 “Unable to retrieve the address.”
+</code></pre>
+
+<p>john.residence现在包含一个有效的<code>Residence</code>实例。然而，<code>john.residence.address</code>的值当前为nil.因此调用<code>john.residence?.adress?.street</code>会失败。</p>
+
+<p>需要注意的是，上面的例子中,<code>street</code>的属性为<code>String?</code>.<code>john.residence?.address?.street</code>的返回值也依然是<code>String?</code>,即使已经使用了两层可选链式调用.</p>
+
+<p>如果<code>john.residence.address</code>赋值一个<code>Address</code>实例，并且为<code>address</code>中的<code>street</code>属性设置一个有效值，我们就能通过可选链式调用来访问<code>street</code>属性:</p>
+
+<pre><code>let johnsAddress = Address()
+johnsAddress.buildingName = "The Larches"
+johnsAddress.street = "Laurel Street"
+john.residence?.address = johnsAddress
+
+if let johnsStreet = john.residence?.address?.street {
+    print("John's street name is \(johnsStreet).")
+} else {
+    print("Unable to retrieve the address.")
+}
+// 打印 “John's street name is Laurel Street.”
+</code></pre>
+
+<p>在上面的例子中，因为<code>john.residence</code>包含了一个有效的<code>Residence</code>实例，所以对<code>john.residence</code>的Address属性赋值将会成功。</p>
+
+<h2>在方法的可选返回值上进行可选链式调用</h2>
+
+<p>上面的例子展示了如何在一个可选值上通过可选链式调用来获取它的属性值，我们还可以在一个可选值上通过可选链式调用来调用方法，并且根据需要继续在方法的可选返回值上进行可选链式调用</p>
+
+<p>在下面的例子中，通过可选链式调用<code>Address</code>的<code>buildingIdeneity()</code>方法，这个方法返回<code>String?</code>类型的值，如上所述，通过可选链式调用来调用该方法，最终的返回值依旧是 String?类型:</p>
+
+<pre><code>if let buildingIdentifier = john.residence?.address?.buildingIdentifier() {
+    print("John's building identifier is \(buildingIdentifier).")
+}
+// 打印 “John's building identifier is The Larches.”
+</code></pre>
+
+<p>如果要在该方法的返回值上进行可选链式调用，在方法的圆括号后面加上问号即可:</p>
+
+<pre><code>if let beginsWithThe =
+    john.residence?.address?.buildingIdentifier()?.hasPrefix("The") {
+        if beginsWithThe {
+            print("John's building identifier begins with \"The\".")
+        } else {
+            print("John's building identifier does not begin with \"The\".")
+        }
+}
+// 打印 “John's building identifier begins with "The".”
+</code></pre>
+]]></content>
+  </entry>
+  
+</feed>

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Mac | 安路的技术博客]]></title>
+  <link href="http://andrew-anlu.github.io/blog/categories/mac/atom.xml" rel="self"/>
+  <link href="http://andrew-anlu.github.io/"/>
+  <updated>2016-04-19T17:26:03+08:00</updated>
+  <id>http://andrew-anlu.github.io/</id>
+  <author>
+    <name><![CDATA[追求卓越成功就会在不经意间追上你]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[如何在Mac系统上搭建PHP开发环境]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2015/10/22/ru-he-zai-macxi-tong-shang-da-jian-phpkai-fa-huan-jing/"/>
+    <updated>2015-10-22T20:28:05+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2015/10/22/ru-he-zai-macxi-tong-shang-da-jian-phpkai-fa-huan-jing</id>
+    <content type="html"><![CDATA[<h2>前言</h2>
+
+<p>现在有个项目后台用php做的，所以就想学习一下php，研究了差不多一天，终于可以在Mac系统上运行php环境了，现在总结一下。</p>
+
+<h2>运行环境</h2>
+
+<p>需要的软件如下：</p>
+
+<ul>
+<li>MAMP</li>
+<li>zend studio</li>
+</ul>
+
+
+<!--more-->
+
+
+<p>首先说说这个MAMP,
+mamp是Mac系统下php运行环境</p>
+
+<pre><code>   M-&gt;Mac系统
+   A-&gt;Apache 一般用Tomcat
+   M-&gt;mysql数据库
+   P-&gt;php
+</code></pre>
+
+<p>官方网址<a href="https://www.mamp.info/en/mamp-pro/">https://www.mamp.info/en/mamp-pro/</a>  ,下载完之后,单击Preferences，选择Ports并单击Set Apache &amp; MySQL ports to 80 &amp; 3306建议使用的端口代替默认值。</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20151022-3.png" alt="demo" /></p>
+
+<p>点击 <code>start servers</code> 开启服务，如果右上角的 <code>Apache Server</code> <code>Mysql server</code> 变成绿灯了，证明启动成功，点击中间的 <code>Open WebStart page</code>弹出网页如图:<img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20151022-4.png" alt="demo" /></p>
+
+<h4>设置</h4>
+
+<p>点击perference 然后点击<code>webServer</code>,可以看到程序的根目录<code>mac-&gt;应用程序-&gt;MAMP-&gt;htdocs</code>,类似于网络托管服务器文件夹中的Public_html(默认路径可以自己修改)</p>
+
+<p>默认服务器是Apache.
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20151022-5.png" alt="demo" /></p>
+
+<h2>使用Zend Studio</h2>
+
+<p>zend Studio是专门编写php的IDE，下载官方的
+<a href="http://macdown.uranusjr.com/features/">zend studio</a>
+,
+下载完后， 一路Next,在最后选择工作空间的时候，一定要选上刚才配置
+MAMP的路径<code>mac-&gt;应用程序-&gt;MAMP-&gt;htdocs</code>，</p>
+
+<p>然后新建一个 local php 工程<img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20151022-6.png" alt="demo" /></p>
+
+<p>然后在index.php文件中编写如下代码:</p>
+
+<pre><code>     &lt;?php
+     echo  "Hello world";
+     echo "我成功了，我好高兴啊"
+     ?&gt;
+</code></pre>
+
+<p>然后在地址栏里输入 <code>http://localhost:8888/Demo/</code>,运行结果
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20151022-7.png" alt="demo" /></p>
+
+<p>恭喜，你的Mac电脑也能编写php程序了!</p>
+]]></content>
+  </entry>
+  
+</feed>

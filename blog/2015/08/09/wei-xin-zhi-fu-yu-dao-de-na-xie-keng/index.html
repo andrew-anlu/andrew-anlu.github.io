@@ -5,12 +5,14 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Hello World - 安路的技术博客</title>
+  <title>微信支付遇到的那些'坑' - 安路的技术博客</title>
   <meta name="author" content="追求卓越成功就会在不经意间追上你">
 
   
-  <meta name="description" content="
-">
+  <meta name="description" content="前言 本来以为微信支付和支付宝一样简单，可是一弄才知道有好多坑，现在我记录下来，也让别人少走一些弯路.
+官方文档 报错1>服务器返回：
+&lt;![CDATA[FAIL]]>
+&lt;![CDATA[mch_id和appid没有关联关系]]> 然后就各种百度，各种google，后来才发现， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -19,7 +21,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://andrew-anlu.github.io/blog/2016/04/19/hello-world/">
+  <link rel="canonical" href="http://andrew-anlu.github.io/blog/2015/08/09/wei-xin-zhi-fu-yu-dao-de-na-xie-keng/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="安路的技术博客" type="application/atom+xml">
@@ -67,7 +69,7 @@
   
   <header>
     
-      <h1 class="entry-title">Hello World</h1>
+      <h1 class="entry-title">微信支付遇到的那些'坑'</h1>
     
     
       <p class="meta">
@@ -76,14 +78,46 @@
 
 
 
-<time class='entry-date' datetime='2016-04-19T17:24:28+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>5:24 pm</span></time>
+<time class='entry-date' datetime='2015-08-09T20:10:38+08:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>9</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>8:10 pm</span></time>
         
       </p>
     
   </header>
 
 
-<div class="entry-content">
+<div class="entry-content"><h2>前言</h2>
+
+<p>本来以为微信支付和支付宝一样简单，可是一弄才知道有好多坑，现在我记录下来，也让别人少走一些弯路.
+<a href="https://pay.weixin.qq.com/wiki/doc/api/app.php?chapter=8_1#">官方文档</a></p>
+
+<!--more-->
+
+
+<ol>
+<li><p>报错1>服务器返回：
+<xml><return_code>&lt;![CDATA[FAIL]]></return_code>
+<return_msg>&lt;![CDATA[mch_id和appid没有关联关系]]></return_msg>
+</xml>
+然后就各种百度，各种google，后来才发现，原来是客户申请了两次，appiD和mch_id弄错了，无语~~</p></li>
+<li><p>报错2>签名错误，各种调试，后来才发现，原来是客户给的APIKey不对，这个apiKey一定要用工具生成才行，自己手写的不行</p></li>
+</ol>
+
+
+<p>更正了这两个错误后，微信支付现在变的简单了。</p>
+
+<h3> 微信支付流程如下：</h3>
+
+<p>步骤1：用户在商户APP中选择商品，提交订单，选择微信支付。</p>
+
+<p>步骤2：商户后台收到用户支付单，调用微信支付统一下单接口。参见<a href="https://pay.weixin.qq.com/wiki/doc/api/app.php?chapter=9_1">统一下单API</a>。</p>
+
+<p>步骤3：统一下单接口返回正常的prepay_id，再按签名规范重新生成签名后，将数据传输给APP。参与签名的字段名为appId，partnerId，prepayId，nonceStr，timeStamp，package。注意：package的值格式为Sign=WXPay</p>
+
+<p>步骤4：商户APP调起微信支付。api参见本章节<a href="https://pay.weixin.qq.com/wiki/doc/api/app.php?chapter=8_5">app端开发步骤说明</a></p>
+
+<p>步骤5：商户后台接收支付通知。api参见<a href="https://pay.weixin.qq.com/wiki/doc/api/app.php?chapter=9_7">支付结果通知API</a></p>
+
+<p>步骤6：商户后台查询支付结果。，api参见<a href="https://pay.weixin.qq.com/wiki/doc/api/app.php?chapter=9_2">查询订单API</a></p>
 </div>
 
 
@@ -99,8 +133,14 @@
 
 
 
-<time class='entry-date' datetime='2016-04-19T17:24:28+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>5:24 pm</span></time>
+<time class='entry-date' datetime='2015-08-09T20:10:38+08:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>9</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>8:10 pm</span></time>
       
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/ios/'>ios</a>
+  
+</span>
 
 
     </p>
@@ -114,8 +154,10 @@
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2016/04/19/ioszhong-de-duo-ren-wu/" title="Previous Post: ios中的多任务">&laquo; ios中的多任务</a>
+        <a class="basic-alignment left" href="/blog/2015/08/08/fan-dui-yu-yan-bao-li/" title="Previous Post: 反对语言暴力">&laquo; 反对语言暴力</a>
       
+      
+        <a class="basic-alignment right" href="/blog/2015/08/12/gitxue-xi/" title="Next Post: git起步">git起步 &raquo;</a>
       
     </p>
   </footer>

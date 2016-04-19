@@ -1,0 +1,236 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Git远程版本库 - 安路的技术博客</title>
+  <meta name="author" content="追求卓越成功就会在不经意间追上你">
+
+  
+  <meta name="description" content="Git分布特性之一就是远程版本库，
+一个克隆是版本库的副本。一个克隆包含所有原始对象；因此，每个克隆都是独立，自治的版本库，与原始版本库是真正对称，地位相同的。一个克隆允许开发人员可以在本地独立的工作，不需要中心版本库。总之，克隆使得Git易于扩展，并允许地理上分离的很多贡献者一起协作。 &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://andrew-anlu.github.io/blog/2015/08/28/gityuan-cheng-ban-ben-ku/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="安路的技术博客" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">安路的技术博客</a></h1>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.baidu.com/" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="andrew-anlu.github.io">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Git远程版本库</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-08-28T17:31:17+08:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>28</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>5:31 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Git分布特性之一就是远程版本库，
+一个克隆是版本库的副本。一个克隆包含所有原始对象；因此，每个克隆都是独立，自治的版本库，与原始版本库是真正对称，地位相同的。一个克隆允许开发人员可以在本地独立的工作，不需要中心版本库。总之，克隆使得Git易于扩展，并允许地理上分离的很多贡献者一起协作。
+从本质上讲，分离的版本库是相当有用的。</p>
+
+<ul>
+<li>开发人员独立工作</li>
+<li>开发人员被广域网分离。在相同地区的一群人可以共享一个本地版本库来积累局部变化</li>
+<li>一个项目预计在不同的发展线上有显著差异。</li>
+</ul>
+
+
+<!--more-->
+
+
+<p>克隆版本库只是分享代码的第一步，此外，还必须对版本库之间进行关联，为数据建立路径。Git通过远程版本库为这些版本建立连接。</p>
+
+<p>远程版本库是一个引用或者句柄，通过文件系统或网络指向另一个版本库。可以使用远程版本库作为简称，代替又长又复杂的Git URL。可以在版本库中定义任意数量的远程版本库，从而创建共享版本库的阶梯网络。</p>
+
+<p>一旦远程版本库建立，Git就可以使用推模式或者拉模式在版本库之间传输数据。例如，习惯做法是偶尔从原始版本库转移提交数据到克隆版本库，已保持克隆版本库处于同步状态。还可以创建一个远程版本库来克隆版本传输数据到原始版本库，或设置两个版本库进行双向交换。</p>
+
+<h3>版本库的概念</h3>
+
+<p>开发版本库用户常规的日常开发。它保持当前分支的概念，并在工作目录中提供检出当前分支的副本。相反，一个裸版本库没有工作目录，并且不应该用于正常开发。裸版本库也没有检出分支的概念。裸版本库可以简单地看做.git目录的内容。换句话说，不应该在裸版本库中进行提交操作。</p>
+
+<h3>版本库克隆</h3>
+
+<p>git clone 命令去创建一个新的git版本库，基于你通过文件系统或网络地指定的原始版本库。Git并不需要复制原始版本库的所有信息。</p>
+
+<p>在正常使用Git clone命令时，原始版本库中存储在refs/heads/下的本地开发分支，会成为新的克隆版本库中refs/remotes/下的远程追踪分支。</p>
+
+<h2>远程版本库</h2>
+
+<p>你目前在工作中使用的版本库成为本地版本库，你交换文件用的版本库成为远程版本库（remote repository）.Git使用远程版本库和远程追踪分支来引用另一个版本库，并有助于与该版本库建立连接。远程版本库位版本库提供了更友好的名字，可以代替版本库实际的URL。</p>
+
+<p>使用 git remote 命令创建，删除，操作和查看远程版本库，你引入的所有远程版本库都记录在.git/config文件中，可以用git config来操作。</p>
+
+<p>除了git clone之外，跟远程版本库有关的其他常见的git命令有:</p>
+
+<pre><code>git fetch -&gt;从远程版本库抓取对象及其相关的元数据
+git pull  -&gt;跟git fetch类似，但合并修改到相应的本地分支
+git push --&gt;转移对象及其它元数据到远程版本库
+git ls-remote-&gt;显示一个给定的远程版本库（在上游服务器上）的引用列表
+</code></pre>
+
+<h3>引用其它版本库</h3>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">追求卓越成功就会在不经意间追上你</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2015-08-28T17:31:17+08:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>28</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>5:31 pm</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/git/'>git</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2015/08/28/fen-zhi/" title="Previous Post: Git分支">&laquo; Git分支</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2015/09/19/iosxue-xi-zi-liao/" title="Next Post: ios学习资料">ios学习资料 &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/04/19/hello-world/">Hello World</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/04/19/ioszhong-de-duo-ren-wu/">Ios中的多任务</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/04/15/asyndisplaykitru-men-pian/">AsynDisplayKit入门篇</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/04/04/tong-guo-%5B%3F%5D-ge-demoxiang-jie-uistackview/">通过一个Demo详解UIStackView</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/04/04/uistackviewjie-shao/">UIStackView介绍</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2016 - 追求卓越成功就会在不经意间追上你 -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

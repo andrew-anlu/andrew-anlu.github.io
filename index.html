@@ -94,7 +94,339 @@
 
     </article>
   
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/04/19/ioszhong-de-duo-ren-wu/">Ios中的多任务</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-04-19T10:17:49+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>10:17 am</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content">
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/04/15/asyndisplaykitru-men-pian/">AsynDisplayKit入门篇</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-04-15T10:22:30+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>15</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>10:22 am</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>前言</h2>
+
+<p>FaceBook的Paper团队给我们开源了一个很棒的库:<a href="https://github.com/facebook/AsyncDisplayKit">AsynDisplayKit</a>,这个库能让你通过将图像解码，布局以及渲染操作都放到后台线程处理，从而带来了快速响应的用户界面，也就是说不再会因为界面卡顿尔阻断用户交互。</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/04/15/asyndisplaykitru-men-pian/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/04/04/tong-guo-%5B%3F%5D-ge-demoxiang-jie-uistackview/">通过一个Demo详解UIStackView</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-04-04T19:48:29+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>4</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>7:48 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><a href="http://andrew-anlu.github.io/blog/2016/04/04/uistackviewjie-shao/">在上一个章节</a>我们已经介绍了什么是UIStackView了，其实它更类似于Android开发中的LinerLayer排版技术。</p>
+
+<p>这一章节，我们通过一个完整的例子来讲解UIStackView的用法</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/04/04/tong-guo-%5B%3F%5D-ge-demoxiang-jie-uistackview/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/04/04/uistackviewjie-shao/">UIStackView介绍</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-04-04T15:47:37+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>4</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>3:47 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>UIStackView类提供了一个高效的接口用于平铺一行或一列的视图组合.Stack视图使你的依靠自动布局的能力，创建用户接口使得可以动态的调整设备的朝向，屏幕尺寸以及任何可用范围内的变化。Stack视图管理着所有它的 arrageedSubviews属性中视图的布局，这些视图根据它们在arrangedSubviews数组中的顺序沿着stack视图的轴向排列，精确的布局变量根据Stack视图的 axixs,distribution,allignment,spcing,和其它属性决定。</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/04/04/uistackviewjie-shao/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/03/29/shen-ru-li-jie-runloop/">深入理解RunLoop</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-03-29T17:29:43+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>29</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>5:29 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/1432799466416554.jpeg" alt="runloop" /></p>
+
+<p>RunLoop是ios和OSX开发中非常基础的一个概念，本章将会介绍一下在ios中，苹果是利用RunLoop实现自动释放池，延迟回调，触摸事件，屏幕刷新等.</p>
+
+<h2>RunLoop的概念</h2>
+
+<p>一般来讲，一个线程一次只能执行一个任务，执行完成之后线程就会退出。如果我们需要一个机制，让线程能随时处理事件但并不退出，通常的代码逻辑是这样的:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>function loop() {
+</span><span class='line'>    initialize();
+</span><span class='line'>    do {
+</span><span class='line'>        var message = get_next_message();
+</span><span class='line'>        process_message(message);
+</span><span class='line'>    } while (message != quit);
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/03/29/shen-ru-li-jie-runloop/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/03/27/nsurlsessionxiang-jie/">NSUrlSession详解</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-03-27T18:48:28+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>27</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>6:48 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>NSUrlSession是NSUrlConnection的替代品。</p>
+
+<p>NSUrlConennection指的是一组构成 Foundation框架中URL加载系统的相互关联的组件:NSURLRequest,NSUrlResponse,NSURlProtocol等,在协商发送一个请求到服务器的过程中，该服务器可发出验证质询，这可以由共享的cookie，证书存储（credential storage）或通过连接委托自动处理。必要的时候，为了无缝地改变装载行为，传出请求也可以被注册的NSURLProtocol对象截获.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/03/27/nsurlsessionxiang-jie/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/03/26/nsoperationqueuejian-dan-jie-shao/">NSOperationQueue简单介绍</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-03-26T08:11:55+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>26</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>8:11 am</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>在iOS中有两种方式来实现多线程:NSOperation和GCD.
+其中GCD是基于C的底层的API,而NSOperation则是GCD实现的Object-c的API,随让NSOPeration是基于GCD实现的，但是并不意味着它是一个GCD的重复版本，相反，我们可以用NSOperation轻易的实现一些GCD要写大量代码的事情，因此，NSOperation是被推荐使用的.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/03/26/nsoperationqueuejian-dan-jie-shao/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/03/24/swift-fan-xing/">Swift-泛型</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-03-24T10:11:56+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>24</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>10:11 am</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>泛型代码可以让你编写使用自定义需求以及任意类型的灵活可冲中的函数和类型，它可以让你避免重复的代码，用一种清晰和抽象的方式来表达代码的意图。</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/03/24/swift-fan-xing/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/03/22/swift-ke-xuan-lian/">Swift-可选链</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-03-22T09:35:29+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>22</span><span class='date-suffix'>nd</span>, <span class='date-year'>2016</span></span> <span class='time'>9:35 am</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>可选链式调用(Optional Chaining)是一种可以在当前值可能为<code>nil</code>的可选值上请求和调用属性，方法及下标的方法。如果可选值有值，那么调用就会成功；如果可选值为nil,那么调用将返回<code>nil</code>.多个调用可以连接在一起形成一个链，如果其中任何一个点为<code>nil</code>,整个调用链就会失败，即返回nil.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/03/22/swift-ke-xuan-lian/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
   <div class="pagination">
+    
+      <a class="prev" href="/posts/2">&larr; Older</a>
     
     <a href="/blog/archives">Blog Archives</a>
     
@@ -108,6 +440,22 @@
     
       <li class="post">
         <a href="/blog/2016/04/19/hello-world/">Hello World</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/04/19/ioszhong-de-duo-ren-wu/">Ios中的多任务</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/04/15/asyndisplaykitru-men-pian/">AsynDisplayKit入门篇</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/04/04/tong-guo-%5B%3F%5D-ge-demoxiang-jie-uistackview/">通过一个Demo详解UIStackView</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/04/04/uistackviewjie-shao/">UIStackView介绍</a>
       </li>
     
   </ul>

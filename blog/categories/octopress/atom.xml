@@ -1,0 +1,361 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Octopress | 安路的技术博客]]></title>
+  <link href="http://andrew-anlu.github.io/blog/categories/octopress/atom.xml" rel="self"/>
+  <link href="http://andrew-anlu.github.io/"/>
+  <updated>2016-04-19T17:26:03+08:00</updated>
+  <id>http://andrew-anlu.github.io/</id>
+  <author>
+    <name><![CDATA[追求卓越成功就会在不经意间追上你]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Octopress的高级配置]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2015/08/06/octopressde-gao-ji-pei-zhi/"/>
+    <updated>2015-08-06T16:40:03+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2015/08/06/octopressde-gao-ji-pei-zhi</id>
+    <content type="html"><![CDATA[<h2>前言</h2>
+
+<p>上篇博客主要讲了怎么样搭建octopress博客，今天主要讲解个性化设置cotopress.</p>
+
+<h2>添加侧边栏分类</h2>
+
+<p>1.在<code>plugins</code>目录下创建<code>category_list_tag.rb</code>文件，内容如下:</p>
+
+<!--more-->
+
+
+<pre><code>module Jekyll 
+  class CategoryListTag &lt; Liquid::Tag 
+    def render(context) 
+      html = "" 
+      categories = context.registers[:site].categories.keys 
+      categories.sort.each do |category| 
+        posts_in_category = context.registers[:site].categories[category].size 
+        category_dir = context.registers[:site].config['category_dir'] 
+        category_url = File.join(category_dir, category.gsub(/_|\P{Word}/, '-').gsub(/-{2,}/, '-').downcase) 
+        html &lt;&lt; "&lt;li class='category'&gt;&lt;a href='http://andrew-anlu.github.io/#{category_url}/'&gt;#{category} (#{posts_in_category})&lt;/a&gt;&lt;/li&gt;\n" 
+      end 
+      html 
+    end 
+  end 
+end
+
+Liquid::Template.register_tag('category_list', Jekyll::CategoryListTag)
+</code></pre>
+
+<p>2.添加<code>source/_includes/asides/category_list.html</code>文件，内容如下:
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/step12.png" alt="MacDown logo" /></p>
+
+<p>3.修改<code>_config.yml</code>文件，在<code>default_asides</code>项中添加<code>asides/category_list.html</code>,多个文件用逗号分隔开，先后顺序代表了右边侧边栏显示的先后顺序。如下图
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/b2_step1.png" alt="MacDown logo" />
+在侧边栏还可以添加其他组件，比如统计，微博，等等。</p>
+
+<h2>添加分享</h2>
+
+<p>octopress自带的分享twitter,facebook等，都是国外，需要翻墙才能访问，其实国内也有很多好的分型的工具，比如我用的就是 <a href="http://www.jiathis.com">友言</a>,把获取到的代码复制到 <code>source/_includes/post/sharing.html</code>中，如图：<img src="http://7xkxhx.com1.z0.glb.clouddn.com/b2_step2.png" alt="" /></p>
+
+<h2>添加评论</h2>
+
+<p>自带的评论是disqus，也是国内被墙的原因，国内也有很多评论组件，我用的也是友言，把获取到的代码复制到<code>source/_includes/post/sharing.html</code>，跟分享一样，如图：<img src="http://7xkxhx.com1.z0.glb.clouddn.com/b2_step3.png" alt="" /></p>
+
+<h2>文章以摘要形式展示</h2>
+
+<p>1.在文章对应的markdown文件中，在需要展示首页文字的后面加上<code>&lt;!--more--&gt;</code>,重新生成和部署后，就可以看到&lt;!-more->
+前面的文字了，文字后面系那是<code>Rede on</code>点击显示文章的详细内容。
+2.如果想把Read on修改成中文，可以修改_config.yml文件</p>
+
+<pre><code>#excerpt_link: "Read on &amp;rarr;"  # "Continue reading" link text at the bottom of excerpted articles
+excerpt_link: "阅读全文&amp;rarr;"  # "Continue reading" link text at the bottom of excerpted articles
+</code></pre>
+
+<h2>添加访客统计</h2>
+
+<p>我的访客统计使用的是<a href="http://www.flagcounter.com">FlagCount</a>,可以先去获取代码，然后添加到<code>.\source\_includes\custom\asides\flag_counter.html</code>,如果没有该文件，就创建一个,文件内容如下：</p>
+
+<pre><code>    &lt;section&gt;
+      &lt;h1&gt;访客统计&lt;/h1&gt;
+      &lt;br/&gt;
+    &lt;a href="http://info.flagcounter.com/Bkif"&gt;&lt;img src="http://s01.flagcounter.com/count2/Bkif/bg_ffffff/txt_000000/border_CCCCCC/columns_3/maxflags_10/viewers_0/labels_1/pageviews_1/flags_1/percent_0/" alt="Free counters!" border="0"&gt;&lt;/a&gt;
+    &lt;/section&gt;
+</code></pre>
+
+<p>将页面添加到侧边栏,在_config.yml配置文件中，添加边栏配置</p>
+
+<p><code>default_asides: [asides/recent_posts.html, asides/github.html,
+ asides/delicious.html, asides/pinboard.html,
+  asides/googleplus.html, custom/asides/about.html,
+   asides/category_list.html,  custom/asides/flag_counter.html]</code></p>
+
+<p>   最后添加控制开关，在_config.yml配置文件中添加配置:</p>
+
+<pre><code> # Flag Counter
+   flag_counter: true
+</code></pre>
+
+<h2>添加返回顶部按钮</h2>
+
+<p>如果文章太长的话，添加一个返回到顶部的按钮是很实用的</p>
+
+<h3><em>创建一个js文件，位置在<code>source/javascript/top.js</code>,文件内容如下</em> <br></h3>
+
+<pre><code>function goTop(acceleration, time)
+{
+        acceleration = acceleration || 0.1;
+        time = time || 16;
+
+        var x1 = 0;
+        var y1 = 0;
+        var x2 = 0;
+        var y2 = 0;
+        var x3 = 0;
+        var y3 = 0;
+
+        if (document.documentElement)
+        {
+                x1 = document.documentElement.scrollLeft || 0;
+                y1 = document.documentElement.scrollTop || 0;
+        }
+        if (document.body)
+        {
+                x2 = document.body.scrollLeft || 0;
+                y2 = document.body.scrollTop || 0;
+        }
+        var x3 = window.scrollX || 0;
+        var y3 = window.scrollY || 0;
+
+        var x = Math.max(x1, Math.max(x2, x3));
+        var y = Math.max(y1, Math.max(y2, y3));
+
+        var speed = 1 + acceleration;
+        window.scrollTo(Math.floor(x / speed), Math.floor(y / speed));
+
+        if(x &gt; 0 || y &gt; 0)
+        {
+                var invokeFunction = "goTop(" + acceleration + ", " + time + ")";
+                window.setTimeout(invokeFunction, time);
+        }
+}
+</code></pre>
+
+<h3>自定义返回按钮格式</h3>
+
+<p>在<code>source/_include/custom/footer.html</code>中添加如下代码</p>
+
+<pre><code>&lt;!--返回顶部开始--&gt;
+&lt;div id="full" style="width:0px; height:0px; position:fixed; right:180px; bottom:150px; z-index:100; text-align:center; background-color:transparent; cursor:pointer;"&gt;
+  &lt;a href="#" onclick="goTop();return false;"&gt;&lt;img src="http://andrew-anlu.github.io/images/top.png" border=0 alt="返回顶部"&gt;&lt;/a&gt;
+&lt;/div&gt;
+&lt;script src="http://andrew-anlu.github.io/javascripts/top.js" type="text/javascript"&gt;&lt;/script&gt;
+&lt;!--返回顶部结束--&gt;
+</code></pre>
+
+<h4>选择按钮的图片</h4>
+
+<p>找一张自己喜欢的图片，取名为top.png,我是把图片放到了 <a href="https://portal.qiniu.com">七牛</a>上去托管，上面代码中图片的路径改为 七牛上的图片路径就行
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/b2_step4.png" alt="" /></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[如何用Octopress搭建博客]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2015/08/04/ru-he-yong-octopressda-jian-bo-ke/"/>
+    <updated>2015-08-04T18:46:00+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2015/08/04/ru-he-yong-octopressda-jian-bo-ke</id>
+    <content type="html"><![CDATA[<h2>前言</h2>
+
+<p>怎么样写出漂亮的博客，一直是我的追求。终于我找到了<a href="http://octopress.org">octopress</a>，它不仅效率高，而且美观大方，部署免费，完全符合我的要求。
+它是基于<a href="http://baike.baidu.com/link?url=Lu9thoMJP1Bbf_Hwe6MWLzKhh32sQXd3Odl-jJg_F8463VDw5B1Uyobo-w-5zbnmKMqW5PB0vmu9qb4jjBHH1a">Jekyll</a>
+博客站点生成系统，它简化的步骤大大提高了写博客的效率。我总结大概有以下几个优点：</p>
+
+<pre><code>   * 命令行操作
+   * 纯文本
+   * 可定制
+   * 纯静态
+   * 利用git版本管理
+   * 简洁的Ruby框架
+   * 经典的Markdown语法
+</code></pre>
+
+<!-- more -->
+
+
+<h3>目录结构</h3>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/test.png" alt="MacDown logo" /></p>
+
+<h3>写作流程</h3>
+
+<pre><code>   1. 搭建环境.
+   2. 开始写作博客
+   3. 生成静态网页
+   4. 本地预览
+   5. 部署到服务器
+   6. 推送代码到git服务器
+</code></pre>
+
+<h2>搭建环境</h2>
+
+<ol>
+<li><a href="http://git-scm.com">安装git</a></li>
+<li>安装Ruby环境，最低要求1.9.3版本，基于ruby的命令的管理工具安装一下 <code>rbenv</code> 或者 <code>RVM</code></li>
+</ol>
+
+
+<h3>rbenv安装步骤</h3>
+
+<p>假定你的电脑上已经安装<a href="http://brew.sh">Homebrew</a></p>
+
+<pre><code>1. brew update
+2. brew install rbenv
+3. brew install ruby-build
+</code></pre>
+
+<p>安装Ruby1.9.3</p>
+
+<pre><code>1. rbenv install 1.9.3-p0
+2. rbenv local 1.9.3-p0
+3. rbenv rehash
+</code></pre>
+
+<h3>安装Octopress</h3>
+
+<pre><code>1. git clone git://github.com/imathis/octopress.git octopress
+2. cd octopress
+</code></pre>
+
+<p> 目录结构如下:<img src="http://7xkxhx.com1.z0.glb.clouddn.com/step1.png" alt="MacDown logo" />
+ 下一步，安装类库依赖</p>
+
+<pre><code> 1. gem install bundler
+ 2. rbenv rehash    # If you use rbenv, rehash to be able to run the bundle command
+ 3. bundle install
+</code></pre>
+
+<p> 安装octopress默认的主题</p>
+
+<pre><code>  rake install
+</code></pre>
+
+<p> 此时目录结构如下：<img src="http://7xkxhx.com1.z0.glb.clouddn.com/step2.png" alt="MacDown logo" /></p>
+
+<pre><code> 1. source 是写源博客文件的，到时会提交给git
+ 2. sass  是自带的一些样式 css等
+ 3. public 是发布的目录
+</code></pre>
+
+<h3>配置博客</h3>
+
+<p>  <code>_config.yml</code>是主要的配置文件，里面有博客的标题，作者，时间和一些第三方的配置，比如facebook,twitter,google分析工具，评论等，当然一些国外的无法访问的可以去掉，比如twitter等等，
+  我的配置如下图
+  <img src="http://7xkxhx.com1.z0.glb.clouddn.com/config.png" alt="MacDown logo" /></p>
+
+<h3>开始写博客</h3>
+
+<p>语法</p>
+
+<pre><code>rake new_post["title"]
+</code></pre>
+
+<p> 标题可以任意命名 <br/>
+ 比如</p>
+
+<pre><code>rake new_post["hello Octopress"]
+</code></pre>
+
+<p> 这行命令会在 source文件下的 _posts 创建一个markDown文件</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/step4.png" alt="MacDown logo" />
+命名规则就是<code>2015-08-04-hello-octopress.markdown</code></p>
+
+<h2>部署</h2>
+
+<p>部署到服务器有三种方式：</p>
+
+<pre><code>1. GitHub Pages
+2. Heroku
+3. Rsync
+</code></pre>
+
+<p> 我们今天选择GitHug pages进行部署</p>
+
+<p> 首先要在<a href="https://github.com">GitHub</a>上创建一个仓库，（如果没有github账号的，请自行创建）</p>
+
+<h3>GitHub部署</h3>
+
+<p>  创建的仓库的名字必须是 <code>http://username.github.io</code>
+ 以你github账号的登录名命名仓库的名字，比如我的就是
+ <code>http://andrew-anlu.github.io/</code></p>
+
+<p> <img src="http://7xkxhx.com1.z0.glb.clouddn.com/step5.png" alt="MacDown logo" /></p>
+
+<p> 然后输入命令:</p>
+
+<pre><code>rake setup_github_pages
+</code></pre>
+
+<p>这行命令就是要把octopress和你的github上的博客仓库进行绑定
+ <img src="http://7xkxhx.com1.z0.glb.clouddn.com/step6.png" alt="MacDown logo" /></p>
+
+<h3>下一步</h3>
+
+<pre><code>1. rake generate
+2. rake deploy
+</code></pre>
+
+<p>   这一步将自动生成博客网站，并且拷贝到_deploy文件夹中，提交代码并推送到GitHub上的 Master主分支，如图<img src="http://7xkxhx.com1.z0.glb.clouddn.com/step7.png" alt="MacDown logo" /></p>
+
+<p> 看看_deploy目录，相信已经多了很多东西</p>
+
+<p>现在让我们访问下我们自动生成并且部署好的博客网站，访问地址：<code>http://你的username.github.io/</code>,比如我的就是：
+<code>http://andrew-anlu.github.io/</code>
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/step8.png" alt="MacDown logo" /></p>
+
+<h3>优化加载速度</h3>
+
+<p>第一次加载的话，速度会很慢，让我们用chrome浏览器访问，打开调试工具，点击Network
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/step10.png" alt="MacDown logo" />
+位置是source-><em>include</em>->head.html
+我们先找到<code>&lt;script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"&gt;&lt;/script&gt;</code>
+用百度提供的jquary类库来替换一下，
+<code>&lt;script src="//libs.baidu.com/jquery/1.9.1/jquery.min.js"&gt;&lt;/script&gt;</code>
+替换好的如下图：
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/step11.png" alt="MacDown logo" /></p>
+
+<p>也可以全局搜索一下，看看其它地方是否也引用了国外的jquary类库，都替换过来。然后再在 chrome中访问下，速度会提升不少！</p>
+
+<h3>预览</h3>
+
+<p>当然我们也可以预览下我们写的博客</p>
+
+<pre><code>rake preview
+</code></pre>
+
+<p>会在本地创建一个服务器，端口号:4000</p>
+
+<p>访问地址：<strong><em>(<a href="http://localhost:4000">http://localhost:4000</a>)</em></strong></p>
+
+<h3>推送到远程服务器</h3>
+
+<p>因为源文件仅仅是Source文件夹，所以只需要将source推送到远程服务器。
+远程服务器有两个分支 Master主要是部署网站，Source分支主要是版本控制</p>
+
+<pre><code>    git add .
+    git commit -m 'your message'
+    git push origin source
+</code></pre>
+
+<p>现在远程服务器的source分支上就保存了源代码
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/step9.png" alt="MacDown logo" /></p>
+
+<p><em>祝生活愉快~</em></p>
+
+<h2>高级话题</h2>
+]]></content>
+  </entry>
+  
+</feed>

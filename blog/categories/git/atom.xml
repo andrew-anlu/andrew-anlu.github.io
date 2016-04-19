@@ -1,0 +1,350 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Git | 安路的技术博客]]></title>
+  <link href="http://andrew-anlu.github.io/blog/categories/git/atom.xml" rel="self"/>
+  <link href="http://andrew-anlu.github.io/"/>
+  <updated>2016-04-19T17:26:03+08:00</updated>
+  <id>http://andrew-anlu.github.io/</id>
+  <author>
+    <name><![CDATA[追求卓越成功就会在不经意间追上你]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Git远程版本库]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2015/08/28/gityuan-cheng-ban-ben-ku/"/>
+    <updated>2015-08-28T17:31:17+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2015/08/28/gityuan-cheng-ban-ben-ku</id>
+    <content type="html"><![CDATA[<p>Git分布特性之一就是远程版本库，
+一个克隆是版本库的副本。一个克隆包含所有原始对象；因此，每个克隆都是独立，自治的版本库，与原始版本库是真正对称，地位相同的。一个克隆允许开发人员可以在本地独立的工作，不需要中心版本库。总之，克隆使得Git易于扩展，并允许地理上分离的很多贡献者一起协作。
+从本质上讲，分离的版本库是相当有用的。</p>
+
+<ul>
+<li>开发人员独立工作</li>
+<li>开发人员被广域网分离。在相同地区的一群人可以共享一个本地版本库来积累局部变化</li>
+<li>一个项目预计在不同的发展线上有显著差异。</li>
+</ul>
+
+
+<!--more-->
+
+
+<p>克隆版本库只是分享代码的第一步，此外，还必须对版本库之间进行关联，为数据建立路径。Git通过远程版本库为这些版本建立连接。</p>
+
+<p>远程版本库是一个引用或者句柄，通过文件系统或网络指向另一个版本库。可以使用远程版本库作为简称，代替又长又复杂的Git URL。可以在版本库中定义任意数量的远程版本库，从而创建共享版本库的阶梯网络。</p>
+
+<p>一旦远程版本库建立，Git就可以使用推模式或者拉模式在版本库之间传输数据。例如，习惯做法是偶尔从原始版本库转移提交数据到克隆版本库，已保持克隆版本库处于同步状态。还可以创建一个远程版本库来克隆版本传输数据到原始版本库，或设置两个版本库进行双向交换。</p>
+
+<h3>版本库的概念</h3>
+
+<p>开发版本库用户常规的日常开发。它保持当前分支的概念，并在工作目录中提供检出当前分支的副本。相反，一个裸版本库没有工作目录，并且不应该用于正常开发。裸版本库也没有检出分支的概念。裸版本库可以简单地看做.git目录的内容。换句话说，不应该在裸版本库中进行提交操作。</p>
+
+<h3>版本库克隆</h3>
+
+<p>git clone 命令去创建一个新的git版本库，基于你通过文件系统或网络地指定的原始版本库。Git并不需要复制原始版本库的所有信息。</p>
+
+<p>在正常使用Git clone命令时，原始版本库中存储在refs/heads/下的本地开发分支，会成为新的克隆版本库中refs/remotes/下的远程追踪分支。</p>
+
+<h2>远程版本库</h2>
+
+<p>你目前在工作中使用的版本库成为本地版本库，你交换文件用的版本库成为远程版本库（remote repository）.Git使用远程版本库和远程追踪分支来引用另一个版本库，并有助于与该版本库建立连接。远程版本库位版本库提供了更友好的名字，可以代替版本库实际的URL。</p>
+
+<p>使用 git remote 命令创建，删除，操作和查看远程版本库，你引入的所有远程版本库都记录在.git/config文件中，可以用git config来操作。</p>
+
+<p>除了git clone之外，跟远程版本库有关的其他常见的git命令有:</p>
+
+<pre><code>git fetch -&gt;从远程版本库抓取对象及其相关的元数据
+git pull  -&gt;跟git fetch类似，但合并修改到相应的本地分支
+git push --&gt;转移对象及其它元数据到远程版本库
+git ls-remote-&gt;显示一个给定的远程版本库（在上游服务器上）的引用列表
+</code></pre>
+
+<h3>引用其它版本库</h3>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Git分支]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2015/08/28/fen-zhi/"/>
+    <updated>2015-08-28T16:02:13+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2015/08/28/fen-zhi</id>
+    <content type="html"><![CDATA[<p>分支是在软件项目中启动一条单独的开发线的方法。分支是一种统一的，原始的的状态分离出来的，能够使开发能够在多个方向上同时进行，并可能产生项目的不同版本。通常情况下，分支会调解并与其他分支合并，来重聚不同的力量。</p>
+
+<p>Git允许很多分支，因此在同一个版本库中可以有许多不同的开发线。Git的分支是轻量级的，简单的，Git对合并的支持是一流的，所以，大多数的Git用户把分支作为日常使用。</p>
+
+<!--more-->
+
+
+<h2>使用分支的原因</h2>
+
+<ul>
+<li>一个分支通常代表一个单独的客户端发布版。如果你想开始项目的1.1版本，但是你知道客户想保持1.0版，那就把旧版本当做一个单独的分支。</li>
+<li>一个分支可以封装位一个开发阶段，比如原型，测试，稳定或者临近发布。你可以认为1.1版本是个单独的阶段。</li>
+<li>一个分支可以隔离一个特性的开发或者研究特别复杂的bug,例如，可以引入一个分支来完成一个明确定义的，概念上的孤立的任务，或者在发布之前帮助几个分支进行合并。只是为了解决bug就创建一个新分支，这看起来可能是杀鸡用牛刀了，但是git的分支系统恰恰鼓励这种小规模的使用</li>
+</ul>
+
+
+<h3>分支名</h3>
+
+<p>版本库中的默认分支名为Master,大多数开发人员都会在这个分支上开发和维护，除了git在版本库中引入这个名字之外。如果愿意，可以重命名甚至删了master分支，但是最好不要删除。</p>
+
+<p>为了支持可扩展和分类组织，可以创建一个带层次的分支名，假设你所在的一个开发团队正在修正大量的bug,把每个修复的开发放在层次结构中，在bug分支下建立不同分支，如bug/pr-1002和 bug/pr-1004,bug/pr-1005&hellip;</p>
+
+<pre><code>git show-branch 'bug/*'
+</code></pre>
+
+<h3>使用分支</h3>
+
+<p>在任何时间里，版本库里可能有许多不同的分支，但是最多只有一个当前的或者活动的分支。
+分支允许版本库中的每一个分支的内容向许多不同的方向发散。当一个版本库分出至少一个分支时，把每次提交应用到某个分支，取决于那个分支是活动的。</p>
+
+<p>每一个分支在一个特定的版本库中必须有唯一的名字，一个分支的最近提交称谓分支的头部 tip or head.如果想复制版本库，分支名和那些分支上的开发都将是新复制版本库的副本的一部分。</p>
+
+<h3>创建分支</h3>
+
+<pre><code>git branch branch[starting-commit]
+</code></pre>
+
+<p>比如</p>
+
+<pre><code>git branch prs/pr-1138
+</code></pre>
+
+<p>如果没有指定的staring-commit,就默认为当前分支上的最近提交。换言之，默认是在你现在工作的地方启动一个新的分支。
+需要注意的是，git branch只是把分支名引进版本库，并没有改变工作目录去使用新的分支。
+如果要切换分支，可以用如下命令</p>
+
+<pre><code>git checkout prs/pr-1138
+</code></pre>
+
+<h3>列出分支名</h3>
+
+<p>git branch命令列出版本库中的分支名。</p>
+
+<pre><code>git branch 
+</code></pre>
+
+<h3>查看分支</h3>
+
+<pre><code>git show-branch
+</code></pre>
+
+<p>git show-branch 命令提供比 git branch 更详细的输出，按时间顺序输出</p>
+
+<h3>检出分支</h3>
+
+<p>工作目录一次只能反映一个分支。要在不同的分支上开始工作，要发出git checkout 命令，给定一个分支名，Git checkout会使该分支变成新的分支。</p>
+
+<pre><code>git checkout bug/pr-1
+</code></pre>
+
+<h3>合并变更到不同分支</h3>
+
+<p>如果使用-m 选项特别要求，Git通过在你的本地修改和对目标分支之间进行一次合并操作，尝试将你的本地修改加入到新工作目录中。</p>
+
+<pre><code>git checkout -m dev
+M NewStuff
+switch to branch "dev"
+
+git merge 分支名
+</code></pre>
+
+<p>在这里，git已经修改了NewStuff文件，并成功检出了dev分支。
+本次合并的操作完全发生在工作目录。
+如果git可以检出一个分支，改变它，并且在没有任何合并冲突的情况下清晰地合并本地修改，那么检出请求就成功了。</p>
+
+<p>假设你再开发版本库的master分支，并对NewStuff文件进行了一些修改。然后，你发现你所做的更改其实应该在另一分支，也许是因为修复了问题报告1,所以应该提交到bug/pr-1分支。</p>
+
+<h3>创建并检出分支</h3>
+
+<p>当你想创建一个新分支并切换到它，
+Git提供了一个快捷方式 -b new_branch 选项来处理这种情况</p>
+
+<pre><code>git checkout -b 分支名
+
+比如
+git checkout -b bug/pr-3
+</code></pre>
+
+<h3>删除分支</h3>
+
+<p>命令  <code>git branch -d 分支名</code>从版本库中删除分支</p>
+
+<pre><code>git branch -d bug/pr-3
+</code></pre>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Git起步]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2015/08/12/gitxue-xi/"/>
+    <updated>2015-08-12T10:46:31+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2015/08/12/gitxue-xi</id>
+    <content type="html"><![CDATA[<h2>背景</h2>
+
+<p>当今世界，难以想象有创意的人会在没有备份策略的情况下启动一个项目。数据是短暂的，容易丢失，例如，通过一次错误的代码变更或者一次灾难性的硬盘崩溃。所以说，在整个工作中持续性的备份和存档是非常明智的。</p>
+
+<p>Git就是一个功能强劲的版本管理工具，它比svn要优秀很多。</p>
+
+<!--more-->
+
+
+<ul>
+<li>有助于分布式开发</li>
+<li>能够胜任上千开发人员协同工作</li>
+<li>性能优异</li>
+<li>保持完整性和可靠性</li>
+<li>强化责任</li>
+<li>原子事务</li>
+<li>支持并且鼓励基于分支的开发</li>
+<li>免费自由</li>
+</ul>
+
+
+<p>我用的是Mac电脑，系统默认已经安装了Git,如果是其它系统，请百度安装。</p>
+
+<p>安装好了之后，打开终端,输入git,Git就会不带任何参数的列出常用的命令</p>
+
+<pre><code>$git
+</code></pre>
+
+<p>如图：<img src="http://7xkxhx.com1.z0.glb.clouddn.com/git1_1.png" alt="" /></p>
+
+<p>如果想要得到Git版本号，输入</p>
+
+<pre><code>$ git --version
+</code></pre>
+
+<h2>Git快速入门</h2>
+
+<p>为了学习Git,让我们新建一个版本库，添加一些内容。
+有两种建立Git版本库的基础技术，可以从头开始创建，用现有的内容填充它，或者可以clong一个已有的版本库。从一个空的版本库开始比较简单，让我们开始吧。</p>
+
+<h3>创建初始版本库</h3>
+
+<p>在~/learnGit目录创建你的文件，并把它放到Git版本库中。如果你没有learnGit目录，那就新建一个</p>
+
+<pre><code>mkdir learnGit
+cd learnGit
+echo "Hello world" &gt; index.html
+</code></pre>
+
+<p>执行 <code>git init</code>,将learnGit目录转化为版本库,为了显示目录是一个Git版本库，git init命令创建了一个隐藏目录，在项目的顶层目录,名为.git.</p>
+
+<h3>将文件添加到版本库</h3>
+
+<pre><code>$git add index.html
+</code></pre>
+
+<p>在add之后，git知道index.html这个文件是要留在版本库里的，然后到目前为止，git还只是暂存(staged)了这个文件，这是提交之前的中间步骤.Git将add和commit这两步分开，试想一下，如果在你的每一次添加，移除或更改一个文件的时候都要更新版本库，那该多么频繁啊和费时啊。相反，多次临时的步骤，可以 批处理，来保持版本库是稳定和一致的。
+远行 git status命令，显示当前git 状态</p>
+
+<pre><code>  git status
+</code></pre>
+
+<pre><code>    On branch master
+
+    Initial commit
+
+    Untracked files:
+      (use "git add &lt;file&gt;..." to include in what will be committed)
+
+        index.html
+
+    nothing added to commit but untracked files present (use "git add" to track)
+</code></pre>
+
+<p>这个命令显示新文件 index.html将在下一次提交的时候添加到版本库中，除了目录和文件内容的实际变化，git还会在每次提交的时候记录其它一些元数据，包括日志消息和作出变更的作者。</p>
+
+<h3>配置提交作者</h3>
+
+<p>在对版本库做多次提交之前，你应该建立一些基本的环境和配置选项。最为基本的命令，Git必须知道你的名字和email.</p>
+
+<p>你可以用git config命令配置文件里的保存你的身份
+<code>
+$ git config user.name "Jony"
+$ git config user.email "jdl@example.com"
+</code></p>
+
+<h3>再次提交</h3>
+
+<p>为了显示更多Git特性，让我们做一些修改，在这个版本库创建一个复杂的变更历史。
+来提交一次对index.html文件的修改，</p>
+
+<pre><code>$ cd learnGit
+#编辑index.html
+$ cat index.html
+</code></pre>
+
+<pre><code>        &lt;html&gt;
+        chnia !
+        &lt;/html&gt;
+</code></pre>
+
+<pre><code>$ git commit index.html
+</code></pre>
+
+<p>因为这个文件已经添加到版本库中了，所以不用再次 <code>add file</code>.此外挡在命令行里直接提交一个命名的文件时，文件的变更会自动捕获。当你提交成功之后，版本库里有两个版本的index.html了。</p>
+
+<h3>查看提交</h3>
+
+<p>git log 命名会产生版本库里一系列单独的提交的历史</p>
+
+<pre><code>    $ git log
+</code></pre>
+
+<h3>版本库内文件的删除和重命名</h3>
+
+<p>从版本库里删除一个文件和添加一个文件是类似的，除了使用的命令是 git rm.假设你的版本中有个 readme.txt,你可以这样做</p>
+
+<pre><code>    $ git rm readme.txt
+    git commit -m "remove a file"
+</code></pre>
+
+<p>删除需要两步：git rm表示你想要删除这个文件的意图并暂存这个变更，接着git commit在版本库里实现这个变更。</p>
+
+<p>重命名文件语法是这样的：</p>
+
+<pre><code>$ git mv foo.html bar.html
+$ git commit -m "Moved foo to bar"
+</code></pre>
+
+<h3>创建版本库副本</h3>
+
+<pre><code>$ cd ~
+$ git clone learnGit gitDemo
+</code></pre>
+
+<p>使用clone命名就能克隆一个版本库副本，后面的位置可以自定义。一旦复制版本库，就可以修改这个复制版本，做出新的提交，查看它的日志和历史等。这是一个有着完整历史的版本库。</p>
+
+<h2>Git基本概念</h2>
+
+<h3>版本库</h3>
+
+<p>Git版本库只是一个简单的数据库，其中包含所有用来维护与管理项目的修订版本和历史的信息，在版本库中，Git维护两个主要的数据结构：对象库和索引，所有这些版本数据库存放在工作目录根目录下一个名为.git的隐藏的目录中。对象库在复制操作的时候进行有效的复制，这也是用来支持完全分布式VCS的一种技术。索引的是暂时的信息，对版本库来说是私有的。</p>
+
+<h3>Git对象库</h3>
+
+<p>对象库是git版本库实现的心脏。它包含你的原始数据文件和所有的日志信息，作者信息，日期，以及所有的分支信息。</p>
+
+<h3>索引</h3>
+
+<p>索引是一个临时的，动态的二进制文件，它描述整个版本库的目录结构。更具体的说，索引捕获项目在某个时刻的整体结构的一个版本。索引使得开发的推进与提交的变更之间能够分离开来。
+下面是它的工作原理</p>
+
+<p>作为开发人员，你通过执行Git命令在索引中暂存(Stage)变更。变更通常是添加，删除或者编辑某个文件。索引会记住变更和保存文件，保障他们的安全直到你准备好提交了。因此索引支持一个有你主导的从复杂的版本库状态到一个可推测的更好的状态的过渡。</p>
+
+<p>图解
+这是我的工作目录
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/git1_2.png" alt="" /></p>
+
+<p>当我执行 <code>git add</code>命令的时候，它会提交到索引区，此时还没有到数据库</p>
+
+<p>当我执行 <code>git commit</code>命名的时候，索引中的文件会从暂存区提交版本库中，此时目录是clean的。</p>
+]]></content>
+  </entry>
+  
+</feed>
