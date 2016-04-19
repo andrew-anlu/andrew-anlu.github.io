@@ -4,7 +4,7 @@
   <title><![CDATA[安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-04-19T17:23:35+08:00</updated>
+  <updated>2016-04-19T17:24:35+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[追求卓越成功就会在不经意间追上你]]></name>
@@ -12,5 +12,14 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Hello World]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/04/19/hello-world/"/>
+    <updated>2016-04-19T17:24:28+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/04/19/hello-world</id>
+    <content type="html"><![CDATA[
+]]></content>
+  </entry>
   
 </feed>
