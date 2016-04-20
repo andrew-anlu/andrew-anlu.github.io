@@ -4,7 +4,7 @@
   <title><![CDATA[安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-04-20T11:39:40+08:00</updated>
+  <updated>2016-04-20T17:39:36+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -309,6 +309,181 @@
 </span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
 
 
+<p>我们使用NSURLSession类方法创建爱你一个下载任务，配置请求，并提供说明供以后使用。因为所有回话任务一开始处于挂起状态，你必须谨记要调用[task resume]保证开始了任务。</p>
+
+<p>现在，我们需要实现 NSURLSessionDownloadDelegate 的委托方法，当下载完成时，调用回调函数。如果你需要处理认证或会话生命周期的其他事件，你可能还需要实现NSURLSessionDelegate或NSURLSessionTaskDelegate的方法，你应该阅读Apple的<a href="https://developer.apple.com/library/ios/documentation/cocoa/Conceptual/URLLoadingSystem/NSURLSessionConcepts/NSURLSessionConcepts.html#//apple_ref/doc/uid/10000165i-CH2-SW42">Life Cycle of a URL Session with Custom Delegates</a>文档，它讲解了所有类型回话任务的完成生命周期。</p>
+
+<p>NSURLSessionDownloadDelegate中的委托方法全部是必须实现的，尽管在这个例子中我们只需要用到 [NSURLSession downloadTask:didFinishDownloadingToURL:]。任务完成下载时，你会得到一个磁盘上该文件的临时URL.你必须把这个文件移动或复制你的应用程序空间，因为当你从这个委托方法返回时，该文件将从临时存储中删除。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>#Pragma Mark - NSURLSessionDownloadDelegate
+</span><span class='line'>
+</span><span class='line'>- (void)         URLSession:(NSURLSession *)session 
+</span><span class='line'>               downloadTask:(NSURLSessionDownloadTask *)downloadTask
+</span><span class='line'>  didFinishDownloadingToURL:(NSURL *)location
+</span><span class='line'>{
+</span><span class='line'>    NSLog(@"downloadTask:%@ didFinishDownloadingToURL:%@", downloadTask.taskDescription, location);
+</span><span class='line'>
+</span><span class='line'>    // 用 NSFileManager 将文件复制到应用的存储中
+</span><span class='line'>    // ...
+</span><span class='line'>
+</span><span class='line'>    // 通知 UI 刷新
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>- (void)  URLSession:(NSURLSession *)session 
+</span><span class='line'>        downloadTask:(NSURLSessionDownloadTask *)downloadTask 
+</span><span class='line'>   didResumeAtOffset:(int64_t)fileOffset 
+</span><span class='line'>  expectedTotalBytes:(int64_t)expectedTotalBytes
+</span><span class='line'>{
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>- (void)         URLSession:(NSURLSession *)session 
+</span><span class='line'>               downloadTask:(NSURLSessionDownloadTask *)downloadTask 
+</span><span class='line'>               didWriteData:(int64_t)bytesWritten totalBytesWritten:(int64_t)totalBytesWritten 
+</span><span class='line'>  totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite
+</span><span class='line'>{
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>当后台会话任务完成时，如果你的应用程序仍然在前台运行，上面的代码已经足够了。然而，在大多数情况下，你的应用程序可能是没有运行的，或者在后台被挂起。在这些情况下，你必须实现应用程序委托的两个方法，这样系统就可以唤醒你的应用程序。不同于以往的委托回调，该应用程序委托会被调用两次，因为您的会话和任务委托可能会受到一系列消息。App delegate的: handleEventsForBackgroundURLSession：方法会在这些NSURLSession委托的消息发送前被调用，然后URLSessionDidFinishEventsForBackgroundURLSession在随后被调用。在前面的方法中，包含了一个后台完成的回调（completionHandler）,并在后面的方法中执行回调以便更新界面:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (void)                  application:(UIApplication *)application 
+</span><span class='line'>  handleEventsForBackgroundURLSession:(NSString *)identifier completionHandler:(void (^)())completionHandler
+</span><span class='line'>{
+</span><span class='line'>    // 你必须重新建立一个后台 seesiong 的参照
+</span><span class='line'>    // 否则 NSURLSessionDownloadDelegate 和 NSURLSessionDelegate 方法会因为
+</span><span class='line'>    // 没有 对 session 的 delegate 设定而不会被调用。参见上面的 backgroundURLSession
+</span><span class='line'>    NSURLSession *backgroundSession = [self backgroundURLSession];
+</span><span class='line'>
+</span><span class='line'>    NSLog(@"Rejoining session with identifier %@ %@", identifier, backgroundSession);
+</span><span class='line'>
+</span><span class='line'>    // 保存 completion handler 以在处理 session 事件后更新 UI
+</span><span class='line'>    [self addCompletionHandler:completionHandler forSession:identifier];
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>- (void)URLSessionDidFinishEventsForBackgroundURLSession:(NSURLSession *)session
+</span><span class='line'>{
+</span><span class='line'>    NSLog(@"Background URL session %@ finished events.\n", session);
+</span><span class='line'>
+</span><span class='line'>    if (session.configuration.identifier) {
+</span><span class='line'>        // 调用在 -application:handleEventsForBackgroundURLSession: 中保存的 handler
+</span><span class='line'>        [self callCompletionHandlerForSession:session.configuration.identifier];
+</span><span class='line'>    }
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>- (void)addCompletionHandler:(CompletionHandlerType)handler forSession:(NSString *)identifier
+</span><span class='line'>{
+</span><span class='line'>    if ([self.completionHandlerDictionary objectForKey:identifier]) {
+</span><span class='line'>        NSLog(@"Error: Got multiple handlers for a single session identifier.  This should not happen.\n");
+</span><span class='line'>    }
+</span><span class='line'>
+</span><span class='line'>    [self.completionHandlerDictionary setObject:handler forKey:identifier];
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>- (void)callCompletionHandlerForSession: (NSString *)identifier
+</span><span class='line'>{
+</span><span class='line'>    CompletionHandlerType handler = [self.completionHandlerDictionary objectForKey: identifier];
+</span><span class='line'>
+</span><span class='line'>    if (handler) {
+</span><span class='line'>        [self.completionHandlerDictionary removeObjectForKey: identifier];
+</span><span class='line'>        NSLog(@"Calling completion handler for session %@", identifier);
+</span><span class='line'>
+</span><span class='line'>        handler();
+</span><span class='line'>    }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果当后台传输完成时，应用程序不再停留在前台，那么对于更新程序界面来说，这个两步处理过程是必要的。此外，如果当后台传输完成时，应用陈谷根本没有在运行，ios将会在后台启动该应用程序，然后前面的应用程序和会话的委托方法会在application:didFinishLaunchingWithOptions: 方法被调用之后被调用.</p>
+
+<h2>配置和限制</h2>
+
+<p>我们简单地体验了后台传输的强大之处，但你应该深入文档，阅读NSURLSessionConfiguration部分，以便最好滴满足你的使用场景。例如:NSURLSessionTasks通过NSURLSessionConfiguration的timeoutIntervalForResource属性，支持资源超时特性。你可以使用这个特性指定你允许完成一个传输所需的最长时间。内容只在有限的时间可用，或者在用户只有有限wifi宽带的时间内无法下载或上传资源的情况下，你也可以使用这个特性。</p>
+
+<p>除了下载任务，NSURLSession也全面支持上传任务，因此，你可能会在后台将视频上传到服务器，这保证用户不需要再像ios6那样保持应用程序前台运行。如果当传输完成时你的应用程序不需要再后台运行，一个比较好的做法是,把NSURLSessionConfiguration的sessionSendsLaunchEvents属性设置为NO。高效利用系统资源，是一件让Ios和用户都高兴的事。</p>
+
+<p>最后，我们来说一说使用后台会话的几个限制。作为一个必须实现的委托，您不能对NSURLSession的使用简单的基于block的回调方法。后台启动应用程序，是相对耗费较多资源的，所以总是采用Http重定向。后台传输服务只支持HTTP和HTTPS，你不能使用自定义的协议。系统会根据可用的资源进行优化，在任何时候你都不能强制传输任务在后台进行。</p>
+
+<p>另外，要注意的是在后台回话中，NSURLSessionDataTasks是完全不支持的，你应该只处于短期的，小请求为目的的使用这些任务，而不是用来下载或上传。</p>
+
+<h2>总结</h2>
+
+<p>在ios7中强大的多任务和网络API为现有应用和新应用开启了一系列全新的可能性。如果你的应用程序可以从进程外的网络传输和数据中获益，那么尽情地使用这些美妙的API，一般情况下，你可以就像你的应用正在前台运行那样去实现后台传输，并进行适当的界面更新，而这里绝大多数的工作都已经为你完成了。</p>
+
+<ul>
+<li>使用适当的新的API来为你的应用程序提供内容</li>
+<li>尽可能早地调用completion handler以提高效率</li>
+<li>让completion hander为应用程序更新界面快照</li>
+</ul>
 
 ]]></content>
   </entry>
