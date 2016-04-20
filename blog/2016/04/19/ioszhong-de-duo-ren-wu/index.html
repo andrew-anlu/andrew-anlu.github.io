@@ -9,8 +9,7 @@
   <meta name="author" content="安路">
 
   
-  <meta name="description" content="
-">
+  <meta name="description" content="在ios7之前，当程序置于后台之后开发者们对他们程序所能做的事情非常有限，除了VOIP和基于地理位置特性之外，唯一能做的地方就是后台任务(background tasks)让代码可以执行几分钟。如果你想下载比较大的视频文件以便离线浏览，或者备份用户的照片到你的服务器上，你都仅能完成一部分工作. &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -89,7 +88,298 @@
   </header>
 
 
-<div class="entry-content">
+<div class="entry-content"><p>在ios7之前，当程序置于后台之后开发者们对他们程序所能做的事情非常有限，除了VOIP和基于地理位置特性之外，唯一能做的地方就是后台任务(background tasks)让代码可以执行几分钟。如果你想下载比较大的视频文件以便离线浏览，或者备份用户的照片到你的服务器上，你都仅能完成一部分工作.</p>
+
+<p> <!--more--></p>
+
+<p>ios7添加了两个新的API以便你的程序可以在后台更新界面以及内容。首先是后台获取(background Fetch)，它允许你定义地从网络获取新的内容。第二个API就是远程通知(Remote Notifications)，这是一个当事件发生时可以让推送通知主动提醒应用的新特性，这两者都为你的应用界面保持最新提供了极大的帮助。在新的后台传输服务(Background Trasnfer service)中执行定期的任务，也允许你在进程之外可以执行网络传输(下载和上传)工作</p>
+
+<p>后台获取(Background Fetch)和远程通知(Remote notification)基于简单的 ApplicationDelegate钩子，在应用程序挂起之前的30秒时间执行工作。它们不是用于CPU频繁工作或者长时间运行任务，而是用来处理长时间运行的网络请求队列，例如下载一部很大的电影，或者执行快速的内容更新。</p>
+
+<p>对于用户来说,多任务处理有点显而易见的改变就是新的应用切换程序，它用来呈现应用到后台时的界面快照。这些快照的存在是有一定理由的&ndash;现在你可以在后台完成工作后更新程序快照，以用来呈现新的内容。社交网络，新闻或者天气等应用现在都可以直接呈现最新的内容而不需要用户重新打开应用。我们稍后会介绍如何更新屏幕快照。</p>
+
+<h2>后台获取</h2>
+
+<p>后台获取是一种智能的轮询机制，它很适合需要经常更新内容的程序，像社交网络，新闻或天气的程序。为了在用户启动程序前提前出发后台获取，系统会根据用户行为唤醒应用程序。举个例子，如果用户经常在下午一点使用某个应用程序，系统会学习，适应并在使用周期前执行后台获取。为了减少电池使用，使用设备无线通信的所有应用的后台获取会被合并，如果你想系统报告新数据无法获取，ios会适应并使用此信息避免会继续获取。</p>
+
+<p>开启后台获取的第一步是在info plist文件中对UIBackgroundModes键指定特定的值。最简单的途径是在Xcode的project editor中新的Capabilities标签页设置，这个标签页包含了后台模式部分，可以方便配置多任务选项。</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/capabilities-on-bgfetch.jpg" alt="logo" /></p>
+
+<p>或者你可以手动配置这个值</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;key&gt;UIBackgroundModes&lt;/key&gt;
+</span><span class='line'>&lt;array&gt;
+</span><span class='line'>    &lt;string&gt;fetch&lt;/string&gt;
+</span><span class='line'>&lt;/array&gt;  </span></code></pre></td></tr></table></div></figure>
+
+
+<p>接下来，告诉IOS多久进行一次数据获取</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+</span><span class='line'>{
+</span><span class='line'>    [application setMinimumBackgroundFetchInterval:UIApplicationBackgroundFetchIntervalMinimum];
+</span><span class='line'>
+</span><span class='line'>    return YES;
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>ios默认不进行后台获取，所以你需要设置一个时间间隔，否则，你的应用程序永远不能在后台被唤醒。UIApplicationBackgroundFetchIntervalMinimum这个值要求系统尽可能频繁地去管理你的程序到底什么时候应该被唤醒，但如果你不需要这样的话，你也应该制定一个你想要的时间间隔。例如，一个天气的应用程序，可能只需要几个小时更新一次，IOS将会在后台获取之间至少等待你指定的时间间隔。</p>
+
+<p>如果你的应用允许用户退出登录，那么就没有获取新数据的需要了，你应该把minimumBackgroundFetchInterval设置为UIApplicationBackgroundFetchIntervalNever,专业那个可以节省资源。</p>
+
+<p>最后一步是在应用程序委托中实现下列方法:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (void)                application:(UIApplication *)application 
+</span><span class='line'>  performFetchWithCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler
+</span><span class='line'>{
+</span><span class='line'>    NSURLSessionConfiguration *sessionConfiguration = [NSURLSessionConfiguration defaultSessionConfiguration];
+</span><span class='line'>    NSURLSession *session = [NSURLSession sessionWithConfiguration:sessionConfiguration];
+</span><span class='line'>
+</span><span class='line'>    NSURL *url = [[NSURL alloc] initWithString:@"http://yourserver.com/data.json"];
+</span><span class='line'>    NSURLSessionDataTask *task = [session dataTaskWithURL:url 
+</span><span class='line'>                                        completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+</span><span class='line'>
+</span><span class='line'>        if (error) {
+</span><span class='line'>            completionHandler(UIBackgroundFetchResultFailed);
+</span><span class='line'>            return;
+</span><span class='line'>        }
+</span><span class='line'>
+</span><span class='line'>        // 解析响应/数据以决定新内容是否可用
+</span><span class='line'>        BOOL hasNewData = ...
+</span><span class='line'>        if (hasNewData) {
+</span><span class='line'>            completionHandler(UIBackgroundFetchResultNewData);
+</span><span class='line'>        } else {
+</span><span class='line'>            completionHandler(UIBackgroundFetchResultNoData);
+</span><span class='line'>        }
+</span><span class='line'>    }];
+</span><span class='line'>
+</span><span class='line'>    // 开始任务
+</span><span class='line'>    [task resume];
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>系统唤醒应用程序后将会执行这个委托方法。需要注意的是，你只有30秒的时间来确定获取的新内容是否可用，然后处理新内容并更新界面，30秒时间应该足够去网络获取数据和获取界面的缩略图，但是最多只有30秒，当完成了网络请求和更新界面后，你应该执行完成的回调。</p>
+
+<p>完成回调的执行有两个目的，首先，系统会估量你的进程消耗的电量，并根据你传递的UIBackgroundFetchResult参数记录新数据是否可用，其次，当你调用完成的处理代码时，应用的界面缩略图会被采用，并更新应用程序切换器，当用户在应用间切换时，用户将会看到新内容，这种通过completion handler来报告并且生成截图的方法，在新的多任务处理API中是很常见的。</p>
+
+<p>在实际的应用中，你应该将completionHandler传递到应用程序的子组件，然后在处理完数据和更新界面后调用。</p>
+
+<p>在这里，你可能想知道ios是如何在应用程序后台运行时获得界面截图的，并且想知道应用程序的声明周期与后台获取之间有什么关系。如果应用程序处于挂起状态，系统会先唤醒应用，然后再调用application: performFetchWithCompletionHandler:。如果应用程序还没有启动，系统将会启动它，然后调用常见的委托方法，包括application: didFinishLaunchingWithOptions:。你可以把这种应用程序运行的方式想象为用户从Springboard启动这个程序，区别仅仅在于界面是看不见的，在屏幕外渲染的。</p>
+
+<p>大多数情况下，无论应用在后台启动或者在前台，你会执行相同的工作，但你可以通过查看UIAppcation的applicationState属性来判断应用是不是从后台启动。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+</span><span class='line'>{
+</span><span class='line'>    NSLog(@"Launched in background %d", UIApplicationStateBackground == application.applicationState);
+</span><span class='line'>
+</span><span class='line'>    return YES;
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>测试后台数据获取</h2>
+
+<p>有两种可以模拟后台获取的途径。最简单是从Xcode运行你的应用，当应用运行时，在Xcode的Debug菜单选择Simulate Background Fetch.</p>
+
+<p>第二种方法，使用scheme更改Xcode运行程序的方式。在Xcode菜单的Product选项，选择Scheme然后选择Manager Schemes.在这里，你可以编辑或者添加一个新的scheme,然后选中Launch due to a background fetch event ,如下图:</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/edit-scheme-simulate-background-fetch.png" alt="logo" /></p>
+
+<h2>远程通知</h2>
+
+<p>远程通知允许你在重要事件发生时，告知你的应用。你可能需要发送新的即时消息，突发新闻的提醒，或者用户喜爱电视的最新剧集已经可以下载一遍离线观看的消息。远程通知很适合用于那些偶尔出现，但却很重要的内容，如果使用后台获取模式中有两次获取间需要等待的时间是不可接受的话，远程通知会是一个不错的选择。远程通知会比后台获取更有效率，因为应用程序只有在需要的时候的才会启动。</p>
+
+<p>一条远程通知实际上只是一条普通的带有content-available 标志的推送通知。你可以发送一条带有提醒消息的推送去告诉用户有事情发生了，同时在后台对界面进行更新。但远程通知也可以做到安静的，没有提醒消息或者任何声音 的情况下，只去更新应用界面或者触发后台工作。然后你可以在完成下载或者处理完新内容后，发送一条本地通知。</p>
+
+<p>静默的推送通知有速度限制，所以你可以大胆地根据应用程序的需要发送尽可能多的通知。ios和苹果推送服务会控制推送通知多久被递送，发送很多推送通知是没有问题的。如果你的推送通知达到了限制，推送通知可能会被延迟，知道设备下次发送保持活动状态的数据包，或者受到另外一个通知。</p>
+
+<h2>发送远程通知</h2>
+
+<p>要发送一条远程通知，需要在推送通知的有效负载设置content－available 标志。content－available 标志和用来通知报刊应用的键值是一样的。因此，大多数推送脚本和库都已经支持远程通知。当你发送一条远程通知时，你可能还想要包含一些通知有效负载中的数据，让你应用程序可以引用事件。这可以为你节省一些网络请求，并提高应用程序的响应度。</p>
+
+<p>我建议在开发的时候，使用<a href="http://nomad-cli.com/#houston">Nomand CLI&rsquo;s Houston</a>工具发送推送消息，当然你可以使用你喜欢的库或者脚本。</p>
+
+<p>你可以通过nomad-cli ruby gem来安装Houston</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>gem install nomad-cli</span></code></pre></td></tr></table></div></figure>
+
+
+<p>然后通过包含在Noman的apn实用工具发送一条通知:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># Send a Push Notification to your Device
+</span><span class='line'>apn push &lt;device token&gt; -c /path/to/key-cert.pem -n -d content-id=42</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在这里，-n标志指定应该包含content-available 健值,-d标志允许添加我们自定义的数据键值到有效负荷.
+通知的有效负荷(payload)结果和下面类似:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{
+</span><span class='line'>    "aps" : {
+</span><span class='line'>        "content-available" : 1
+</span><span class='line'>    },
+</span><span class='line'>    "content-id" : 42
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>ios7中添加了新的应用程序委托方法，当接收到一条带有 content－available的推送通知时，下面的方法会被调用:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (void)application:(UIApplication *)application 
+</span><span class='line'>  didReceiveRemoteNotification:(NSDictionary *)userInfo 
+</span><span class='line'>        fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler
+</span><span class='line'>{
+</span><span class='line'>    NSLog(@"Remote Notification userInfo is %@", userInfo);
+</span><span class='line'>
+</span><span class='line'>    NSNumber *contentID = userInfo[@"content-id"];
+</span><span class='line'>    // 根据 content ID 进行操作
+</span><span class='line'>    completionHandler(UIBackgroundFetchResultNewData);
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>和后台抓取一样，应用程序进入后台启动，也有30秒时间去获取新内容并更新界面，最后调用完成的处理代码。我们可以像后台获取那样，执行快速的网络请求，但我们可以使用新的强大的后台传输服务，处理任务队列，下面看看我们如何在任务完成后更新界面。</p>
+
+<h2>NSurlSession和后台传输服务(Background Transfer Service)</h2>
+
+<p>NSURLSession是ios7添加的一个新类，它也是Foundation Networking中的新技术。作为NSURLConnection的替代品，一些熟悉的概念和类都保留下来了，例如NSURL,NSURLRequest,NSURLResponse.所以，你可以使用NSURLSessionTask这一NSURLConnnection的替代品，来处理网络请求及响应。一共有3种回话任务：数据，下载和上传。每一种都向NSURLSessionTask添加了语法糖，根据你的需要，适当选择一种。</p>
+
+<p>一个NSURLSession对象协调一个或多个NSURLSessionTask对象，并根据NSURLSessionTask创建的NSURLSessionConfiguration实现不同的功能。使用相同的配置，你也可以创建多组具有相关任务的NSURLSessionTask对象。要利用后台传输服务，你将会使用<code>[NSURLSessionConfiguration backgroundSessionConfiguration]</code>来创建一个会话配置。添加到后台会话的任务在外部进程运行，即使应用程序被挂起，崩溃，或者被杀死，它依然会运行。</p>
+
+<p>NSURLSessionConfiguration允许你设置默认的HTTP头，配置缓存策略，限制使用蜂窝煤数据等等。其中一个选项是discretionary标志，这个标志允许系统为分配任务进行性能优化。这意味着只有当设备足够电量时，设备才通过wifi进行数据传输。如果电量低，或者只仅有一个蜂窝连接，传输任务是不会运行的。后台传输总是在discretionary模式下运行。</p>
+
+<p>目前为止，我们大概了解了NSURLSession，以及一个后台回话如何进行，接下来，让我们回到远程通知的例子，添加一些代码来处理后台传入服务的下载队列。当下载完成后，我们会通知用户该文件已经可以用了。</p>
+
+<h2>NSURLSessionDownloadTask</h2>
+
+<p>首先，我们先处理一条远程通知，并把一个NSURLSessionDownloadTask添加到后台传输服务的队列。在backgroundURLSession方法张，我们根据后台回话配置，创建一个NSURLSession对象，并把application delegate作为回话的委托对象。文档不建议对于相同的标识符(identifier)创建多个回话对象，所以我们使用dispatch_once来避免潜在的问题：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (NSURLSession *)backgroundURLSession
+</span><span class='line'>{
+</span><span class='line'>    static NSURLSession *session = nil;
+</span><span class='line'>    static dispatch_once_t onceToken;
+</span><span class='line'>    dispatch_once(&onceToken, ^{
+</span><span class='line'>        NSString *identifier = @"io.objc.backgroundTransferExample";
+</span><span class='line'>        NSURLSessionConfiguration* sessionConfig = [NSURLSessionConfiguration backgroundSessionConfiguration:identifier];
+</span><span class='line'>        session = [NSURLSession sessionWithConfiguration:sessionConfig 
+</span><span class='line'>                                                delegate:self 
+</span><span class='line'>                                           delegateQueue:[NSOperationQueue mainQueue]];
+</span><span class='line'>    });
+</span><span class='line'>
+</span><span class='line'>    return session;
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>- (void)           application:(UIApplication *)application 
+</span><span class='line'>  didReceiveRemoteNotification:(NSDictionary *)userInfo 
+</span><span class='line'>        fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler
+</span><span class='line'>{
+</span><span class='line'>    NSLog(@"Received remote notification with userInfo %@", userInfo);
+</span><span class='line'>
+</span><span class='line'>    NSNumber *contentID = userInfo[@"content-id"];
+</span><span class='line'>    NSString *downloadURLString = [NSString stringWithFormat:@"http://yourserver.com/downloads/%d.mp3", [contentID intValue]];
+</span><span class='line'>    NSURL* downloadURL = [NSURL URLWithString:downloadURLString];
+</span><span class='line'>
+</span><span class='line'>    NSURLRequest *request = [NSURLRequest requestWithURL:downloadURL];
+</span><span class='line'>    NSURLSessionDownloadTask *task = [[self backgroundURLSession] downloadTaskWithRequest:request];
+</span><span class='line'>    task.taskDescription = [NSString stringWithFormat:@"Podcast Episode %d", [contentID intValue]];
+</span><span class='line'>    [task resume];
+</span><span class='line'>
+</span><span class='line'>    completionHandler(UIBackgroundFetchResultNewData);
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+
 </div>
 
 
@@ -107,6 +397,12 @@
 
 <time class='entry-date' datetime='2016-04-19T10:17:49+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>10:17 am</span></time>
       
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/ios/'>ios</a>
+  
+</span>
 
 
     </p>
@@ -187,7 +483,7 @@
 	<ul id="categories">
 		<li class='category'><a href='/blog/categories/cocoapods/'>cocoapods (1)</a></li>
 <li class='category'><a href='/blog/categories/git/'>git (3)</a></li>
-<li class='category'><a href='/blog/categories/ios/'>ios (12)</a></li>
+<li class='category'><a href='/blog/categories/ios/'>ios (13)</a></li>
 <li class='category'><a href='/blog/categories/life/'>life (1)</a></li>
 <li class='category'><a href='/blog/categories/mac/'>mac (1)</a></li>
 <li class='category'><a href='/blog/categories/octopress/'>octopress (2)</a></li>
