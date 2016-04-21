@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Ios | 安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/blog/categories/ios/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-04-21T09:00:54+08:00</updated>
+  <updated>2016-04-21T17:51:19+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -12,6 +12,77 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[测试并发程序]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/04/21/ce-shi-bing-fa-cheng-xu/"/>
+    <updated>2016-04-21T17:38:05+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/04/21/ce-shi-bing-fa-cheng-xu</id>
+    <content type="html"><![CDATA[<p>在开发高质量应用程序的过程中，测试时一个很重要的工具。在过去，当并发不是应用程序架构中重要组成部分的时候，测试就想单简单。随着这几年的发展，使用并发设计模式变得越来越重要了，想要测试好并发应用程序，已成了一个不小的挑战.</p>
+
+<!--more-->
+
+
+<p>测试并发代码最主要的困难在于程序或信息流不是反应在调用堆栈上。函数并不会立即返回给调用者，而是通过回调函数block，通知或者一些类似的机制，这些使得测试变得更加困难。</p>
+
+<p>然后，测试异步代码也会带来一些好处，比如可以揭露较差的程序设计，让最终的实现变得更加清晰。</p>
+
+<h1>异步测试的问题</h1>
+
+<p>首先，我们来看一个简单地同步单元测试的例子，两个数求和的方法.</p>
+
+<pre><code>+ (int)add:(int)a to:(int)b {
+    return a + b;
+}
+</code></pre>
+
+<p>测试这个方法很简单，只需要比较该方法返回值是否和期望值相同，如果不相同，则测试失败。</p>
+
+<pre><code>- (void)testAddition {
+    int result = [Calculator add:2 to:2];
+    STAssertEquals(result, 4, nil);
+}
+</code></pre>
+
+<p>接下来，我们利用block将该方法改成异步返回结果，为了模拟测试失败，我们会在方法实现中故意添加一个bug.</p>
+
+<pre><code>+ (int)add:(int)a to:(int)b block:(void(^)(int))block {
+    [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+        block(a - b); // 带有bug的实现
+    }];
+}
+</code></pre>
+
+<p>虽然这是一个人为的例子，但是它却真实的反映了编程中可能经常遇到的问题，只不过实际过程更加复杂罢了。</p>
+
+<p>测试上面的方法最简单的做法就是把断言放到Block中。尽管我们的方法实现中存在bug,但是这种测试永远不是失败的；</p>
+
+<pre><code>// 千万不要使用这些代码！
+- (void)testAdditionAsync {
+    [Calculator add:2 to:2 block:^(int result) {
+        STAssertEquals(result, 4, nil); // 永远不会被调用到
+    }];
+}
+</code></pre>
+
+<p>这里的断言为什么没失败呢？</p>
+
+<h1>关于SenTestingKit</h1>
+
+<p>在老版本的xcode中所使用的测试框架是基于 <a href="http://www.sente.ch/software/ocunit/">OCUnit</a>。为了理解之前所提到的异步测试问题，我们需要了解一下测试包中的各个部分之间的执行顺序。下图展示了一个简化的流程。</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/SenTestingKit-call-stack.png" alt="test" /></p>
+
+<p>在测试框架在主run loop开始运行之后，主要执行了一下几个步骤:</p>
+
+<ol>
+<li>配置一个包含所有相关测试的测试包</li>
+<li>运行测试包，内部会调用所有以test开头测试用例的方法。运行结束后会返回一个包含单个测试结果的对象。</li>
+<li>调用exit()退出测试</li>
+</ol>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Ios中的多任务]]></title>
@@ -1604,119 +1675,6 @@ _isCancelled = YES;
 
 <blockquote><p><strong>提示</strong>
 队列的取出时有顺序的，与打印结果并不矛盾，这就好比赛跑，起跑的顺序是A,B,C，但是到达终点的顺序就不一样是 A B  C了。</p></blockquote>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[学习CAShapeLayer]]></title>
-    <link href="http://andrew-anlu.github.io/blog/2016/03/04/xue-xi-cashapelayer/"/>
-    <updated>2016-03-04T14:20:24+08:00</updated>
-    <id>http://andrew-anlu.github.io/blog/2016/03/04/xue-xi-cashapelayer</id>
-    <content type="html"><![CDATA[<h2>前言</h2>
-
-<p>CAShapeLayer继承自CALayer,因此，可以使用CaLayer的所有属性。但是，CAShapeLayer需要和贝塞尔曲线配合使用才有意义.</p>
-
-<p>CAShapeLayer是在其坐标系统内绘制贝塞尔曲线的。因此使用CAShapeLayer需要与 <code>UIbezierPath</code>一起使用。</p>
-
-<p>它有一个 <code>path</code>属性，而<code>UIBezierPath</code>就是对 <code>CGPathRef</code>类型的封装，因此这两者是绝配</p>
-
-<!--more-->
-
-
-<h2>CASHapeLayer和drawRect的比较</h2>
-
-<ol>
-<li>drawRect : 属于CoreGraphics框架，占用cpu,性能消耗大</li>
-<li>CAShapeLayer:属于CoreAnimation框架，通过GPU来渲染图形，节省性能。动画渲染直接提交给手机的GPU,不消耗内存。</li>
-</ol>
-
-
-<p>这两者各有各的用途，而不是说有个CAShapeLayer就不需要drawRect了。</p>
-
-<h2>CAShapeLayer月UIBezierPath的关系</h2>
-
-<ol>
-<li>CAShapeLayer中的shape代表形状的意思，所以需要形状才能生效</li>
-<li>贝塞尔曲线可以创建矢量的路径，而<code>UIBezierPath</code>类是对 <code>CGPathRef</code>的封装</li>
-<li>贝塞尔曲线给 <code>CAShapeLayer</code>提供路径，CAShapelayer在提供的路径中进行渲染。路径会闭环，所以绘制出了 <code>Shape</code></li>
-<li>用于<code>CAShapeLayer</code>的贝塞尔曲线作为path,其path是一个首尾相接的闭环的曲线，即使该贝塞尔曲线不是一个闭环的曲线。</li>
-</ol>
-
-
-<h2>CAShapeLayer与UIBezierPath画圆</h2>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160304-2.png" alt="logo" /></p>
-
-<p>代码:</p>
-
-<pre><code>-(CAShapeLayer*)drawCircle{
-    CAShapeLayer *circleLayer=[CAShapeLayer layer];
-
-    circleLayer.frame=CGRectMake(100, 10, 200, 200);
-    //设置居中显示
-   // circleLayer.position=self.view.center;
-    //设置填充颜色
-    circleLayer.fillColor=[UIColor clearColor].CGColor;
-    //设置线宽
-    circleLayer.lineWidth=2;
-    //设置线的颜色
-    circleLayer.strokeColor=[UIColor redColor].CGColor;
-
-    //使用UIBezierPath创建路径
-    CGRect frame=CGRectMake(0, 0, 200, 200);
-    UIBezierPath *circlePath=[UIBezierPath bezierPathWithOvalInRect:frame];
-    //设置CAShapeLayer与UIBezierPath关联
-    circleLayer.path=circlePath.CGPath;
-
-    [self.view.layer addSublayer:circleLayer];
-
-    return circleLayer;
-
-}
-</code></pre>
-
-<p>注意，我们这里不是放在-drawRect:方法中调用的。我们直接将这个CAShapeLayer放到self.view.layer上，直接呈现出来。</p>
-
-<p>我们创建一个<code>CAShapeLayer</code>，然后配置相关属性，然后再通过 <code>UIBezierPath</code>的类方法创建一个内切圆路径，然后将路径指定给<code>CAShapeLayer.path</code>,这就将两者关联起来了，最后，将这个层放到了self.view.layer上呈现出来。</p>
-
-<h2>CAShapeLayer与UIBezierPath的简单Loading效果</h2>
-
-<p>代码:</p>
-
-<pre><code>- (void)drawHalfCircle {
-  self.loadingLayer = [self drawCircle];
-
-  // 这个是用于指定画笔的开始与结束点
-  self.loadingLayer.strokeStart = 0.0;
-  self.loadingLayer.strokeEnd = 0.75;
-
-  self.timer = [NSTimer scheduledTimerWithTimeInterval:0.1
-                                                target:self
-                                              selector:@selector(updateCircle)
-                                              userInfo:nil
-                                               repeats:YES];
-}
-
-- (void)updateCircle {
-  if (self.loadingLayer.strokeEnd &gt; 1 &amp;&amp; self.loadingLayer.strokeStart &lt; 1) {
-    self.loadingLayer.strokeStart += 0.1;
-  } else if (self.loadingLayer.strokeStart == 0) {
-    self.loadingLayer.strokeEnd += 0.1;
-  }
-
-  if (self.loadingLayer.strokeEnd == 0) {
-    self.loadingLayer.strokeStart = 0;
-  }
-
-  if (self.loadingLayer.strokeStart &gt;= 1 &amp;&amp; self.loadingLayer.strokeEnd &gt;= 1) {
-    self.loadingLayer.strokeStart = 0;
-    [self.timer invalidate];
-    self.timer = nil;
-  }
-}
-</code></pre>
-
-<p>我们要实现这个效果，是通过 <code>stokeStart</code>和<code>stokeEnd</code>这两个属性好实现的，这两个的取值范围是[0-1],当stokeStart的值慢慢变成1时，我们看到路径是慢慢消失的。这里实现的效果并不好，因为不能一直循环。</p>
 ]]></content>
   </entry>
   

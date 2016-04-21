@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Swift中的数据存储 - 安路的技术博客</title>
+  <title>测试并发程序 - 安路的技术博客</title>
   <meta name="author" content="安路">
 
   
-  <meta name="description" content="程序就是对数据进行处理的，存储数据在app端也是很有必要的。本章将学习如何使用文件系统在磁盘上存储信息，如何在内置的用户偏好设置数据库中存储简单数据。 NSuserDefaults NSUserDefaults类允许以"键值"形式保存设置信息。我们不需要加载和读取设置文件，偏好设置会被自动保存。 &hellip;">
+  <meta name="description" content="在开发高质量应用程序的过程中，测试时一个很重要的工具。在过去，当并发不是应用程序架构中重要组成部分的时候，测试就想单简单。随着这几年的发展，使用并发设计模式变得越来越重要了，想要测试好并发应用程序，已成了一个不小的挑战. 测试并发代码最主要的困难在于程序或信息流不是反应在调用堆栈上。 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://andrew-anlu.github.io/blog/2016/03/01/swiftzhong-de-shu-ju-cun-chu/">
+  <link rel="canonical" href="http://andrew-anlu.github.io/blog/2016/04/21/ce-shi-bing-fa-cheng-xu/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="安路的技术博客" type="application/atom+xml">
@@ -69,7 +69,7 @@
   
   <header>
     
-      <h1 class="entry-title">Swift中的数据存储</h1>
+      <h1 class="entry-title">测试并发程序</h1>
     
     
       <p class="meta">
@@ -78,7 +78,7 @@
 
 
 
-<time class='entry-date' datetime='2016-03-01T10:52:34+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>1</span><span class='date-suffix'>st</span>, <span class='date-year'>2016</span></span> <span class='time'>10:52 am</span></time>
+<time class='entry-date' datetime='2016-04-21T17:38:05+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>21</span><span class='date-suffix'>st</span>, <span class='date-year'>2016</span></span> <span class='time'>5:38 pm</span></time>
         
            | <a href="#disqus_thread"
              data-disqus-identifier="http://andrew-anlu.github.io">Comments</a>
@@ -88,121 +88,86 @@
   </header>
 
 
-<div class="entry-content"><p>程序就是对数据进行处理的，存储数据在app端也是很有必要的。本章将学习如何使用文件系统在磁盘上存储信息，如何在内置的用户偏好设置数据库中存储简单数据。</p>
+<div class="entry-content"><p>在开发高质量应用程序的过程中，测试时一个很重要的工具。在过去，当并发不是应用程序架构中重要组成部分的时候，测试就想单简单。随着这几年的发展，使用并发设计模式变得越来越重要了，想要测试好并发应用程序，已成了一个不小的挑战.</p>
 
 <!--more-->
 
 
-<h2>NSuserDefaults</h2>
+<p>测试并发代码最主要的困难在于程序或信息流不是反应在调用堆栈上。函数并不会立即返回给调用者，而是通过回调函数block，通知或者一些类似的机制，这些使得测试变得更加困难。</p>
 
-<p>NSUserDefaults类允许以"键值"形式保存设置信息。我们不需要加载和读取设置文件，偏好设置会被自动保存。</p>
+<p>然后，测试异步代码也会带来一些好处，比如可以揭露较差的程序设计，让最终的实现变得更加清晰。</p>
 
-<p>要访问存储在NSuserDefaults中的偏好设置，需要NSuserDefaults类的一个实例。为得到这样的一个实例，必须使用NSUserdefaults类额standardUserDefaults:</p>
+<h1>异步测试的问题</h1>
 
-<pre><code>let defaults=NSUserDefaults.standardUserDefaults()
-</code></pre>
-
-<p>要在默认对象中注册默认值，首先需要创建一个字典。这个字典的键与偏好设置的名字相同，与这些键关联的值就是这些设置的默认值。一旦有个这个字典，就用registerDefaults方法将它提供给默认对象</p>
-
-<pre><code>let meDefaults=["greeting":"hello",
-            "numberOfItems":1]
-defaults.registerDefaults(meDefaults)
-</code></pre>
-
-<p>完成这一工作后，就可以使用默认对象的值了</p>
-
-<p>用reigisterDefaults方法注册的"默认设置"并不是村村在磁盘上，也就是说在应用程序每次启动时都需要调用它。但在应用程序中设定的“默认设置”会被保存。</p>
-
-<p>有了对一个NSuserdefaults对象的引用，就可以向对待字典一样对待NSUserdaults对象，我们可以使用ObjectForkey方法从默认对象中提取一个值</p>
-
-<pre><code>let greeting=defaults.objectForKey("greeting") as? String
-</code></pre>
-
-<p>只有少数对象可以村村在默认对象中。可以存储在默认对象中的对象只有属性列表对象。</p>
-
-<ul>
-<li>字符串</li>
-<li>数字</li>
-<li>NSData</li>
-<li>NSdate</li>
-<li>数组和字典</li>
-</ul>
-
-
-<p> 如果需要在默认对象中存储任何其他类型的对象，应当首先对其存档(archive),转换为NSData</p>
-
-<p>除了从默认对象中提取值之外，还可以设定值。在NSUserDefaults对象中设定值时，这个值将被永远保存
-要在NSUserDefaults对象中设定一个对象，可以使用SetObject(_,forKey)</p>
-
-<pre><code>let newGreeting="hi ,there";
-defaults.setObject(newGreeting, forKey: "greeting")  
-</code></pre>
-
-<h2>使用NSFileManager</h2>
-
-<p>应用程序与文件系统的界面是NSFileManager对象，利用它可以列出文件夹的内容，创建和重命名和删除文件，要访问NSFilemanager类，可以使用共享管理器对象</p>
-
-<pre><code>let fileManager=NSFileManager.defaultManager()
-</code></pre>
-
-<h3>注意</h3>
-
-<p>NSFileManager允许我们对其设定一个委托，在文件管理器完成诸如复制或移动文件之类的操作时，它会受到消息。在使用这一功能时，应当创建你自己的NSFileManager实例，而不是使用共享对象</p>
-
-<pre><code>let fileManager=NSFileManager()
-fileManager.delegate=self;
-</code></pre>
-
-<ul>
-<li><p>获取一个临时目录</p>
-
-<p>  //获取临时目录
-  let tempraryDirectoryPath=NSTemporaryDirectory()
-这个函数会返回一个字符串，它包含了可以在其中存储文件的目录路径。如果希望以NSURL形式使用它，就需要用fileURLWithPath方法进行转换。</p></li>
-<li><p>创建目录</p></li>
-</ul>
-
-
-<p>利用NSFileManager，可以在文件系统上创建和删除项目。比如，要创建一个新目录，可以利用:</p>
-
-<ul>
-<li>创建文件
-创建文件的过程也是一样的，我们在NSString中提供一个路径，文件应当包含的NSData,以及一个可选的字典，其中列出此文件应当拥有的属性：</li>
-</ul>
-
+<p>首先，我们来看一个简单地同步单元测试的例子，两个数求和的方法.</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>fileManager.createFileAtPath(newFilePath!,
-</span><span class='line'>      contents:NewFileData,
-</span><span class='line'>      attributes:nil)</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>+ (int)add:(int)a to:(int)b {
+</span><span class='line'>    return a + b;
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
 
 
-<ul>
-<li>删除文件</li>
-</ul>
-
+<p>测试这个方法很简单，只需要比较该方法返回值是否和期望值相同，如果不相同，则测试失败。</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>fileManager.reomveItemAtURL(newFileURL!,error:&error)</span></code></pre></td></tr></table></div></figure>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (void)testAddition {
+</span><span class='line'>    int result = [Calculator add:2 to:2];
+</span><span class='line'>    STAssertEquals(result, 4, nil);
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
 
 
-<ul>
-<li>移动和复制文件</li>
-</ul>
-
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>fileManager.moveItemAtURL(sourceURL!,toURL:destinationURL,error:nil)</span></code></pre></td></tr></table></div></figure>
-
-
-<p>要复制一个项目，可以这样做</p>
+<p>接下来，我们利用block将该方法改成异步返回结果，为了模拟测试失败，我们会在方法实现中故意添加一个bug.</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>fileManager.copyItemAtURL(sourceURL!,toURL:destinationURL,error:nil)</span></code></pre></td></tr></table></div></figure>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>+ (int)add:(int)a to:(int)b block:(void(^)(int))block {
+</span><span class='line'>    [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+</span><span class='line'>        block(a - b); // 带有bug的实现
+</span><span class='line'>    }];
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
 
 
+<p>虽然这是一个人为的例子，但是它却真实的反映了编程中可能经常遇到的问题，只不过实际过程更加复杂罢了。</p>
+
+<p>测试上面的方法最简单的做法就是把断言放到Block中。尽管我们的方法实现中存在bug,但是这种测试永远不是失败的；</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>// 千万不要使用这些代码！
+</span><span class='line'>- (void)testAdditionAsync {
+</span><span class='line'>    [Calculator add:2 to:2 block:^(int result) {
+</span><span class='line'>        STAssertEquals(result, 4, nil); // 永远不会被调用到
+</span><span class='line'>    }];
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这里的断言为什么没失败呢？</p>
+
+<h1>关于SenTestingKit</h1>
+
+<p>在老版本的xcode中所使用的测试框架是基于 <a href="http://www.sente.ch/software/ocunit/">OCUnit</a>。为了理解之前所提到的异步测试问题，我们需要了解一下测试包中的各个部分之间的执行顺序。下图展示了一个简化的流程。</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/SenTestingKit-call-stack.png" alt="test" /></p>
+
+<p>在测试框架在主run loop开始运行之后，主要执行了一下几个步骤:</p>
+
+<ol>
+<li>配置一个包含所有相关测试的测试包</li>
+<li>运行测试包，内部会调用所有以test开头测试用例的方法。运行结束后会返回一个包含单个测试结果的对象。</li>
+<li>调用exit()退出测试</li>
+</ol>
 
 </div>
 
@@ -219,12 +184,12 @@ fileManager.delegate=self;
 
 
 
-<time class='entry-date' datetime='2016-03-01T10:52:34+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>1</span><span class='date-suffix'>st</span>, <span class='date-year'>2016</span></span> <span class='time'>10:52 am</span></time>
+<time class='entry-date' datetime='2016-04-21T17:38:05+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>21</span><span class='date-suffix'>st</span>, <span class='date-year'>2016</span></span> <span class='time'>5:38 pm</span></time>
       
 
 <span class="categories">
   
-    <a class='category' href='/blog/categories/swift/'>swift</a>
+    <a class='category' href='/blog/categories/ios/'>ios</a>
   
 </span>
 
@@ -259,10 +224,8 @@ fileManager.delegate=self;
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2016/02/26/swiftji-chu-zhi-shi/" title="Previous Post: swift基础知识">&laquo; swift基础知识</a>
+        <a class="basic-alignment left" href="/blog/2016/04/19/ioszhong-de-duo-ren-wu/" title="Previous Post: ios中的多任务">&laquo; ios中的多任务</a>
       
-      
-        <a class="basic-alignment right" href="/blog/2016/03/01/xcodechang-jian-wen-ti-jie-xi/" title="Next Post: xcode常见问题解析">xcode常见问题解析 &raquo;</a>
       
     </p>
   </footer>
@@ -396,8 +359,8 @@ fileManager.delegate=self;
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://andrew-anlu.github.io/blog/2016/03/01/swiftzhong-de-shu-ju-cun-chu/';
-        var disqus_url = 'http://andrew-anlu.github.io/blog/2016/03/01/swiftzhong-de-shu-ju-cun-chu/';
+        var disqus_identifier = 'http://andrew-anlu.github.io/blog/2016/04/21/ce-shi-bing-fa-cheng-xu/';
+        var disqus_url = 'http://andrew-anlu.github.io/blog/2016/04/21/ce-shi-bing-fa-cheng-xu/';
         var disqus_script = 'embed.js';
       
     (function () {
