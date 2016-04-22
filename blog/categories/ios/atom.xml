@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Ios | 安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/blog/categories/ios/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-04-22T16:38:01+08:00</updated>
+  <updated>2016-04-22T20:20:29+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -12,6 +12,305 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[OHHTTPStubs介绍]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/04/22/ohhttpstubsjie-shao/"/>
+    <updated>2016-04-22T17:18:29+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/04/22/ohhttpstubsjie-shao</id>
+    <content type="html"><![CDATA[<p><a href="https://github.com/AliSoftware/OHHTTPStubs">OHHTTPStubs</a>是一个模拟网络请求的一个框架，它使用起来非常方便和强大，它能帮你</p>
+
+<ol>
+<li>测试你的app仿真一个服务器（比如加载一个本地文件）,模拟网络慢的情况等</li>
+<li>使用伪造的网络数据编写单元测试</li>
+</ol>
+
+
+<h2>简单用法</h2>
+
+<h2>在Objc中</h2>
+
+<pre><code>[OHHTTPStubs stubRequestsPassingTest:^BOOL(NSURLRequest *request) {
+  return [request.URL.host isEqualToString:@"mywebservice.com"];
+} withStubResponse:^OHHTTPStubsResponse*(NSURLRequest *request) {
+  // Stub it with our "wsresponse.json" stub file (which is in same bundle as self)
+  NSString* fixture = OHPathForFile(@"wsresponse.json", self.class);
+  return [OHHTTPStubsResponse responseWithFileAtPath:fixture
+            statusCode:200 headers:@{@"Content-Type":@"application/json"}];
+}];
+</code></pre>
+
+<h2>在swift中</h2>
+
+<pre><code>stub(isHost("mywebservice.com")) { _ in
+  // Stub it with our "wsresponse.json" stub file (which is in same bundle as self)
+  let stubPath = OHPathForFile("wsresponse.json", self.dynamicType)
+  return fixture(stubPath!, headers: ["Content-Type":"application/json"])
+}
+</code></pre>
+
+<h2>语法讲解</h2>
+
+<p><code>OHHTTPStubs stubRequestsPassingTest:</code>方法创建了模拟服务器，<code>request</code>是请求的标准判断，比如</p>
+
+<pre><code>[request.URL.host isEqualToString:@"mywebservice.com"]
+</code></pre>
+
+<p>意思就是如果请求的url是<code>mywebservice.com</code>，我们就返回response,要不然不执行</p>
+
+<pre><code> NSString* fixture = OHPathForFile(@"wsresponse.json", self.class);
+  return [OHHTTPStubsResponse responseWithFileAtPath:fixture
+            statusCode:200 headers:@{@"Content-Type":@"application/json"}];
+</code></pre>
+
+<p>返回一个respoinse,其中包含了返回的数据，</p>
+
+<ol>
+<li>获取的一个本地文件</li>
+<li>返回的状态码 200  (200表示正确返回)</li>
+<li>headers：返回的头,如果是json一般是:@{@&ldquo;Content-Type&rdquo;:@&ldquo;application/json&rdquo;}</li>
+</ol>
+
+
+<h1>快速开始一个Demo</h1>
+
+<h2>创建一个空工程</h2>
+
+<p>用xcode创建一个工程，用pods创建一个Podfile</p>
+
+<p>内容如下:</p>
+
+<pre><code>pod 'OHHTTPStubs', '~&gt; 5.0.0'
+
+target :OHHTTPStubsDemoTests, :exclusive =&gt; true do
+    link_with 'OHHTTPStubsDemoTests'
+
+    pod 'OHHTTPStubs'
+end
+</code></pre>
+
+<p>执行 <code>pod install</code></p>
+
+<p>成功安装OHHTTPStubs后，在OHHTTPStubsDemoTests目录中编写测试类:</p>
+
+<h3>创建session</h3>
+
+<p>在顶部声明一个变量session</p>
+
+<pre><code>@property (nonatomic,strong) NSURLSession *session;
+</code></pre>
+
+<p>在setUp方法中，创建该变量实例:</p>
+
+<pre><code>self.session=[NSURLSession sharedSession];
+</code></pre>
+
+<p>在 testExample()方法中：</p>
+
+<pre><code>/**
+ *  返回自定义的普通文本
+ */
+- (void)testExample {
+
+    //开始模拟服务器
+    [OHHTTPStubs stubRequestsPassingTest:^BOOL(NSURLRequest * _Nonnull request) {
+        //发送请求的url后缀必须是.com结尾的
+        return [request.URL.pathExtension isEqualToString:@"com"];
+    } withStubResponse:^OHHTTPStubsResponse * _Nonnull(NSURLRequest * _Nonnull request) {
+        //创建一个字符串
+        NSData * stubData = [@"hello world" dataUsingEncoding:NSUTF8StringEncoding];
+        //响应数据
+        /**
+         *  responseWithData:返回的数据
+            statusCode:状态码,200表示成功
+            headers:http的header
+         */
+        return [OHHTTPStubsResponse responseWithData:stubData statusCode:200 headers:@{@"Content-Type":@"text/plain"}];
+    }];
+
+
+    //在XCT测试框架中，这个表示期望值，因为这个期望值是支持异步测试的，我们是异步请求，所以一定要是使用XCTestExpectation这个特性
+     XCTestExpectation *expectation=[self expectationWithDescription:@"sessionDataTask expectation"];
+
+    //创建session任务
+    NSURLSessionDataTask *dataTask=[self.session dataTaskWithURL:[NSURL URLWithString:@"hello.com"] completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+
+        //解析返回的字符串
+        NSString *resultStr=[[NSString alloc]initWithData:data encoding:NSUTF8StringEncoding];
+
+        NSLog(@"返回的数据:%@",resultStr);
+
+        XCTAssert(resultStr!=nil);
+
+        //断言返回的字符串是hello world,如果不是，则断言失败
+        XCTAssertTrue([resultStr isEqualToString:@"hello world"]);
+
+        //在想异步测试的地方加上下面这行代码
+        [expectation fulfill];
+    }];
+    //启动任务
+    [dataTask resume];
+
+
+    //使用XCTestExpectation,必须设置如下的waitForExpectationsWithTimeout方法，如果超时则失败
+    [self waitForExpectationsWithTimeout:4 handler:^(NSError * _Nullable error) {
+        if(error){
+            NSLog(@"出错了:%s",__FUNCTION__);
+        }
+    }];
+
+
+}
+</code></pre>
+
+<p>这里面使用到了 <code>XCTestExpectation</code>，这是特性是用来测试异步程序代码的。在想测试异步代码的地方加上<code>[expectation fulfill];</code>,
+最后，要加上<code>waitForExpectationsWithTimeout</code>方法，它们是配对出现的。</p>
+
+<p>OHHTTPStubs创建了模拟服务器后，下面发的任何网络请求都会被模拟服务器返回，正如上面的代码所示，测试结果:
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160422-3.png" alt="test" />
+断言成功！</p>
+
+<h2>添加本地文件</h2>
+
+<ol>
+<li>在本地创建一个stub.txt的文本文件，内容自定</li>
+<li>在本地创建一个stub.jpg的图片，图片自定</li>
+</ol>
+
+
+<p>图片
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160422-5.png" alt="1" /></p>
+
+<p>文本
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160422-4.png" alt="2" /></p>
+
+<h3>创建文本的TextStub</h3>
+
+<pre><code>/**
+ *  创建文本的TextStub
+ */
+-(void)createTextStub{
+    // #1
+    static id&lt;OHHTTPStubsDescriptor&gt; textStub = nil;
+
+    // #2
+    textStub= [OHHTTPStubs stubRequestsPassingTest:^BOOL(NSURLRequest * _Nonnull request) {
+        return [request.URL.pathExtension isEqualToString:@"txt"];
+    } withStubResponse:^OHHTTPStubsResponse * _Nonnull(NSURLRequest * _Nonnull request) {
+
+        NSString *path = OHPathForFile(@"stub.txt",self.class);
+
+       //#3
+        return [[OHHTTPStubsResponse responseWithFileAtPath:path
+                                                 statusCode:200 headers:@{@"Content-Type":@"text/plain"}]
+                requestTime:1.0f
+                responseTime:OHHTTPStubsDownloadSpeedWifi];
+
+    }];
+    //#4
+    textStub.name = @"text stub";
+}
+</code></pre>
+
+<p>上面代码意义如下:</p>
+
+<ol>
+<li>声明一个返回的OHHTTPStubsDescriptor,这是创建模拟服务器的返回结果描述</li>
+<li>开始创建模拟服务器</li>
+<li>返回response，其中设置了返回数据，状态码，请求时间等</li>
+<li>给textStub起个名字</li>
+</ol>
+
+
+<h2>测试文本的模拟服务器</h2>
+
+<p>创建一个testStubTextTask方法:</p>
+
+<pre><code>/**
+ *  测试文本的Stub任务
+ */
+-(void)testStubTextTask{
+    //创建文本的模拟服务器
+    [self createTextStub];
+    //创建一个期望值
+    XCTestExpectation *expection=[self expectationWithDescription:@"high expection"];
+
+    NSURLSession *session=[NSURLSession sharedSession];
+
+    NSString *urlString=@"stub.txt";
+    NSURLSessionDataTask *dataTask = [session dataTaskWithURL:[NSURL URLWithString:urlString] completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+
+        NSString* receivedText = [[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding];
+        NSLog(@"返回的结果:%@",receivedText);
+
+        XCTAssert(receivedText!=nil);
+
+        [expection fulfill];
+    }];
+
+    [dataTask resume];
+
+    [self waitForExpectationsWithTimeout:5 handler:^(NSError * _Nullable error) {
+        if(error){
+            NSLog(@"出错了:%@",error.description);
+        }
+    }];
+}
+</code></pre>
+
+<h2>创建图片的stub</h2>
+
+<pre><code>/**
+ *  创建Image的stub
+ */
+-(void)createImageStub{
+    static id&lt;OHHTTPStubsDescriptor&gt; imageStub = nil;
+
+    imageStub=[OHHTTPStubs stubRequestsPassingTest:^BOOL(NSURLRequest * _Nonnull request) {
+        return [request.URL.pathExtension isEqualToString:@"png"];
+    } withStubResponse:^OHHTTPStubsResponse * _Nonnull(NSURLRequest * _Nonnull request) {
+        return [OHHTTPStubsResponse responseWithFileAtPath:OHPathForFile(@"stub.jpg", self.class) statusCode:200 headers:@{@"Content-Type":@"image/jpeg"}];
+    }];
+
+    imageStub.name=@"Image stub";
+}
+</code></pre>
+
+<h2>测试Image的模拟服务器</h2>
+
+<pre><code>/**
+ *  测试Image的模拟服务器
+ */
+- (void)testImageStubTask{
+
+    [self createImageStub];
+
+    XCTestExpectation *expection=[self expectationWithDescription:@"Image Expection"];
+
+    NSURLSessionDataTask *dataStask=[self.session dataTaskWithURL:[NSURL URLWithString:@"test.png" relativeToURL:nil] completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+
+        UIImage *image=[UIImage imageWithData:data];
+
+        NSLog(@"返回的image:%@",image.description);
+
+        XCTAssert(image!=nil);
+
+        [expection fulfill];
+
+    }];
+
+    [dataStask resume];
+
+    [self waitForExpectationsWithTimeout:3 handler:^(NSError * _Nullable error) {
+        if(error){
+            NSLog(@"出错了:%@",error.description);
+        }
+    }];
+
+}
+</code></pre>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[测试并发程序]]></title>
@@ -1604,225 +1903,6 @@ cell.cancelButton.hidden = !showDownloadControls
 <li><a href="https://github.com/Alamofire/Alamofire">AlamoFire</a>是Swift中非常流行的第三方框架，可以学习一下.</li>
 </ul>
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[NSOperationQueue简单介绍]]></title>
-    <link href="http://andrew-anlu.github.io/blog/2016/03/26/nsoperationqueuejian-dan-jie-shao/"/>
-    <updated>2016-03-26T08:11:55+08:00</updated>
-    <id>http://andrew-anlu.github.io/blog/2016/03/26/nsoperationqueuejian-dan-jie-shao</id>
-    <content type="html"><![CDATA[<p>在iOS中有两种方式来实现多线程:NSOperation和GCD.
-其中GCD是基于C的底层的API,而NSOperation则是GCD实现的Object-c的API,随让NSOPeration是基于GCD实现的，但是并不意味着它是一个GCD的重复版本，相反，我们可以用NSOperation轻易的实现一些GCD要写大量代码的事情，因此，NSOperation是被推荐使用的.</p>
-
-<!--more-->
-
-
-<h2>为什么优先使用NSOperationQuere,而不是GCD</h2>
-
-<p>你可能写过这样的网络请求的代码:</p>
-
-<pre><code>dispatch_async(_Queue, ^{  
-    //请求数据 
-    NSData *data = [NSData dataWithContentURL:[NSURL URLWithString:@"http://domain.com/a.png"]]; 
-    dispatch_async(dispatch_get_main_queue(), ^{ 
-        [self refreshViews:data];
-     });
-});
-</code></pre>
-
-<p>这段代码是可以正常工作的，但是有一个很大的缺点，就是<em>这个任务是无法取消的</em></p>
-
-<p><code>dataWithContentURL:</code>是同步拉取数据，它会一直阻塞主线程，直到所有的数据返回之后；这个期间，并发队列就需要为其它任务新建线程，这样可能导致性能下降问题。因此我们不推荐这种写法来从网络上拉取数据。</p>
-
-<p>操作队列是有GCD提供的一个队列模型的Coco对象，GCD提供了更加底层的控制，而操作队列则在GCD之上实现了更加方便的功能。NSOperation相对GCD来说有以下优点:</p>
-
-<ul>
-<li>提供了GCD中不那么容易复制的有用特性</li>
-<li>可以很方便的取消一个NSOperation的执行</li>
-<li>可以容易的添加任务的依赖关系</li>
-<li>提供了任务的状态:isExecting,isFinished
-*</li>
-</ul>
-
-
-<h2>NSOperationQueue</h2>
-
-<p>NSOperationQueue就是一个线程队列，可以吧 <code>NSOperation</code>加入到队列中，可以取消或者执行完队列中所有的 <code>NSOperation</code>,我们可以通过<code>maxConcurrentOperationCount</code>属性来控制并发任务的数量，当设置为1时，就是一个串行队列。</p>
-
-<h2>NSOperation</h2>
-
-<p>它是创建线程的对象，系统已经默认提供了<code>NSBlockOperaton</code>和<code>NSInvocationOperation</code>.你也可以实现自己的子类，通过重写
-<code>main</code>或者<code>start</code>方法来自定义nsoperation</p>
-
-<p>使用<code>main</code>方法非常简单，不需要管理一些状态属性,当main方法返回的时候，这个operation就执行结束了，所以一般用来执行同步任务。</p>
-
-<p>如果你希望拥有更多的控制权，或者想在一个操作中可以执行异步任务，那么重写<code>start</code>方法，但是注意，在这种情况下，你必须手动的管理操作的状态，只有发送isFinished的KVO消息时，才认为是operaiton结束。</p>
-
-<pre><code>
-@implementation YourOperation
-- (void)start
-{
-    self.isExecuting = YES;
-    // 任务代码 ...
-}
-- (void)finish //异步回调
-{
-    self.isExecuting = NO;
-    self.isFinished = YES;
-}
-@end
-</code></pre>
-
-<p><em>当实现了<code>start</code>方法时，默认就会执行start方法，而不执行main方法</em>，为了让操作队列捕获到做的改变，需要将状态的属性配合KVO的方式实现，如果你不使用它们默认的sette来进行设置的话，就需要在合适的时候手动发送KVO消息。</p>
-
-<p>需要手动管理的状态有:</p>
-
-<ol>
-<li>isExecuting  代表任务正在进行中</li>
-<li>isFinished   代表任务已经执行完成</li>
-<li>isCanceled  代表任务已经取消</li>
-</ol>
-
-
-<p>手动发送KVo消息，通知状态:</p>
-
-<pre><code>[self willChangeValueForKey:@"isCancelled"];
-_isCancelled = YES;
-[self didChangeValueForKey:@"isCancelled"];
-</code></pre>
-
-<p>为了能使用队列所提供的取消功能，你需要在长时间操作中不时地检查isCanceled属性，比如在一个长的循环中:</p>
-
-<pre><code>- (void)main
-{
-    while (notDone &amp;&amp; !self.isCancelled) {
-        // 任务处理
-    }
-}
-@end
-</code></pre>
-
-<h2>简单使用</h2>
-
-<p>NSOperaiton和NSOperationQueue实现多线程的步骤:</p>
-
-<ol>
-<li>先将需要执行的操作封装到一个NSOperation对象中</li>
-<li>然后将NSOperation对象添加到NSOperationQueue中</li>
-<li>系统会自动将NSOperationQueue中的NSOperation取出来</li>
-<li>将取出的NSOperation封装放到一条新线程中执行</li>
-</ol>
-
-
-<p>NSOperation是个抽象类，并不具备封装操作的能力，必须实现它的子类。</p>
-
-<h3>NSInvocationOperation子类</h3>
-
-<pre><code>//创建操作对象，封装要执行的任务
-//NSInvocationOperation   封装操作
-    NSInvocationOperation *operation=[[NSInvocationOperation alloc]initWithTarget:self selector:@selector(test) object:nil];
-
-    //执行操作
-    [operation start];
-</code></pre>
-
-<p>一旦执行操作，就会调用target的test方法</p>
-
-<p>操作对象默认在主线程中执行，只有添加到列队中才会开启新的线程，即默认情况下，如果操作没有放到队列queue中，都是同步执行，只有将NSoperation放到一个NSOperationQueue中，才会异步执行.</p>
-
-<h2>NSBlockOoperaiton</h2>
-
-<p>创建对象和添加操作:</p>
-
-<pre><code>//创建NSBlockOperation操作对象
-    NSBlockOperation *operation=[NSBlockOperation blockOperationWithBlock:^{
-        //......
-    }];
-
-    //添加操作
-    [operation addExecutionBlock:^{
-        //....
-    }];
-</code></pre>
-
-<pre><code>//创建NSBlockOperation操作对象
-     NSBlockOperation *operation=[NSBlockOperation blockOperationWithBlock:^{
-        NSLog(@"NSBlockOperation------%@",[NSThread currentThread]);
-     }];
-
-     //添加操作
-     [operation addExecutionBlock:^{
-        NSLog(@"NSBlockOperation1------%@",[NSThread currentThread]);
-     }];
-
-     [operation addExecutionBlock:^{
-         NSLog(@"NSBlockOperation2------%@",[NSThread currentThread]);
-     }];
-
-     //开启执行操作
-    [operation start];
-</code></pre>
-
-<p>只要NSBlockOperation封装的操作数>1，就会异步操作。</p>
-
-<h2>NSOperationQueue</h2>
-
-<p>NSOperationQueue可以调用start方法来执行任务，但默认是同步执行的。
-如果将NSOperation添加到NSOperationQueue中，系统就会自动异步执行NSOPeration中的操作。</p>
-
-<pre><code>
-#import "YYViewController.h"
-
-@interface YYViewController ()
-
-@end
-
-@implementation YYViewController
-
-- (void)viewDidLoad
-{
-    [super viewDidLoad];
-
-    //创建NSInvocationOperation对象，封装操作
-    NSInvocationOperation *operation1=[[NSInvocationOperation alloc]initWithTarget:self selector:@selector(test1) object:nil];
-    NSInvocationOperation *operation2=[[NSInvocationOperation alloc]initWithTarget:self selector:@selector(test2) object:nil];
-    //创建对象，封装操作
-    NSBlockOperation *operation3=[NSBlockOperation blockOperationWithBlock:^{
-        NSLog(@"NSBlockOperation3--1----%@",[NSThread currentThread]);
-    }];
-    [operation3 addExecutionBlock:^{
-        NSLog(@"NSBlockOperation3--2----%@",[NSThread currentThread]);
-    }];
-
-    //创建NSOperationQueue
-    NSOperationQueue * queue=[[NSOperationQueue alloc]init];
-    //把操作添加到队列中
-    [queue addOperation:operation1];
-    [queue addOperation:operation2];
-    [queue addOperation:operation3];
-}
-
--(void)test1
-{
-    NSLog(@"NSInvocationOperation--test1--%@",[NSThread currentThread]);
-}
-
--(void)test2
-{
-    NSLog(@"NSInvocationOperation--test2--%@",[NSThread currentThread]);
-}
-
-@end
-</code></pre>
-
-<p>系统自动将NSOperationqueue中的NSOPeration对象取出，将其封装的操作放到一条新的线程中执行，
-上面的代码一共有4个任务，operation1和operation2分别有一个任务，operation3有两个任务，一共4个任务，开启了4条线程。</p>
-
-<p>这些任务是并行执行的。</p>
-
-<blockquote><p><strong>提示</strong>
-队列的取出时有顺序的，与打印结果并不矛盾，这就好比赛跑，起跑的顺序是A,B,C，但是到达终点的顺序就不一样是 A B  C了。</p></blockquote>
 ]]></content>
   </entry>
   
