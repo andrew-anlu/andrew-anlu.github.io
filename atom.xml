@@ -4,7 +4,7 @@
   <title><![CDATA[安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-04-21T17:54:05+08:00</updated>
+  <updated>2016-04-22T09:17:53+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -99,6 +99,215 @@
 <li>调用exit()退出测试</li>
 </ol>
 
+
+<p>这其中我们最感兴趣的是单个测试时如何被调用的。在异步测试中，包含断言的Block会被加到run loop。当所有的测试执行完毕后，测试框架就会退出，而block却从来没有被执行，因此不会引起测试失败。</p>
+
+<p>当然我们有很多种方法来解决这个问题。但是素有的方法都必须在住run loop中运行，而且在测试方法返回和比较结果之前需要处理已入队的所有操作。</p>
+
+<p><a href="https://github.com/allending/Kiwi">kiwi</a>使用测试轮询，它可以在测试方法中被滴啊用。<a href="https://github.com/gabriel/gh-unit/">GHUnit</a>编写了一个单独的测试类，它必须在测试的方法内初始化，并在结束时接受一个通知。以上两种方式都是通过编写相应的代码来确保异步异步测试方法在测试结束之前都不会返回。</p>
+
+<h1>SenTesgingKit的异步扩展</h1>
+
+<p>我们对这个问题的解决方案是对SenTestingKit添加一个扩展，它在栈上使用同步执行，并把每个部分加入到主队列中。正如下图所见，在验证整个测试框架结果之前，报告异步测试成功或失败的Block就被加入到队列。这种执行顺序允许我们开启一个测试并等待它的测试结果。</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/SenTestingKitAsync-call-stack.png" alt="test" /></p>
+
+<p>如果测试方法以Async结尾，框架就睡认为该方法是异步测试。此外，在异步测试中，我们必须手动的报告测试成功，同时为了防止Block永远不会被调用，我们还需要添加了一个超时方法，之前的错误的测试方法修改如下:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (void)testAdditionAsync {
+</span><span class='line'>    [Calculator add:2 to:2 block^(int result) {
+</span><span class='line'>        STAssertEquals(result, 4, nil);
+</span><span class='line'>        STSuccess(); // 通过调用这个宏来判断是否测试成功
+</span><span class='line'>    }];
+</span><span class='line'>    STFailAfter(2.0, @"Timeout");
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h1>设计异步测试</h1>
+
+<p>就像同步测试一样，异步测试也应该比被测试的功能简单许多。复杂的测试并不会改进代码的质量，反而会给测试本身带来更多的Bug,在以测试驱动开发的情况下，简单的测试会让我们对组件，接口以及架构的行为有更清醒的认识.</p>
+
+<p>为了运行到实际中，我们创建了一个实例框架: <a href="sd">AsyncTestDemo</a>,它从一个虚拟的服务器获取图像信息，框架中包含了一个资源管理器，它对外提供了一个可以根据图像Id获取图像对象的接口。该接口的工作原理是资源管理器从虚拟服务器获取图片对象信息，并更新到数据库。</p>
+
+<p>虽然这个示例框架只是为了演示，但在我们自己开发的许多应用中也使用了这种模式。</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/PinacotecaCore.png" alt="test" /></p>
+
+<p>从上图我们可以知道，示例框架有三个组件我们需要测试:</p>
+
+<ol>
+<li>模型层</li>
+<li>模拟服务器请求的服务器接口控制器(API Controller)</li>
+<li>管理Core data堆栈以及连接模型层和服务接口控制器的资源管理器</li>
+</ol>
+
+
+<h2>模型层</h2>
+
+<p>测试应该尽量使用同步的方式进行，而模型层就是一个很好的实例。只要不同的被托管对象上下文之间没有复杂的依赖关系，测试用例都应该根据上下文在主线程上设置它自己的core data堆栈，并在其中执行各自的操作。</p>
+
+<p>在这个测试实例中，我们就是在 setup 方法中设置core data堆栈，然后检查 PCImage实体的描述是否存在，如果不存在就构造一个，并更新它的值，当然这和异步测试没有关系，我们就不深入细说了。</p>
+
+<h2>服务器接口控制器</h2>
+
+<p>框架中的第二个组件就是服务器接口控制器，它主要处理服务器请求以及服务器API到模型的映射关系。让我们来看一下下面这个方法:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- [PCServerAPIController fetchImageWithId:queue:completionHandler:]</span></code></pre></td></tr></table></div></figure>
+
+
+<p>调用它需要三个形参：一个图片对象Id，所在的执行队列，以及一个完成后的回调方法。</p>
+
+<p>因为服务器根本不存在，一个比较好的做法就是伪造一个代理服务器，正好<a href="https://github.com/AliSoftware/OHHTTPStubs">OHHTTPStubs</a>可以解决这个问题。在它的最新版本中，可以在示例的请求响应中包含一个bundle,发送给客户端。</p>
+
+<p>为了能stub请求，OHHTTPStubs需要在测试类初始化时或者 setup方法中进行配置。首先我们需要加载一个包含请求响应对象(response)的bundle:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>NSURL *url = [[NSBundle bundleForClass:[self class]]
+</span><span class='line'>                        URLForResource:@"ServerAPIResponses"
+</span><span class='line'>                         withExtension:@"bundle"];
+</span><span class='line'>
+</span><span class='line'>NSBundle *bundle = [NSBundle url];</span></code></pre></td></tr></table></div></figure>
+
+
+<p>然后我们从bundle加载response对象，作为请求的响应值:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>OHHTTPStubsResponse *response;
+</span><span class='line'>response = [OHHTTPStubsResponse responseNamed:@"images/123"
+</span><span class='line'>                                   fromBundle:responsesBundle
+</span><span class='line'>                                 responseTime:0.1];
+</span><span class='line'>
+</span><span class='line'>[OHHTTPStubs stubRequestsPassingTest:^BOOL(NSURLRequest *request) {
+</span><span class='line'>    return YES /* 如果所返回的request是我们所期望的，就返回YES */;
+</span><span class='line'>} withStubResponse:^OHHTTPStubsResponse *(NSURLRequest *request) {
+</span><span class='line'>    return response;
+</span><span class='line'>}];</span></code></pre></td></tr></table></div></figure>
+
+
+<p>通过如上的设置之后，简化版的<a href="https://github.com/objcio/issue-2-async-testing/blob/master/PinacotecaCore/PinacotecaCoreTests/PCServerAPIControllerTests.m">测试服务器接口控制器</a>如下:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (void)testFetchImageAsync
+</span><span class='line'>{
+</span><span class='line'>    [self.server
+</span><span class='line'>        fetchImageWithId:@"123"
+</span><span class='line'>                   queue:[NSOperationQueue mainQueue]
+</span><span class='line'>       completionHandler:^(id imageData, NSError *error) {
+</span><span class='line'>          STAssertEqualObjects([NSOperationQueue currentQueue], queue, nil);
+</span><span class='line'>          STAssertNil(error, [error localizedDescription]);
+</span><span class='line'>          STAssertTrue([imageData isKindOfClass:[NSDictionary class]], nil);
+</span><span class='line'>
+</span><span class='line'>          // 检查返回的字典中的值.
+</span><span class='line'>
+</span><span class='line'>          STSuccess();
+</span><span class='line'>       }];
+</span><span class='line'>    STFailAfter(2.0, nil);    
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>资源管理器</h2>
+
+<p>最后一个部分是资源管理器，它不但把服务器接口控制器和膜形成呢个联系起来，还管理着core data堆栈。下面我们想测试获取一个图片对象的方法:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>-[PCResourceManager imageWithId:usingManagedObjectContext:queue:updateHandler:]</span></code></pre></td></tr></table></div></figure>
+
+
+<p>该方法根据Id返回一个图片对象。如果图片在数据库中不存在，它会创建一个包含Id的新对象，然后通过服务器接口控制器获取图片对象的详细信息。</p>
+
+<p>由于资源管理器的测试不应该依赖于服务器接口控制器，所以我们可以用<a href="http://ocmock.org/">OCMock</a>来模拟，如果要做方法的部分stub,它是一个理想的框架.如以下的 <a href="https://github.com/objcio/issue-2-async-testing/blob/master/PinacotecaCore/PinacotecaCoreTests/PCResourceManagerTests.m">资源管理器测试</a>:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>OCMockObject *mo;
+</span><span class='line'>mo = [OCMockObject partialMockForObject:self.resourceManager.server];
+</span><span class='line'>
+</span><span class='line'>id exp = [[serverMock expect] 
+</span><span class='line'>             andCall:@selector(fetchImageWithId:queue:completionHandler:)
+</span><span class='line'>            onObject:self];
+</span><span class='line'>[exp fetchImageWithId:OCMOCK_ANY queue:OCMOCK_ANY completionHandler:OCMOCK_ANY];</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上面的代码实际上它并没有真正调用服务器接口控制器的方法，而是调用我们卸载测试类中的方法。</p>
+
+<p>用上面的作坊，对资源管理的测试就变得很直观。当我们调用资源管理器获取资源时，实际上调用的使我们模拟的服务器接口控制器的方法，这样我们也能检查调用服务器接口控制器时参数是否正确。在调用了获取图像对象的方法后，资源管理器会更新模型，然后调用验证测试成功与否的宏。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (void)testGetImageAsync
+</span><span class='line'>{
+</span><span class='line'>    NSManagedObjectContext *ctx = self.resourceManager.mainManagedObjectContext;
+</span><span class='line'>    __block PCImage *img;
+</span><span class='line'>    img = [self.resourceManager imageWithId:@"123"
+</span><span class='line'>                  usingManagedObjectContext:ctx
+</span><span class='line'>                                      queue:[NSOperationQueue mainQueue]
+</span><span class='line'>                              updateHandler:^(NSError *error) {
+</span><span class='line'>                                       // 检查error是否为空以及image是否已经被更新 
+</span><span class='line'>                                       STSuccess();
+</span><span class='line'>                                   }];    
+</span><span class='line'>    STAssertNotNil(img, nil);
+</span><span class='line'>    STFailAfter(2.0, @"Timeout");
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h1>总结</h1>
+
+<p>刚开始的时候，使用并发设计模式测试应用程序是具有一定的挑战性，但是一旦你理解了他们的不同，并建立最佳实践，一切都会变得简单而有趣。</p>
+
+<p>😀fun~</p>
 ]]></content>
   </entry>
   
