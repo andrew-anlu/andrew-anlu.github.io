@@ -5,12 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Git远程版本库 - 安路的技术博客</title>
+  <title>Xcode更新后插件失效的解决方案 - 安路的技术博客</title>
   <meta name="author" content="安路">
 
   
-  <meta name="description" content="Git分布特性之一就是远程版本库，
-一个克隆是版本库的副本。一个克隆包含所有原始对象；因此，每个克隆都是独立，自治的版本库，与原始版本库是真正对称，地位相同的。一个克隆允许开发人员可以在本地独立的工作，不需要中心版本库。总之，克隆使得Git易于扩展，并允许地理上分离的很多贡献者一起协作。 &hellip;">
+  <meta name="description" content="Xcode的插件对于开发者来说无疑是一把利器，让开发者能够将更多的时间和精力放在代码上面。但是开发者都会遇到一个问题，就是每次Xcode更新到最新的版本，之前的插件全部都失效了，需要重新安装一遍很是麻烦。 插件失效的原因: 系统安装了一个Xcode &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -19,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://andrew-anlu.github.io/blog/2015/08/28/gityuan-cheng-ban-ben-ku/">
+  <link rel="canonical" href="http://andrew-anlu.github.io/blog/2016/04/22/xcodegeng-xin-hou-cha-jian-shi-xiao-de-jie-jue-fang-an/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="安路的技术博客" type="application/atom+xml">
@@ -70,7 +69,7 @@
   
   <header>
     
-      <h1 class="entry-title">Git远程版本库</h1>
+      <h1 class="entry-title">Xcode更新后插件失效的解决方案</h1>
     
     
       <p class="meta">
@@ -79,7 +78,7 @@
 
 
 
-<time class='entry-date' datetime='2015-08-28T17:31:17+08:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>28</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>5:31 pm</span></time>
+<time class='entry-date' datetime='2016-04-22T16:17:45+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>22</span><span class='date-suffix'>nd</span>, <span class='date-year'>2016</span></span> <span class='time'>4:17 pm</span></time>
         
            | <a href="#disqus_thread"
              data-disqus-identifier="http://andrew-anlu.github.io">Comments</a>
@@ -89,51 +88,49 @@
   </header>
 
 
-<div class="entry-content"><p>Git分布特性之一就是远程版本库，
-一个克隆是版本库的副本。一个克隆包含所有原始对象；因此，每个克隆都是独立，自治的版本库，与原始版本库是真正对称，地位相同的。一个克隆允许开发人员可以在本地独立的工作，不需要中心版本库。总之，克隆使得Git易于扩展，并允许地理上分离的很多贡献者一起协作。
-从本质上讲，分离的版本库是相当有用的。</p>
-
-<ul>
-<li>开发人员独立工作</li>
-<li>开发人员被广域网分离。在相同地区的一群人可以共享一个本地版本库来积累局部变化</li>
-<li>一个项目预计在不同的发展线上有显著差异。</li>
-</ul>
-
+<div class="entry-content"><p>Xcode的插件对于开发者来说无疑是一把利器，让开发者能够将更多的时间和精力放在代码上面。但是开发者都会遇到一个问题，就是每次Xcode更新到最新的版本，之前的插件全部都失效了，需要重新安装一遍很是麻烦。</p>
 
 <!--more-->
 
 
-<p>克隆版本库只是分享代码的第一步，此外，还必须对版本库之间进行关联，为数据建立路径。Git通过远程版本库为这些版本建立连接。</p>
+<p>插件失效的原因:</p>
 
-<p>远程版本库是一个引用或者句柄，通过文件系统或网络指向另一个版本库。可以使用远程版本库作为简称，代替又长又复杂的Git URL。可以在版本库中定义任意数量的远程版本库，从而创建共享版本库的阶梯网络。</p>
+<blockquote><blockquote><ul>
+<li>系统安装了一个Xcode</li>
+<li>开发者未正确的将自己的DVTPlugInCompatibilityUUID添加到插件中</li>
+<li>成功安装了插件，但是却在Xcode识别插件的时候，选了 Skip Bundle</li>
+</ul>
+</blockquote></blockquote>
 
-<p>一旦远程版本库建立，Git就可以使用推模式或者拉模式在版本库之间传输数据。例如，习惯做法是偶尔从原始版本库转移提交数据到克隆版本库，已保持克隆版本库处于同步状态。还可以创建一个远程版本库来克隆版本传输数据到原始版本库，或设置两个版本库进行双向交换。</p>
+<h2>终端指令实现</h2>
 
-<h3>版本库的概念</h3>
+<p>//获取DVTPlugInCompatibilityUUID字段</p>
 
-<p>开发版本库用户常规的日常开发。它保持当前分支的概念，并在工作目录中提供检出当前分支的副本。相反，一个裸版本库没有工作目录，并且不应该用于正常开发。裸版本库也没有检出分支的概念。裸版本库可以简单地看做.git目录的内容。换句话说，不应该在裸版本库中进行提交操作。</p>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>defaults read /Applications/Xcode.app/Contents/Info DVTPlugInCompatibilityUUID
+</span></code></pre></td></tr></table></div></figure>
 
-<h3>版本库克隆</h3>
 
-<p>git clone 命令去创建一个新的git版本库，基于你通过文件系统或网络地指定的原始版本库。Git并不需要复制原始版本库的所有信息。</p>
+<h2>找到插件的目录</h2>
 
-<p>在正常使用Git clone命令时，原始版本库中存储在refs/heads/下的本地开发分支，会成为新的克隆版本库中refs/remotes/下的远程追踪分支。</p>
+<ol>
+<li>打开xcode插件所在的目录:<code>~/Library/Application Support/Developer/Shared/Xcode/Plug-ins</code>,打开路径的快捷键是shift＋command＋g 然后输入上面的地址</li>
+<li>选择已经安装的插件，例如:VVDocumenter-Xcode，右键显示包内容</li>
+<li>找到info.plist文件，找到DVTPlugInCompatibilityUUIDs的项目，添加一个Item,value的值为之前的Xcode的UUID,(或者直接在item0中value修改也可以)保存</li>
+</ol>
 
-<h2>远程版本库</h2>
 
-<p>你目前在工作中使用的版本库成为本地版本库，你交换文件用的版本库成为远程版本库（remote repository）.Git使用远程版本库和远程追踪分支来引用另一个版本库，并有助于与该版本库建立连接。远程版本库位版本库提供了更友好的名字，可以代替版本库实际的URL。</p>
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160422-1.png" alt="step2" /></p>
 
-<p>使用 git remote 命令创建，删除，操作和查看远程版本库，你引入的所有远程版本库都记录在.git/config文件中，可以用git config来操作。</p>
+<h2>重启xcode</h2>
 
-<p>除了git clone之外，跟远程版本库有关的其他常见的git命令有:</p>
+<p>重启Xcode时会提示“Load bundle”、 “Skip Bundle”，这里必须选择“Load bundle”，不然插件无法使用</p>
 
-<pre><code>git fetch -&gt;从远程版本库抓取对象及其相关的元数据
-git pull  -&gt;跟git fetch类似，但合并修改到相应的本地分支
-git push --&gt;转移对象及其它元数据到远程版本库
-git ls-remote-&gt;显示一个给定的远程版本库（在上游服务器上）的引用列表
-</code></pre>
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160422-0.png" alt="step1" /></p>
 
-<h3>引用其它版本库</h3>
+<h2>效果如下</h2>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160422-2.png" alt="s" /></p>
 </div>
 
 
@@ -149,12 +146,12 @@ git ls-remote-&gt;显示一个给定的远程版本库（在上游服务器上�
 
 
 
-<time class='entry-date' datetime='2015-08-28T17:31:17+08:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>28</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>5:31 pm</span></time>
+<time class='entry-date' datetime='2016-04-22T16:17:45+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>22</span><span class='date-suffix'>nd</span>, <span class='date-year'>2016</span></span> <span class='time'>4:17 pm</span></time>
       
 
 <span class="categories">
   
-    <a class='category' href='/blog/categories/git/'>git</a>
+    <a class='category' href='/blog/categories/xcode/'>xcode</a>
   
 </span>
 
@@ -189,10 +186,8 @@ git ls-remote-&gt;显示一个给定的远程版本库（在上游服务器上�
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2015/08/28/fen-zhi/" title="Previous Post: Git分支">&laquo; Git分支</a>
+        <a class="basic-alignment left" href="/blog/2016/04/21/ce-shi-bing-fa-cheng-xu/" title="Previous Post: 测试并发程序">&laquo; 测试并发程序</a>
       
-      
-        <a class="basic-alignment right" href="/blog/2015/09/19/iosxue-xi-zi-liao/" title="Next Post: ios学习资料">ios学习资料 &raquo;</a>
       
     </p>
   </footer>
@@ -327,8 +322,8 @@ git ls-remote-&gt;显示一个给定的远程版本库（在上游服务器上�
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://andrew-anlu.github.io/blog/2015/08/28/gityuan-cheng-ban-ben-ku/';
-        var disqus_url = 'http://andrew-anlu.github.io/blog/2015/08/28/gityuan-cheng-ban-ben-ku/';
+        var disqus_identifier = 'http://andrew-anlu.github.io/blog/2016/04/22/xcodegeng-xin-hou-cha-jian-shi-xiao-de-jie-jue-fang-an/';
+        var disqus_url = 'http://andrew-anlu.github.io/blog/2016/04/22/xcodegeng-xin-hou-cha-jian-shi-xiao-de-jie-jue-fang-an/';
         var disqus_script = 'embed.js';
       
     (function () {

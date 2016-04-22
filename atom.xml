@@ -4,7 +4,7 @@
   <title><![CDATA[安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-04-22T09:17:53+08:00</updated>
+  <updated>2016-04-22T16:38:01+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -12,6 +12,57 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Xcode更新后插件失效的解决方案]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/04/22/xcodegeng-xin-hou-cha-jian-shi-xiao-de-jie-jue-fang-an/"/>
+    <updated>2016-04-22T16:17:45+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/04/22/xcodegeng-xin-hou-cha-jian-shi-xiao-de-jie-jue-fang-an</id>
+    <content type="html"><![CDATA[<p>Xcode的插件对于开发者来说无疑是一把利器，让开发者能够将更多的时间和精力放在代码上面。但是开发者都会遇到一个问题，就是每次Xcode更新到最新的版本，之前的插件全部都失效了，需要重新安装一遍很是麻烦。</p>
+
+<!--more-->
+
+
+<p>插件失效的原因:</p>
+
+<blockquote><blockquote><ul>
+<li>系统安装了一个Xcode</li>
+<li>开发者未正确的将自己的DVTPlugInCompatibilityUUID添加到插件中</li>
+<li>成功安装了插件，但是却在Xcode识别插件的时候，选了 Skip Bundle</li>
+</ul>
+</blockquote></blockquote>
+
+<h2>终端指令实现</h2>
+
+<p>//获取DVTPlugInCompatibilityUUID字段</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>defaults read /Applications/Xcode.app/Contents/Info DVTPlugInCompatibilityUUID
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>找到插件的目录</h2>
+
+<ol>
+<li>打开xcode插件所在的目录:<code>~/Library/Application Support/Developer/Shared/Xcode/Plug-ins</code>,打开路径的快捷键是shift＋command＋g 然后输入上面的地址</li>
+<li>选择已经安装的插件，例如:VVDocumenter-Xcode，右键显示包内容</li>
+<li>找到info.plist文件，找到DVTPlugInCompatibilityUUIDs的项目，添加一个Item,value的值为之前的Xcode的UUID,(或者直接在item0中value修改也可以)保存</li>
+</ol>
+
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160422-1.png" alt="step2" /></p>
+
+<h2>重启xcode</h2>
+
+<p>重启Xcode时会提示“Load bundle”、 “Skip Bundle”，这里必须选择“Load bundle”，不然插件无法使用</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160422-0.png" alt="step1" /></p>
+
+<h2>效果如下</h2>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160422-2.png" alt="s" /></p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[测试并发程序]]></title>
@@ -9328,365 +9379,6 @@ let loadedObject=NSKeyedUnarchiver.unarchiveObjectWithData(objectConvertedToData
 
 loadedObject?.name
 </code></pre>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[利用AFNetworking上传图片和视频]]></title>
-    <link href="http://andrew-anlu.github.io/blog/2016/02/26/li-yong-afnetworkingshang-chuan-tu-pian-he-shi-pin/"/>
-    <updated>2016-02-26T09:15:43+08:00</updated>
-    <id>http://andrew-anlu.github.io/blog/2016/02/26/li-yong-afnetworkingshang-chuan-tu-pian-he-shi-pin</id>
-    <content type="html"><![CDATA[<h2>前言</h2>
-
-<p>之前尝试过用原生的上传代码，但是比较麻烦，利用afnetworking进行上传还是很方便的。</p>
-
-<p>文件上传后台服务器必须要有相应的代码支持，我们后台使用java做的，首先ios客户端要把上传的图片或者视频转换成标准的文件流，然后传给后台，才能顺利实现上传功能。</p>
-
-<!--more-->
-
-
-<h3>上传图片</h3>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>/**
-</span><span class='line'> *  上传图片
-</span><span class='line'> */
-</span><span class='line'>-(void)uploadPicture:(UIImage *)selectImg{
-</span><span class='line'>    //房源id：houseId 经纪人姓名:agentName flag(0未审核)文件:file
-</span><span class='line'>    NSMutableURLRequest *request = [[AFHTTPRequestSerializer serializer] multipartFormRequestWithMethod:@"POST" URLString:URL_UPLOADFILES parameters:nil constructingBodyWithBlock:^(id&lt;AFMultipartFormData&gt; formData)
-</span><span class='line'>                                    {
-</span><span class='line'>                                        NSData *imgData=UIImageJPEGRepresentation(selectImg, 1.0);
-</span><span class='line'>                                        [formData appendPartWithFileData:imgData name:@"file" fileName:@"ios.png" mimeType:@"image/jpeg"];
-</span><span class='line'>                                        
-</span><span class='line'>                                        NSData *data =[@"654321" dataUsingEncoding:NSUTF8StringEncoding];
-</span><span class='line'>
-</span><span class='line'>                                        [formData appendPartWithFormData:data name:@"houseAppKey"];
-</span><span class='line'>                                        
-</span><span class='line'>                                        NSData *data1 =[_houseID dataUsingEncoding:NSUTF8StringEncoding];
-</span><span class='line'>                                        [formData appendPartWithFormData:data1 name:@"houseId"];
-</span><span class='line'>                                        
-</span><span class='line'>                                    }];
-</span><span class='line'>    
-</span><span class='line'>    AFURLSessionManager *manager = [[AFURLSessionManager alloc] initWithSessionConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration]];
-</span><span class='line'>    NSURLSessionUploadTask *uploadTask;
-</span><span class='line'>    
-</span><span class='line'>    uploadTask = [manager
-</span><span class='line'>                  uploadTaskWithStreamedRequest:request
-</span><span class='line'>                  progress:nil
-</span><span class='line'>                  completionHandler:^(NSURLResponse * _Nonnull response, id  _Nullable responseObject, NSError * _Nullable error) {
-</span><span class='line'>                      [[UIManager shareInstance] hide];
-</span><span class='line'>                      if (error) {
-</span><span class='line'>                          MYLog(@"Error: %@", error);
-</span><span class='line'>                      } else {
-</span><span class='line'>                          NSDictionary *dict=responseObject;
-</span><span class='line'>                          if(dict){
-</span><span class='line'>                              NSInteger result=[dict[@"code"] integerValue];
-</span><span class='line'>                              if(result==0){
-</span><span class='line'>                                  NSString *msg=dict[@"msg"];
-</span><span class='line'>                                  [[UIManager shareInstance] showSuccessWithMessage:msg duration:DURATIONTIME];
-</span><span class='line'>                              }else{
-</span><span class='line'>                                  [[UIManager shareInstance] showErrorWithMessage:@"上传失败" duration:DURATIONTIME];
-</span><span class='line'>                              }
-</span><span class='line'>                          }
-</span><span class='line'>                      }
-</span><span class='line'>                  }];
-</span><span class='line'>    [uploadTask resume];
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>上传视频</h3>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>#pragma mark
-</span><span class='line'>#pragma mark 上传视频
-</span><span class='line'>-(void)updateVedio:(NSData *)vedioData{
-</span><span class='line'>    
-</span><span class='line'>    
-</span><span class='line'>    //房源id：houseId 经纪人姓名:agentName flag(0未审核)文件:file
-</span><span class='line'>    NSMutableURLRequest *request = [[AFHTTPRequestSerializer serializer] multipartFormRequestWithMethod:@"POST" URLString:URL_UPLOADFILES parameters:nil constructingBodyWithBlock:^(id&lt;AFMultipartFormData&gt; formData)
-</span><span class='line'>                                    {
-</span><span class='line'>                                    
-</span><span class='line'>                                       [formData appendPartWithFileData:vedioData name:@"video1" fileName:@"video1.mov" mimeType:@"video/quicktime"];
-</span><span class='line'>                                        
-</span><span class='line'>                                        NSData *data =[@"654321" dataUsingEncoding:NSUTF8StringEncoding];
-</span><span class='line'>                                        
-</span><span class='line'>                                        [formData appendPartWithFormData:data name:@"houseAppKey"];
-</span><span class='line'>                                        
-</span><span class='line'>                                        NSData *data1 =[_houseID dataUsingEncoding:NSUTF8StringEncoding];
-</span><span class='line'>                                        [formData appendPartWithFormData:data1 name:@"houseId"];
-</span><span class='line'>                                        
-</span><span class='line'>                                    }];
-</span><span class='line'>    
-</span><span class='line'>    AFURLSessionManager *manager = [[AFURLSessionManager alloc] initWithSessionConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration]];
-</span><span class='line'>    NSURLSessionUploadTask *uploadTask;
-</span><span class='line'>    
-</span><span class='line'>    uploadTask = [manager
-</span><span class='line'>                  uploadTaskWithStreamedRequest:request
-</span><span class='line'>                  progress:nil
-</span><span class='line'>                  completionHandler:^(NSURLResponse * _Nonnull response, id  _Nullable responseObject, NSError * _Nullable error) {
-</span><span class='line'>                      [[UIManager shareInstance] hide];
-</span><span class='line'>                      if (error) {
-</span><span class='line'>                          MYLog(@"Error: %@", error);
-</span><span class='line'>                      } else {
-</span><span class='line'>                          NSDictionary *dict=responseObject;
-</span><span class='line'>                          if(dict){
-</span><span class='line'>                              NSInteger result=[dict[@"code"] integerValue];
-</span><span class='line'>                              if(result==0){
-</span><span class='line'>                                  NSString *msg=dict[@"msg"];
-</span><span class='line'>                                  [[UIManager shareInstance] showSuccessWithMessage:msg duration:DURATIONTIME];
-</span><span class='line'>                              }else{
-</span><span class='line'>                                  [[UIManager shareInstance] showErrorWithMessage:@"上传失败" duration:DURATIONTIME];
-</span><span class='line'>                              }
-</span><span class='line'>                          }
-</span><span class='line'>                      }
-</span><span class='line'>                  }];
-</span><span class='line'>    [uploadTask resume];
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>图片多选</h3>
-
-<p>如果想要一次上传多张图片的话，可能会用到
- <a href="https://github.com/chiunam/CTAssetsPickerController">AssetsPickerController</a><br/>
- 这个第三方库</p>
-
-<p> 我在代码中用法如下:</p>
-
-<pre><code class="`"> -(void)takeVedios:(UIButton *)btn{
-    [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status){
-        dispatch_async(dispatch_get_main_queue(), ^{
-
-            // init picker
-            CTAssetsPickerController *picker = [[CTAssetsPickerController alloc] init];
-            // set delegate
-            picker.delegate = self;
-            // Optionally present picker as a form sheet on iPad
-            if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
-                picker.modalPresentationStyle = UIModalPresentationFormSheet;
-
-            // present picker
-            [self presentViewController:picker animated:YES completion:nil];
-        });
-    }];
-}
-</code></pre>
-
-<h3>补充</h3>
-
-<p>上传的时候最好有进度条进行提示，这是比较好的用户体验，AFNetworking官方也给出了上传下载的进度条实例，我这块之前没有做出很好的效果，以后有时间了再研究一下。</p>
-
-<p>我用的AF的版本号是2.6的可能和最新版本的AF上传的代码有点区别，进度条的展示可能也有点区别，AFNetworking中的进度条用了NSProcess来显示，NSProcess可以用 KVO来监控实现，</p>
-
-<p>代码片段:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-<span class='line-number'>46</span>
-<span class='line-number'>47</span>
-<span class='line-number'>48</span>
-<span class='line-number'>49</span>
-<span class='line-number'>50</span>
-<span class='line-number'>51</span>
-<span class='line-number'>52</span>
-<span class='line-number'>53</span>
-<span class='line-number'>54</span>
-<span class='line-number'>55</span>
-<span class='line-number'>56</span>
-<span class='line-number'>57</span>
-<span class='line-number'>58</span>
-<span class='line-number'>59</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>/**
-</span><span class='line'> *  上传临时图片到服务器
-</span><span class='line'> *
-</span><span class='line'> *  @param selectImg 要传入的图片
-</span><span class='line'> *  @param callback  回调函数
-</span><span class='line'> */
-</span><span class='line'>-(void)uploadToServerTEMP:(UIImage *)selectImg
-</span><span class='line'>      UploadTEMPFileBlock:(UploadTEMPFileBlock)callback{
-</span><span class='line'>    
-</span><span class='line'>    
-</span><span class='line'>    NSMutableURLRequest *request = [[AFHTTPRequestSerializer serializer] multipartFormRequestWithMethod:@"POST" URLString:URL_UPLOADTEMP parameters:nil constructingBodyWithBlock:^(id&lt;AFMultipartFormData&gt; formData)
-</span><span class='line'>                                    {
-</span><span class='line'>                                        NSData *imgData=UIImageJPEGRepresentation(selectImg, 1.0);
-</span><span class='line'>                                        [formData appendPartWithFileData:imgData name:@"Filedata" fileName:@"ios.png" mimeType:@"image/jpeg"];
-</span><span class='line'>                                    }];
-</span><span class='line'>    
-</span><span class='line'>    AFURLSessionManager *manager = [[AFURLSessionManager alloc] initWithSessionConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration]];
-</span><span class='line'>    NSURLSessionUploadTask *uploadTask;
-</span><span class='line'>    
-</span><span class='line'>    NSProgress *progress = nil;
-</span><span class='line'>    
-</span><span class='line'>    uploadTask = [manager
-</span><span class='line'>                  uploadTaskWithStreamedRequest:request
-</span><span class='line'>                  progress:&progress
-</span><span class='line'>                  completionHandler:^(NSURLResponse * _Nonnull response, id  _Nullable responseObject, NSError * _Nullable error) {
-</span><span class='line'>                      if (error) {
-</span><span class='line'>                          MYLog(@"Error: %@", error);
-</span><span class='line'>                          callback(nil,error);
-</span><span class='line'>                      } else {
-</span><span class='line'>                          NSDictionary *dict=responseObject;
-</span><span class='line'>                          if(dict){
-</span><span class='line'>                              callback(dict,nil);
-</span><span class='line'>                          }
-</span><span class='line'>                          //[progress removeObserver:self forKeyPath:@"fractionCompleted"];
-</span><span class='line'>                      }
-</span><span class='line'>                  }];
-</span><span class='line'>    
-</span><span class='line'>    [progress addObserver:self
-</span><span class='line'>               forKeyPath:@"fractionCompleted"
-</span><span class='line'>                  options:NSKeyValueObservingOptionNew
-</span><span class='line'>                  context:NULL];
-</span><span class='line'>    [uploadTask resume];
-</span><span class='line'>    
-</span><span class='line'>}
-</span><span class='line'>
-</span><span class='line'>- (void)observeValueForKeyPath:(NSString *)keyPath
-</span><span class='line'>                      ofObject:(id)object change:(NSDictionary *)change context:(void *)context
-</span><span class='line'>{
-</span><span class='line'>    //[super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
-</span><span class='line'>    
-</span><span class='line'>    if ([keyPath isEqualToString:@"fractionCompleted"] && [object isKindOfClass:[NSProgress class]]) {
-</span><span class='line'>        NSProgress *progress = (NSProgress *)object;
-</span><span class='line'>        NSLog(@"Progress is %f", progress.fractionCompleted);
-</span><span class='line'>      
-</span><span class='line'>        [_processView setProgress:progress.fractionCompleted animated:YES];
-</span><span class='line'>        
-</span><span class='line'>         NSLog(@"progress.totalUnitCount:%lld;progress.completedUnitCount=%lld",progress.totalUnitCount,progress.completedUnitCount);
-</span><span class='line'>    }
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>经过检验，进度条显示有点问题，可能不是实时显示，进度条显示的不太准确。需要后期优化。</p>
 ]]></content>
   </entry>
   

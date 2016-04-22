@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Xcode | 安路的技术博客]]></title>
+  <link href="http://andrew-anlu.github.io/blog/categories/xcode/atom.xml" rel="self"/>
+  <link href="http://andrew-anlu.github.io/"/>
+  <updated>2016-04-22T16:38:01+08:00</updated>
+  <id>http://andrew-anlu.github.io/</id>
+  <author>
+    <name><![CDATA[安路]]></name>
+    <email><![CDATA[andrewswift1987@gamil.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Xcode更新后插件失效的解决方案]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/04/22/xcodegeng-xin-hou-cha-jian-shi-xiao-de-jie-jue-fang-an/"/>
+    <updated>2016-04-22T16:17:45+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/04/22/xcodegeng-xin-hou-cha-jian-shi-xiao-de-jie-jue-fang-an</id>
+    <content type="html"><![CDATA[<p>Xcode的插件对于开发者来说无疑是一把利器，让开发者能够将更多的时间和精力放在代码上面。但是开发者都会遇到一个问题，就是每次Xcode更新到最新的版本，之前的插件全部都失效了，需要重新安装一遍很是麻烦。</p>
+
+<!--more-->
+
+
+<p>插件失效的原因:</p>
+
+<blockquote><blockquote><ul>
+<li>系统安装了一个Xcode</li>
+<li>开发者未正确的将自己的DVTPlugInCompatibilityUUID添加到插件中</li>
+<li>成功安装了插件，但是却在Xcode识别插件的时候，选了 Skip Bundle</li>
+</ul>
+</blockquote></blockquote>
+
+<h2>终端指令实现</h2>
+
+<p>//获取DVTPlugInCompatibilityUUID字段</p>
+
+<pre><code>defaults read /Applications/Xcode.app/Contents/Info DVTPlugInCompatibilityUUID
+</code></pre>
+
+<h2>找到插件的目录</h2>
+
+<ol>
+<li>打开xcode插件所在的目录:<code>~/Library/Application Support/Developer/Shared/Xcode/Plug-ins</code>,打开路径的快捷键是shift＋command＋g 然后输入上面的地址</li>
+<li>选择已经安装的插件，例如:VVDocumenter-Xcode，右键显示包内容</li>
+<li>找到info.plist文件，找到DVTPlugInCompatibilityUUIDs的项目，添加一个Item,value的值为之前的Xcode的UUID,(或者直接在item0中value修改也可以)保存</li>
+</ol>
+
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160422-1.png" alt="step2" /></p>
+
+<h2>重启xcode</h2>
+
+<p>重启Xcode时会提示“Load bundle”、 “Skip Bundle”，这里必须选择“Load bundle”，不然插件无法使用</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160422-0.png" alt="step1" /></p>
+
+<h2>效果如下</h2>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160422-2.png" alt="s" /></p>
+]]></content>
+  </entry>
+  
+</feed>
