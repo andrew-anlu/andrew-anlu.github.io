@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Ios | 安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/blog/categories/ios/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-04-24T21:35:51+08:00</updated>
+  <updated>2016-04-24T22:13:59+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -42,6 +42,48 @@
 <p>Supplementary views和decoration views必须是UICollectionReusableView的子类。布局使用的每个视图类都需要在collection view中注册，这样当data Source让它们从reuse pool中出列时，它们才能够创建新的实例。如果你是使用的interface Builder，则可以通过在可视化编辑器中拖拽一个cell到collection view上完成cell在collection view中的注册。同样的方法也可以用在supplementary view上，前提是你使用了UIcollectionviewFlowLayout.如果没有，你只能通过调用 <code>registerClass:</code>或者<code>registerNib:</code>方法手动注册视图类了。你需要在<code>viewDidload</code>中做这些操作.</p>
 
 <h2>自定义布局</h2>
+
+<p>作为一个非常有意义的自定义collection view布局的例子，我们不妨想一个典型的日历应用程序中的周视图。日历一次显示一周，星期中的每一天现在列中，每一个日历事件将会在我们的colleectio view中以一个cell显示，位置和大小代表事件起始日期事件和持续时间。</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/calendar-collection-view-layout.png" alt="test" />
+一般有两种类型的 collection view布局:</p>
+
+<ol>
+<li>独立于内容的布局计算.这正是你所知道的像UITableview和UIcollectionViewFlowLayout这些情况。每个cell的位置和外观不是基于其显示的内容，但所有cell的显示顺序是基于内容的顺序。可以把默认的flow layout作为例子。每个cell都是基于前一个cell的放置(或者如果没有足够的空间，则从下一行开始).布局对象不必访问实际数据来计算布局.</li>
+<li>基于内容的布局计算。我们的日历视图正式这样类型的例子。为了计算显示事件的气势和街二叔事件，布局对象需要直接访问 collection view的数据源。在很多情况下，布局对象不仅需要取出当前可见cell的数据，还需要从所有记录中取出一些决定当前那些cell可见的数据。</li>
+</ol>
+
+
+<p>在我们的日历示例中，布局对象如果访问某一个矩形内的cells的属性，那就必须迭代数据源提供的所有事件来决定那些位于要求的时间窗口个中。与一些相对简单，数据源独立计算的flow layout比起来，这足够计算出cell在一个矩形内的index paths了（假设网格中所有的cells的大小都一样）.</p>
+
+<p>如果有一个依赖内容的布局，那就是暗示你需要些自定义的布局类了，同时不能使用自定义的UICOllectionViewFlowLayout，所以这正是我们需要做的事情。</p>
+
+<p><a href="https://developer.apple.com/library/ios/documentation/uikit/reference/UICollectionViewLayout_class/Reference/Reference.html">UICollectionViewLayout文档</a>列出了子类需要重写的方法.</p>
+
+<h2>collectionViewContentSize</h2>
+
+<p>由于 collection view对它的content并不知情，所以布局首先要提供的信息就是滚动区域的大小，这样collection view才能正确的管理滚动。布局对象必须在此时计算它内容的总大小，包括supplementary views和decoration views。注意，尽管大多数经典的collection view限制在一个轴方向上滚动(正如UIcollectionviewFlowLayout一样)，但是这不是必须的。</p>
+
+<p>在我们的日历示例中，我们想要视图垂直的滚动。比如，如果我们想要在垂直空间上一个小时占去100点，这样显示一整天的内容高度就是2400点。注意，我们不能够水平滚动，这就意味这我们collectionview只能显示一周。为了能够在日历中的多个星期间分页，我们可以在一个独立的scroll view中（可以使用U<a href="https://developer.apple.com/library/ios/documentation/uikit/reference/UIPageViewControllerClassReferenceClassRef/UIPageViewControllerClassReference.html">IPageViewController</a>）中使用多个 collection view（一周一个）,或者坚持使用一个collection view并且返回足够大的内容宽度，这回使得用户感觉在两个方向上滑动自由。</p>
+
+<pre><code>- (CGSize)collectionViewContentSize
+{
+    // Don't scroll horizontally
+    CGFloat contentWidth = self.collectionView.bounds.size.width;
+
+    // Scroll vertically to display a full day
+    CGFloat contentHeight = DayHeaderHeight + (HeightPerHour * HoursPerDay);
+
+    CGSize contentSize = CGSizeMake(contentWidth, contentHeight);
+    return contentSize;
+}
+</code></pre>
+
+<p>为了简单起见，我选择布局在一个非常简单的模型上：假定每周天数相同，每天时长相同，也就是说天数用0-6表示。在一个真实的日历程序中，布局将会为自己的几段大量使用基于 <code>NSCalendaar</code>的日期</p>
+
+<h2>layoutAttributesForElementsInRect：</h2>
+
+<p>这是任何布局类中最重要的方法了，同时可能也是最容易让人迷惑的方法。collection view调用这个方法并传递一个自身坐标系统中的矩形过去。这个矩形代表了这个视图的可见矩形区域(也即是它的bounds)，你需要准备好处理传给你的任何矩形。</p>
 ]]></content>
   </entry>
   
