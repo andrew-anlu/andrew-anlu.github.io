@@ -9,7 +9,8 @@
   <meta name="author" content="安路">
 
   
-  <meta name="description" content="泛型代码可以让你编写使用自定义需求以及任意类型的灵活可冲中的函数和类型，它可以让你避免重复的代码，用一种清晰和抽象的方式来表达代码的意图。 ">
+  <meta name="description" content="在iOS中有两种方式来实现多线程:NSOperation和GCD.
+其中GCD是基于C的底层的API,而NSOperation则是GCD实现的Object-c的API,随让NSOPeration是基于GCD实现的，但是并不意味着它是一个GCD的重复版本，相反， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -66,6 +67,44 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/03/26/nsoperationqueuejian-dan-jie-shao/">NSOperationQueue简单介绍</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-03-26T08:11:55+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>26</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>8:11 am</span></time>
+        
+           | <a href="/blog/2016/03/26/nsoperationqueuejian-dan-jie-shao/#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/03/26/nsoperationqueuejian-dan-jie-shao/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>在iOS中有两种方式来实现多线程:NSOperation和GCD.
+其中GCD是基于C的底层的API,而NSOperation则是GCD实现的Object-c的API,随让NSOPeration是基于GCD实现的，但是并不意味着它是一个GCD的重复版本，相反，我们可以用NSOperation轻易的实现一些GCD要写大量代码的事情，因此，NSOperation是被推荐使用的.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/03/26/nsoperationqueuejian-dan-jie-shao/">阅读全文 &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -419,43 +458,6 @@ swift会为您管理在捕获过程中涉及到所有内存操作。</p>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/03/01/swiftzhong-de-shu-ju-cun-chu/">Swift中的数据存储</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-03-01T10:52:34+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>1</span><span class='date-suffix'>st</span>, <span class='date-year'>2016</span></span> <span class='time'>10:52 am</span></time>
-        
-           | <a href="/blog/2016/03/01/swiftzhong-de-shu-ju-cun-chu/#disqus_thread"
-             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/03/01/swiftzhong-de-shu-ju-cun-chu/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>程序就是对数据进行处理的，存储数据在app端也是很有必要的。本章将学习如何使用文件系统在磁盘上存储信息，如何在内置的用户偏好设置数据库中存储简单数据。</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/03/01/swiftzhong-de-shu-ju-cun-chu/">阅读全文 &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/3">&larr; Older</a>
@@ -480,6 +482,10 @@ swift会为您管理在捕获过程中涉及到所有内存操作。</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/04/24/zi-ding-yi-colletionviewbu-ju/">自定义ColletionView布局</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/04/22/ohhttpstubsjie-shao/">OHHTTPStubs介绍</a>
       </li>
     
@@ -495,10 +501,6 @@ swift会为您管理在捕获过程中涉及到所有内存操作。</p>
         <a href="/blog/2016/04/19/ioszhong-de-duo-ren-wu/">Ios中的多任务</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2016/04/15/asyndisplaykitru-men-pian/">AsynDisplayKit入门篇</a>
-      </li>
-    
   </ul>
 </section>
 <section>
@@ -506,7 +508,7 @@ swift会为您管理在捕获过程中涉及到所有内存操作。</p>
 	<ul id="categories">
 		<li class='category'><a href='/blog/categories/cocoapods/'>cocoapods (1)</a></li>
 <li class='category'><a href='/blog/categories/git/'>git (3)</a></li>
-<li class='category'><a href='/blog/categories/ios/'>ios (15)</a></li>
+<li class='category'><a href='/blog/categories/ios/'>ios (16)</a></li>
 <li class='category'><a href='/blog/categories/life/'>life (1)</a></li>
 <li class='category'><a href='/blog/categories/mac/'>mac (1)</a></li>
 <li class='category'><a href='/blog/categories/octopress/'>octopress (2)</a></li>

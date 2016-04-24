@@ -4,7 +4,7 @@
   <title><![CDATA[安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-04-22T21:06:14+08:00</updated>
+  <updated>2016-04-24T21:35:51+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -12,6 +12,38 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[自定义ColletionView布局]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/04/24/zi-ding-yi-colletionviewbu-ju/"/>
+    <updated>2016-04-24T21:05:32+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/04/24/zi-ding-yi-colletionviewbu-ju</id>
+    <content type="html"><![CDATA[<p>UICollectionView在ios6中第一次被引入，也是UIKit <a href="http://oleb.net/blog/2012/09/uicollectionview/">视图类中的一颗新星</a>
+。它和UITableview共享一套API设计，但也在UItableView上做了一些扩展。UICOllectionView最强大，同时显著超出UITableView的特色就是其完全灵活的布局结构。这这篇文章中，<!--more--> 我们将会实现一个相当复杂的自定义Collection view布局，并且顺便讨论一下这个类设计的重要部分，项目的实例代码在 [GitHub]上。</p>
+
+<h2>布局对象(Layout Objects)</h2>
+
+<p>UITableView和UICollectionView都是 data-source和delegate驱动的。他们在显示其子视图集的过程中仅扮演容器角色,且对子视图集真正的内容毫不知情。</p>
+
+<p>UICollectioNView在此之上进行了进一步抽象。它将子视图的位置，大小和外观的控制权拖过给一个单独的布局对象。通过提供一个自定义布局对象，你技术可以实现任何你能想象到的布局。布局继承自UICollectionVieLayout抽象基类.IOS6中以UICollectionViewFloyLayout类的形式提出了一个具体的布局实现。</p>
+
+<p>我们可以使用flow layout实现一个标准的gridview,这可能是colle tion view中最常见的使用案例了。尽管大多数人都这么想，但是Apple很聪明，没有明确的命名这个类为UIColletionViewGridLayout,而使用了更为通用的术语 flow layout,更好的描述了该类的功能：它通过一个接一个的放置cell来建立自己的布局，当需要的时候，插入横排或竖排的分栏符。通过自定义滚动方向，大小和cell之间的间距，flow layout 也可以在单行或单列中布局cell。实际上，UITableView的布局可以想象成flow layout的一种特殊情况。</p>
+
+<p>在你准备自己写一个UICollectionViewLayout的子类之前，你需要问你自己，你是否能够使用UICollectionViewFlowlayout实现你心里的布局。这个类是<a href="https://developer.apple.com/library/ios/documentation/uikit/reference/UICollectionViewFlowLayout_class/Reference/Reference.html#//apple_ref/occ/cl/UICollectionViewFlowLayout">很容易定制的</a>,并且可以继承本身进行进一步的定制，感兴趣的看<a href="https://developer.apple.com/library/ios/documentation/WindowsViews/Conceptual/CollectionViewPGforIOS/UsingtheFlowLayout/UsingtheFlowLayout.html#//apple_ref/doc/uid/TP40012334-CH3-SW4">这篇文章</a></p>
+
+<h2>Cells和其他Views</h2>
+
+<p>为了适应任意布局,collection view简历了一个类似，但比 table view更灵活的视图层级，像往常一样，你的主要内容显示在cell中，cell可以被任意分组到section中。CollectionView的cell必须是UICollectionViewCell的子类。除了cell，collection view额外管理着两种视图:supplementary views和decoration views.</p>
+
+<p>collection view中的Supplemnetary views相当于table view的section header和footer views.像cells一样，他们的内容都有数据源对象驱动，然而和tableview 中用法不一样，supplementary view并不一定会作为header或footer view;他们的数量和位置完全由布局控制.</p>
+
+<p>Decoration views纯粹为一个装饰品。他们完全属于布局对象，并被布局对象管理，他们并不从dataSource 获取的contents.当布局对象指定需要一个decoration view的时候，collection view会自动创建，并将布局对象提供的布局参数应用到上面去。并不需要为自定义视图准备任何内容。</p>
+
+<p>Supplementary views和decoration views必须是UICollectionReusableView的子类。布局使用的每个视图类都需要在collection view中注册，这样当data Source让它们从reuse pool中出列时，它们才能够创建新的实例。如果你是使用的interface Builder，则可以通过在可视化编辑器中拖拽一个cell到collection view上完成cell在collection view中的注册。同样的方法也可以用在supplementary view上，前提是你使用了UIcollectionviewFlowLayout.如果没有，你只能通过调用 <code>registerClass:</code>或者<code>registerNib:</code>方法手动注册视图类了。你需要在<code>viewDidload</code>中做这些操作.</p>
+
+<h2>自定义布局</h2>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[OHHTTPStubs介绍]]></title>
@@ -8777,130 +8809,6 @@ self.aView = [[TLView alloc] initWithBlock:^(id model) {
 
 
 <p>搞定！</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Swift中的数据存储]]></title>
-    <link href="http://andrew-anlu.github.io/blog/2016/03/01/swiftzhong-de-shu-ju-cun-chu/"/>
-    <updated>2016-03-01T10:52:34+08:00</updated>
-    <id>http://andrew-anlu.github.io/blog/2016/03/01/swiftzhong-de-shu-ju-cun-chu</id>
-    <content type="html"><![CDATA[<p>程序就是对数据进行处理的，存储数据在app端也是很有必要的。本章将学习如何使用文件系统在磁盘上存储信息，如何在内置的用户偏好设置数据库中存储简单数据。</p>
-
-<!--more-->
-
-
-<h2>NSuserDefaults</h2>
-
-<p>NSUserDefaults类允许以"键值"形式保存设置信息。我们不需要加载和读取设置文件，偏好设置会被自动保存。</p>
-
-<p>要访问存储在NSuserDefaults中的偏好设置，需要NSuserDefaults类的一个实例。为得到这样的一个实例，必须使用NSUserdefaults类额standardUserDefaults:</p>
-
-<pre><code>let defaults=NSUserDefaults.standardUserDefaults()
-</code></pre>
-
-<p>要在默认对象中注册默认值，首先需要创建一个字典。这个字典的键与偏好设置的名字相同，与这些键关联的值就是这些设置的默认值。一旦有个这个字典，就用registerDefaults方法将它提供给默认对象</p>
-
-<pre><code>let meDefaults=["greeting":"hello",
-            "numberOfItems":1]
-defaults.registerDefaults(meDefaults)
-</code></pre>
-
-<p>完成这一工作后，就可以使用默认对象的值了</p>
-
-<p>用reigisterDefaults方法注册的"默认设置"并不是村村在磁盘上，也就是说在应用程序每次启动时都需要调用它。但在应用程序中设定的“默认设置”会被保存。</p>
-
-<p>有了对一个NSuserdefaults对象的引用，就可以向对待字典一样对待NSUserdaults对象，我们可以使用ObjectForkey方法从默认对象中提取一个值</p>
-
-<pre><code>let greeting=defaults.objectForKey("greeting") as? String
-</code></pre>
-
-<p>只有少数对象可以村村在默认对象中。可以存储在默认对象中的对象只有属性列表对象。</p>
-
-<ul>
-<li>字符串</li>
-<li>数字</li>
-<li>NSData</li>
-<li>NSdate</li>
-<li>数组和字典</li>
-</ul>
-
-
-<p> 如果需要在默认对象中存储任何其他类型的对象，应当首先对其存档(archive),转换为NSData</p>
-
-<p>除了从默认对象中提取值之外，还可以设定值。在NSUserDefaults对象中设定值时，这个值将被永远保存
-要在NSUserDefaults对象中设定一个对象，可以使用SetObject(_,forKey)</p>
-
-<pre><code>let newGreeting="hi ,there";
-defaults.setObject(newGreeting, forKey: "greeting")  
-</code></pre>
-
-<h2>使用NSFileManager</h2>
-
-<p>应用程序与文件系统的界面是NSFileManager对象，利用它可以列出文件夹的内容，创建和重命名和删除文件，要访问NSFilemanager类，可以使用共享管理器对象</p>
-
-<pre><code>let fileManager=NSFileManager.defaultManager()
-</code></pre>
-
-<h3>注意</h3>
-
-<p>NSFileManager允许我们对其设定一个委托，在文件管理器完成诸如复制或移动文件之类的操作时，它会受到消息。在使用这一功能时，应当创建你自己的NSFileManager实例，而不是使用共享对象</p>
-
-<pre><code>let fileManager=NSFileManager()
-fileManager.delegate=self;
-</code></pre>
-
-<ul>
-<li><p>获取一个临时目录</p>
-
-<p>  //获取临时目录
-  let tempraryDirectoryPath=NSTemporaryDirectory()
-这个函数会返回一个字符串，它包含了可以在其中存储文件的目录路径。如果希望以NSURL形式使用它，就需要用fileURLWithPath方法进行转换。</p></li>
-<li><p>创建目录</p></li>
-</ul>
-
-
-<p>利用NSFileManager，可以在文件系统上创建和删除项目。比如，要创建一个新目录，可以利用:</p>
-
-<ul>
-<li>创建文件
-创建文件的过程也是一样的，我们在NSString中提供一个路径，文件应当包含的NSData,以及一个可选的字典，其中列出此文件应当拥有的属性：</li>
-</ul>
-
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>fileManager.createFileAtPath(newFilePath!,
-</span><span class='line'>      contents:NewFileData,
-</span><span class='line'>      attributes:nil)</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>删除文件</li>
-</ul>
-
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>fileManager.reomveItemAtURL(newFileURL!,error:&error)</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>移动和复制文件</li>
-</ul>
-
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>fileManager.moveItemAtURL(sourceURL!,toURL:destinationURL,error:nil)</span></code></pre></td></tr></table></div></figure>
-
-
-<p>要复制一个项目，可以这样做</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>fileManager.copyItemAtURL(sourceURL!,toURL:destinationURL,error:nil)</span></code></pre></td></tr></table></div></figure>
-
-
-
 ]]></content>
   </entry>
   
