@@ -166,6 +166,192 @@
 <h2>layoutAttributesForElementsInRect：</h2>
 
 <p>这是任何布局类中最重要的方法了，同时可能也是最容易让人迷惑的方法。collection view调用这个方法并传递一个自身坐标系统中的矩形过去。这个矩形代表了这个视图的可见矩形区域(也即是它的bounds)，你需要准备好处理传给你的任何矩形。</p>
+
+<p>你的视线必须返回一个包含 UICollectionviewLayoutAttributes对象的数组，为每一个cell包含一个这样的对象，supplementary View或decoration view在矩形区域内是可见的。UICollectionViewLayoutAttributes类包含了colletion view内item的所有相关的布局属性。默认情况下，这个类包含 frame,center,size,transform3D,alpha,Zindex和hidden属性。如果你的布局想要控制其他视图的属性(比如背景颜色)，你可以创建一个UICollectionViewLayoutAttributes的子类，然后加上你自己的属性。</p>
+
+<p>布局属性对象(Layout attributes objects)通过indexPath属性和他们对应的cell,supplementary view或者decoration view关联在一起。collection view为所有items从布局对象中请求到布局属性后，它将会实例化所有视图，并将对应的属性应用到每个视图上去。</p>
+
+<p>注意!这个方法涉及到所有类型的视图，也就是cell,supplementary views和decoration views.一个幼稚的实现可能会选择忽略传入的矩形，并且为collection view中所有的视图返回布局属性。在原型设计和开发布局阶段，这是一个有效的方法。但是，这将会性能产生非常坏的影响，特别是可见cell远少于所有cell数量的时候，collection view和布局对象将会为那些不可见的而试图做额外不必要的工作。</p>
+
+<p>你的视线需要做这几步:</p>
+
+<ol>
+<li>创建一个空的可变数组来存放所有的布局属性</li>
+<li>确定index paths中那些cells的frame完全或部分位于矩形中。这个计算需要你从collection view的数据源中取出你需要显示的数据。然后在循环中调用你视线的<code>layoutattributesForItemIndexPath:</code>方法为每个index path创建并配置一个合适的布局属性对象，并将每个对象添加到数组中。</li>
+<li>如果你的布局包含supplementary views,计算矩形内可见supplementary view的index paths.在循环中调用你实现的<code>layoutAttributesForSupplementaryViewOfKind:atIndexPath:</code>,并且将这些对象加到数组中。通过为kind参数传递你选择的不同字符，你可以却分出不同种类的supplementary views(比如headers和footers)。当需要创建视图时，collectionview会将kind字符传回到你的数据源。记住supplermentary 和decoration views的数量和种类完全有布局控制。你不会受到headers和footers的限制.</li>
+<li>如果布局包含decoration views，计算矩形内可见decoration views的index paths.在循环中调用你实现的<code>layoutAttributesForDecorationViewOfKind:atIndexPath:</code>
+，并且将这些对象加到数组中</li>
+<li>返回数组</li>
+</ol>
+
+
+<p>我们自定义的布局没有使用 decoration views,但是使用了两种supplermentary views(column headers和row headers):</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (NSArray *)layoutAttributesForElementsInRect:(CGRect)rect
+</span><span class='line'>{
+</span><span class='line'>    NSMutableArray *layoutAttributes = [NSMutableArray array];
+</span><span class='line'>    // Cells
+</span><span class='line'>    // We call a custom helper method -indexPathsOfItemsInRect: here
+</span><span class='line'>    // which computes the index paths of the cells that should be included
+</span><span class='line'>    // in rect.
+</span><span class='line'>    NSArray *visibleIndexPaths = [self indexPathsOfItemsInRect:rect];
+</span><span class='line'>    for (NSIndexPath *indexPath in visibleIndexPaths) {
+</span><span class='line'>        UICollectionViewLayoutAttributes *attributes =
+</span><span class='line'>        [self layoutAttributesForItemAtIndexPath:indexPath];
+</span><span class='line'>        [layoutAttributes addObject:attributes];
+</span><span class='line'>    }
+</span><span class='line'>
+</span><span class='line'>    // Supplementary views
+</span><span class='line'>    NSArray *dayHeaderViewIndexPaths = [self indexPathsOfDayHeaderViewsInRect:rect];
+</span><span class='line'>    for (NSIndexPath *indexPath in dayHeaderViewIndexPaths) {
+</span><span class='line'>        UICollectionViewLayoutAttributes *attributes =
+</span><span class='line'>        [self layoutAttributesForSupplementaryViewOfKind:@"DayHeaderView"
+</span><span class='line'>                               atIndexPath:indexPath];
+</span><span class='line'>        [layoutAttributes addObject:attributes];
+</span><span class='line'>    }
+</span><span class='line'>
+</span><span class='line'>    NSArray *hourHeaderViewIndexPaths = [self indexPathsOfHourHeaderViewsInRect:rect];
+</span><span class='line'>    for (NSIndexPath *indexPath in hourHeaderViewIndexPaths) {
+</span><span class='line'>        UICollectionViewLayoutAttributes *attributes =
+</span><span class='line'>        [self layoutAttributesForSupplementaryViewOfKind:@"HourHeaderView"
+</span><span class='line'>                               atIndexPath:indexPath];
+</span><span class='line'>        [layoutAttributes addObject:attributes];
+</span><span class='line'>    }
+</span><span class='line'>    return layoutAttributes;
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>layoutAttributesFor…IndexPath</h2>
+
+<p>有时，collection view会为某个特殊的cell,supplementary 或者decoration view向布局对象请求布局属性，而非所有可见的对象。这就是当其他三个方法开始起作用时，你实现的<code>layoutAttributesForItemAtIndexPath:</code>需要创建并返回一个单独的布局属性对象，这样才能正确的格式化传给你的index path 所对应的cell.</p>
+
+<p>你可以通过调用<code>+[UICollectionViewLayoutAttributes layoutAttributesForCellWithIndexPath:]</code>这个方法，然后根据index path修改属性。为了得到需要显示在这个index path内的数据，你可能需要访问collection view的数据源。到目前为止，至少确保设置了frame尚需经，除非你所有的cell都位于彼此上方。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (UICollectionViewLayoutAttributes *)layoutAttributesForItemAtIndexPath:(NSIndexPath *)indexPath
+</span><span class='line'>{
+</span><span class='line'>    CalendarDataSource *dataSource = self.collectionView.dataSource;
+</span><span class='line'>    id event = [dataSource eventAtIndexPath:indexPath];
+</span><span class='line'>    UICollectionViewLayoutAttributes *attributes =
+</span><span class='line'>    [UICollectionViewLayoutAttributes layoutAttributesForCellWithIndexPath:indexPath];
+</span><span class='line'>    attributes.frame = [self frameForEvent:event];
+</span><span class='line'>    return attributes;
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果你正在使用自动布局，你可能会赶到惊讶，我们正在直接修改布局参数的frame属性，而不是和约束共事，但这正是UIcollectionViewLayout的工作。尽管你坑你使用自动布局来定义collection view的frame和它内部每个cel的布局，但cells的frames还是需要通过老式的方法计算出来。</p>
+
+<p>类似的，<code>layoutAttributesForSupplementaryViewOfKind:atIndexPath:</code>和<code>layoutAttributesForDecorationViewOfKind:atIndexPath:</code>方法分别需要为supplementary 和decoration views做相同的事。只有你的布局包含这样的视图你才需要实现这两个方法。UICollectionViewlayoutAttributes包含另外两个工厂方法，</p>
+
+<p><code>+layoutAttributesForSupplementaryViewOfKind:withIndexPath:</code> 和 <code>+layoutAttributesForDecorationViewOfKind:withIndexPath:</code>，用他们来创建正确的布局属性对象</p>
+
+<h2>shouldInvalidateLayoutForBoundsChange:</h2>
+
+<p>最后，当collection view的bounds改变时，布局需要告诉collection view是否需要重新计算布局。我的猜想是：当collectionview改变大小时，大多数布局会被作废，比如设备旋转的时候。因此，一个优质的实现可能只会简单的返回YES。芮然实现功能很重要，但是scrollview的bounds在滚动时也会改变，这意味着你的布局美妙会被丢弃多次。根据计算的复杂性判断，这将会对性能产生很大的影响。</p>
+
+<p>当collection view的宽度改变时，我们自定义的布局必须被丢弃，但这滚动并不会影响到布局。幸运的是，collection view将它的bounds传给<code>shouldInvalidateLayoutForBoundsChange:</code>方法，这样我们便能比较视图当前的bounds和新的bounds来确定返回值</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (BOOL)shouldInvalidateLayoutForBoundsChange:(CGRect)newBounds
+</span><span class='line'>{
+</span><span class='line'>    CGRect oldBounds = self.collectionView.bounds;
+</span><span class='line'>    if (CGRectGetWidth(newBounds) != CGRectGetWidth(oldBounds)) {
+</span><span class='line'>        return YES;
+</span><span class='line'>    }
+</span><span class='line'>        return NO;
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>动画</h2>
+
+<h3>插入和删除</h3>
+
+<p>UITableview中的cell自带了一套非常漂亮的插入和删除的动画。但是当为UIcollectionView增加和删除cell定义动画功能时，UIKit工程师们遇到这样一个问题：如果Collection view的布局是完全可变的，那么预先定义好的动画就没办法和开发者自定义的布局很好的融合。他们提出了一个优雅的方法：当一个cell(或者supplementary 或者 decoration View)被插入到collection view中时，collection View不仅向其布局请求cell正常正常状态下的布局尚需经，同时还请求其初始的布局尚需经，比如，需要在开始有插入动画的cell。CollectionView会简单的创建一个anmiation block,并在这个block中，将所有cell的属性从初始状态改变到常态</p>
+
+<p>通过提供不同的初始布局属性，你可以完全自定义插入动画。比如设置初始的alpha为0将会产生一个淡入的动画。同时设置一个平移或者缩放将会产生移动缩放的效果。</p>
+
+<p>同样的原理应用到删除上，这次动画是从常态到一些列你设置的最终布局属性。这些逗你需要在布局类中为initial或final布局参数实现的方法:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>initialLayoutAttributesForAppearingItemAtIndexPath:
+</span><span class='line'>
+</span><span class='line'>initialLayoutAttributesForAppearingSupplementaryElementOfKind:atIndexPath:
+</span><span class='line'>
+</span><span class='line'>initialLayoutAttributesForAppearingDecorationElementOfKind:atIndexPath:
+</span><span class='line'>
+</span><span class='line'>finalLayoutAttributesForDisappearingItemAtIndexPath:
+</span><span class='line'>
+</span><span class='line'>finalLayoutAttributesForDisappearingSupplementaryElementOfKind:atIndexPath:
+</span><span class='line'>
+</span><span class='line'>finalLayoutAttributesForDisappearingDecorationElementOfKind:atIndexPath:</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>布局间切换</h2>
+
+<p>可以通过类似的方式将一个collection view布局动态的切换到另外一个布局。当发送一个<code>setCollectionViewLayout:animated:</code>消息时，collection view会为cells在新的布局中查询新的布局参数，然后动态的将每个cell从旧参数变换到新的布局参数。你不需要做任何事情。</p>
+
+<h2>结论</h2>
+
+<p>根据自定义collection view布局的复杂性，写一个通常很不容易。确切的说，本质上这和从头写一个完整的实现相同布局自定义视图类一样困难了。因为所涉及的计算需要确定去那些子视图是当前可见的，以及他们的位置。尽管如此，使用UIcollectionview还是给你带来了一些很好的效果，比如cell重用，自动支持动画，更不要提整洁的独立布局，子视图管理。</p>
+
+<p>自定义collection view布局也是向<a href="http://objccn.io/issue-1-1/">轻量级view Controller</a>迈出了很好的异步，正如你的view controller不要包含任何布局代码。应该和一二个独立的dataSource类结合在一起，collection view的视图控制器将很难再包含任何代码</p>
 </div>
 
 
