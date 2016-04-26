@@ -9,8 +9,7 @@
   <meta name="author" content="安路">
 
   
-  <meta name="description" content="在iOS中有两种方式来实现多线程:NSOperation和GCD.
-其中GCD是基于C的底层的API,而NSOperation则是GCD实现的Object-c的API,随让NSOPeration是基于GCD实现的，但是并不意味着它是一个GCD的重复版本，相反， &hellip;">
+  <meta name="description" content="NSUrlSession是NSUrlConnection的替代品。 NSUrlConennection指的是一组构成 Foundation框架中URL加载系统的相互关联的组件:NSURLRequest,NSUrlResponse,NSURlProtocol等,在协商发送一个请求到服务器的过程中， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -67,6 +66,45 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/03/27/nsurlsessionxiang-jie/">NSUrlSession详解</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-03-27T18:48:28+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>27</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>6:48 pm</span></time>
+        
+           | <a href="/blog/2016/03/27/nsurlsessionxiang-jie/#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/03/27/nsurlsessionxiang-jie/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>NSUrlSession是NSUrlConnection的替代品。</p>
+
+<p>NSUrlConennection指的是一组构成 Foundation框架中URL加载系统的相互关联的组件:NSURLRequest,NSUrlResponse,NSURlProtocol等,在协商发送一个请求到服务器的过程中，该服务器可发出验证质询，这可以由共享的cookie，证书存储（credential storage）或通过连接委托自动处理。必要的时候，为了无缝地改变装载行为，传出请求也可以被注册的NSURLProtocol对象截获.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/03/27/nsurlsessionxiang-jie/">阅读全文 &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -419,45 +457,6 @@ swift会为您管理在捕获过程中涉及到所有内存操作。</p>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/03/01/xcodechang-jian-wen-ti-jie-xi/">Xcode常见问题解析</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-03-01T16:05:46+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>1</span><span class='date-suffix'>st</span>, <span class='date-year'>2016</span></span> <span class='time'>4:05 pm</span></time>
-        
-           | <a href="/blog/2016/03/01/xcodechang-jian-wen-ti-jie-xi/#disqus_thread"
-             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/03/01/xcodechang-jian-wen-ti-jie-xi/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>启动项目或者编译的时候，xcode总是有一些莫名的错误，现在我把遇到的问题和异常信息都记录下来，以此共勉</p>
-
-<h3>CodeSign error: code signing is required for product type &lsquo;Application&rsquo; in SDK &lsquo;iOS 9.2&rsquo;</h3>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/03/01/xcodechang-jian-wen-ti-jie-xi/">阅读全文 &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/3">&larr; Older</a>
@@ -482,6 +481,10 @@ swift会为您管理在捕获过程中涉及到所有内存操作。</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/04/26/zi-ding-yi-asyncdisplaykit-node/">自定义AsyncDisplayKit-Node</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/04/24/zi-ding-yi-colletionviewbu-ju/">自定义ColletionView布局</a>
       </li>
     
@@ -497,10 +500,6 @@ swift会为您管理在捕获过程中涉及到所有内存操作。</p>
         <a href="/blog/2016/04/21/ce-shi-bing-fa-cheng-xu/">测试并发程序</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2016/04/19/ioszhong-de-duo-ren-wu/">Ios中的多任务</a>
-      </li>
-    
   </ul>
 </section>
 <section>
@@ -512,7 +511,7 @@ swift会为您管理在捕获过程中涉及到所有内存操作。</p>
 <li class='category'><a href='/blog/categories/life/'>life (1)</a></li>
 <li class='category'><a href='/blog/categories/mac/'>mac (1)</a></li>
 <li class='category'><a href='/blog/categories/octopress/'>octopress (2)</a></li>
-<li class='category'><a href='/blog/categories/swift/'>swift (9)</a></li>
+<li class='category'><a href='/blog/categories/swift/'>swift (10)</a></li>
 <li class='category'><a href='/blog/categories/xcode/'>xcode (1)</a></li>
 
 	</ul>

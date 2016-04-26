@@ -4,7 +4,7 @@
   <title><![CDATA[安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-04-25T17:54:31+08:00</updated>
+  <updated>2016-04-26T16:48:06+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -12,6 +12,236 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[自定义AsyncDisplayKit-Node]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/04/26/zi-ding-yi-asyncdisplaykit-node/"/>
+    <updated>2016-04-26T15:13:13+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/04/26/zi-ding-yi-asyncdisplaykit-node</id>
+    <content type="html"><![CDATA[<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/ASDK_NodeHierarchy.png" alt="node" /></p>
+
+<p>假设你已经读过<a href="http://andrew-anlu.github.io/blog/2016/04/15/asyndisplaykitru-men-pian/">AsyncDisplayKit入门</a>,下面我们将继续介绍AsyncDisplayKit.</p>
+
+<!--more-->
+
+
+<p>这篇教程将解释如何充分利用框架探索AsyncDisplayKit节点的层次结构，通过这样做，你将会更加熟悉AsyncDisplayKit这个有名的框架，并且会使你的app程序异常平滑，同时能够构建灵活的和可重用的ui</p>
+
+<p>这AsyncDisplayKit中一个核心概念就是<code>node</code>,正如你所知，AsyncDisplayKit nodes 是一个线程安全的抽象于UIview之上的，（UIview不是线程安全的）,你可以学习更多AsyncDisplayKit在<a href="http://asyncdisplaykit.org/">AsyncDisplayKit’s Quick Start introduction</a></p>
+
+<p>好消息是你已经知道了UIKit,那么你已经了解AsyncDisplayKit一些属性和方法了，因为API是很相似的。随后，你将会学到:</p>
+
+<ul>
+<li>如何去创建你自己的 AsDisplayNode</li>
+<li>如何嵌套一个node到一个单个Node容器中，并且管理和重用</li>
+<li>如何用一个Node层次结构支持View的层次结构，因为你自动减少在主线程绘制的机会，保持你的界面平滑和响应</li>
+</ul>
+
+
+<p>下面是你将要做的：你将要创建一个容器Node,并且添加两个子Node-其中一个是图片node,其中一个是文本node,你将会看到容器是如何测量他们的子Node尺寸和大小的.最后，你将会转化一个已经存在的UIview容器为一个ASDisplaytNode子类。</p>
+
+<p>效果图如下:</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/ASDK_NodeHierarchies-7-e1434332214236.jpg" alt="node" /></p>
+
+<h2>开始</h2>
+
+<p>这个app,你将要创建一个卡片展示世界上一个奇观-泰姬陵</p>
+
+<p>下载<a href="http://www.raywenderlich.com/wp-content/uploads/2015/06/Wonders-Starter.zip">开始工程</a></p>
+
+<p>这个工程只有一个ViewController,这个工程是用 cocoaPods构建的，所以你必须安装 pods,然后创建 Podfile,引入 AsyncDisplayKit.</p>
+
+<blockquote><p><em>注意</em>
+如果你不了解 Pods,请学习<a href="http://www.raywenderlich.com/64546/introduction-to-cocoapods-2">Introduction to CocoaPods Tutorial</a></p></blockquote>
+
+<p>打开  ViewController.swift，然后注意到这个view controller只有一个常量<code>card</code>,它保存了一个泰姬陵的模型对象，你将会使用这个模型创建一个卡片的node去展示。</p>
+
+<p>编译运行工程，你将会看到一个空的黑色屏幕
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/ASDK_NodeHierarchies-1-281x500.jpg" alt="logo" /></p>
+
+<h2>创建并且显示一个容器Node</h2>
+
+<p>现在你要开始构建你的第一个Node层次结构，它是非常相似的和创建一个UIview的层次结构</p>
+
+<p>打开 Wonders-Bridging-Header.h，然后添加如下代码:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>#import &lt;AsyncDisplayKit/ASDisplayNode+Subclasses.h&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>ASDisplayNode+Subclasses.h</code>是AsDisplayNode的一个内部方法，你需要在<code>ASDisplayNode</code>子类中实现这个header中定义的方法，但是你只能调用这些方法在你的 ASDisplayNode的子类中，这是和<code>UIGestureRecognizer</code>模式很相似的。</p>
+
+<p>打开CardNode.swift，然后添加ASDisplayNode子类实现:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>class CardNode: ASDisplayNode {}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>定义了一个新的ASDisplayNode子类，你将会把它作为一个容器去处理用户的交互</p>
+
+<p>打开ViewController.swift,在viewDidLoad()中实现如下:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>override func viewDidLoad() {
+</span><span class='line'>  super.viewDidLoad()
+</span><span class='line'>  // Create, configure, and lay out container node
+</span><span class='line'>  let cardNode = CardNode()
+</span><span class='line'>  cardNode.backgroundColor = UIColor(white: 1.0, alpha: 0.27)
+</span><span class='line'>  let origin = CGPointZero
+</span><span class='line'>  let size = CGSize(width: 100, height: 100)
+</span><span class='line'>  cardNode.frame = CGRect(origin: origin, size: size)
+</span><span class='line'>  // Create container node’s view and add to view hierarchy
+</span><span class='line'>  view.addSubview(cardNode.view)
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上面的代码创建了一个新的卡片node,它定位在左上角并且高宽都是100.
+不用担心之前的约束，你将会定位到中心在这个view controller中。</p>
+
+<p>编译运行 ：</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/ASDK_NodeHierarchies-2-281x500.jpg" alt="logo" /></p>
+
+<p>太好了！你已经有了一个自定义的node在屏幕上显示，下一步是给你的子node取名为 <code>CardNode</code>,并且计算它的尺寸。在view中居中这是必须要知道的，你应该理解node布局引擎的工作原理。</p>
+
+<h2>Node布局引擎</h2>
+
+<p>下一步是询问Node去计算自己的尺寸通过调用<code>measure(constrainedSize:)</code>,你将会通过方法中constrainedSize参数去告诉node去计算一个尺寸去适应constrainedSize</p>
+
+<p>通俗的说,这意味着计算大小不能大于限制大小。例如,考虑下面的图
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/ASDK_measure.png" alt="logo" /></p>
+
+<p>这个展示了一个约束的尺寸使用确定的宽度和高度，这个计算尺寸是和宽度相等的，但是比高度要小，它可能和宽度和高度都相等，或者比宽度和高度都要小，但是宽度和高度都不允许比约束的尺寸要大。</p>
+
+<p>这个工作和UIView&rsquo;s<code>sizeThatFits(size:)</code>方法很相似。但是不同之处在于<code>measure(constrainedSize:)</code>计算它的尺寸，允许你访问缓存
+node的calculatedSize属性。</p>
+
+<p>一个例子就是当计算的高度和宽度的尺寸比约束尺寸更小的时候：
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/ASDK_constrained2.png" alt="lgo" /></p>
+
+<p>这里图片的尺寸是更小比约束的尺寸，没有任何的sizing-to-fit，这里计算的尺寸比约束尺寸更小。</p>
+
+<p>原因就是AsyncDisplayKit经常需要花费时间去计算尺寸，读取一个图片从硬盘中，可能会非常慢，通过合并尺寸到nodeApi,这个是线程安全的操作，这意味着计算尺寸可以在后台线程中运行！优雅的！它是一个有用的特性让你的UI程序平滑如黄油一般。</p>
+
+<p>一个Node将会运行计算尺寸加入它没有存储值的话，假如这个约束尺寸提供是不同的，约束尺寸常常决定缓存的计算大小。</p>
+
+<p>在程序中，工作如下:</p>
+
+<ul>
+<li>measure(constrainedSize:)返回一个存储你的尺寸或者进行一个计算尺寸通过调用calculateSizeThatFits(constrainedSize:)</li>
+<li>你替换所有的尺寸计算通过<code>calculateSizeThatFits(constrainedSize:)</code>在你的ASDisplayNode子类中</li>
+</ul>
+
+
+<blockquote><p><em>注意</em>
+calculateSizeThatFits(constrainedSize:)是ASDisplayNode的内部方法，你不应该在外部调用它</p></blockquote>
+
+<h2>测量Node的大小</h2>
+
+<p>现在是时候测量你的自己的node大小了。</p>
+
+<p>打开CardNode.swift,然后替换这个类中的代码:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>class CardNode: ASDisplayNode {
+</span><span class='line'> 
+</span><span class='line'>  override func calculateSizeThatFits(constrainedSize: CGSize) -&gt; CGSize {
+</span><span class='line'>    return CGSize(width: constrainedSize.width * 0.2, height: constrainedSize.height * 0.2)
+</span><span class='line'>  }
+</span><span class='line'> 
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>到现在为止，这个方法返回的大小是约束提供尺寸的20%.</p>
+
+<p>打开ViewController.swift,删除viewDidLoad() 中的实现，然后实现下面的<code>createCardNode(containerRect:)</code>方法:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>/* Delete this method
+</span><span class='line'> 
+</span><span class='line'>override func viewDidLoad() {
+</span><span class='line'>  super.viewDidLoad()
+</span><span class='line'>  // 1
+</span><span class='line'>  let cardNode = CardNode()
+</span><span class='line'>  cardNode.backgroundColor = UIColor(white: 1.0, alpha: 0.27)
+</span><span class='line'>  let origin = CGPointZero
+</span><span class='line'>  let size = CGSize(width: 100, height: 100)
+</span><span class='line'>  cardNode.frame = CGRect(origin: origin, size: size)
+</span><span class='line'> 
+</span><span class='line'>  // 2
+</span><span class='line'>  view.addSubview(cardNode.view)
+</span><span class='line'>}
+</span><span class='line'>*/
+</span><span class='line'> 
+</span><span class='line'>func createCardNode(#containerRect: CGRect) -&gt; CardNode {
+</span><span class='line'>  // 3
+</span><span class='line'>  let cardNode = CardNode()
+</span><span class='line'>  cardNode.backgroundColor = UIColor(white: 1.0, alpha: 0.27)
+</span><span class='line'>  cardNode.measure(containerRect.size)
+</span><span class='line'> 
+</span><span class='line'>  // 4
+</span><span class='line'>  let size = cardNode.calculatedSize
+</span><span class='line'>  let origin = containerRect.originForCenteredRectWithSize(size)
+</span><span class='line'>  cardNode.frame = CGRect(origin: origin, size: size)
+</span><span class='line'>  return cardNode
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上面的代码做的工作如下:</p>
+
+<ol>
+<li>删除之前创建的代码，配置和布局代码</li>
+<li>删除之前的代码，把node加入到view的层次结构中</li>
+<li>createCardNode(containerRect:) 创建了一个卡片Node使用相同的背景颜色和容器node,它用作一个容器去约束卡片node的大小，所以这个卡片Node不能比containerRect’的尺寸更大</li>
+<li>通过originForCenteredRectWithSize(size:) 方法设置卡片到中心位置。</li>
+</ol>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[自定义ColletionView布局]]></title>
@@ -9022,32 +9252,6 @@ self.aView = [[TLView alloc] initWithBlock:^(id model) {
 
 
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Xcode常见问题解析]]></title>
-    <link href="http://andrew-anlu.github.io/blog/2016/03/01/xcodechang-jian-wen-ti-jie-xi/"/>
-    <updated>2016-03-01T16:05:46+08:00</updated>
-    <id>http://andrew-anlu.github.io/blog/2016/03/01/xcodechang-jian-wen-ti-jie-xi</id>
-    <content type="html"><![CDATA[<p>启动项目或者编译的时候，xcode总是有一些莫名的错误，现在我把遇到的问题和异常信息都记录下来，以此共勉</p>
-
-<h3>CodeSign error: code signing is required for product type &lsquo;Application&rsquo; in SDK &lsquo;iOS 9.2&rsquo;</h3>
-
-<!--more-->
-
-
-<p>解决方法:</p>
-
-<ul>
-<li>去这个文件夹下 <code>/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/目标文件下</code> 比如我这个就是iPhoneOS9.2.sdk，</li>
-<li>你需要拷贝这个文件 SDKSettings.plist  到桌面上</li>
-<li>打开这个文件，找到DefaultProperties这个选项，设置里面的属性CODE_SIGNING_REQUIRED 为 NO</li>
-<li>保存这个文件，再把这个文件拷贝到原始的路径下</li>
-</ul>
-
-
-<p>搞定！</p>
 ]]></content>
   </entry>
   

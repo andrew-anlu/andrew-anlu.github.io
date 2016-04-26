@@ -1,0 +1,526 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>自定义AsyncDisplayKit-Node - 安路的技术博客</title>
+  <meta name="author" content="安路">
+
+  
+  <meta name="description" content="假设你已经读过AsyncDisplayKit入门,下面我们将继续介绍AsyncDisplayKit. 这篇教程将解释如何充分利用框架探索AsyncDisplayKit节点的层次结构，通过这样做，你将会更加熟悉AsyncDisplayKit这个有名的框架，并且会使你的app程序异常平滑， &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://andrew-anlu.github.io/blog/2016/04/26/zi-ding-yi-asyncdisplaykit-node/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="安路的技术博客" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//libs.baidu.com/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">安路的技术博客</a></h1>
+  
+    <h2>Nothing in life is to be feared. It is only to be understood</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://andrew-anlu.github.io" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="andrew-anlu.github.io">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/blog/">About me</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">自定义AsyncDisplayKit-Node</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-04-26T15:13:13+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>26</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>3:13 pm</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/ASDK_NodeHierarchy.png" alt="node" /></p>
+
+<p>假设你已经读过<a href="http://andrew-anlu.github.io/blog/2016/04/15/asyndisplaykitru-men-pian/">AsyncDisplayKit入门</a>,下面我们将继续介绍AsyncDisplayKit.</p>
+
+<!--more-->
+
+
+<p>这篇教程将解释如何充分利用框架探索AsyncDisplayKit节点的层次结构，通过这样做，你将会更加熟悉AsyncDisplayKit这个有名的框架，并且会使你的app程序异常平滑，同时能够构建灵活的和可重用的ui</p>
+
+<p>这AsyncDisplayKit中一个核心概念就是<code>node</code>,正如你所知，AsyncDisplayKit nodes 是一个线程安全的抽象于UIview之上的，（UIview不是线程安全的）,你可以学习更多AsyncDisplayKit在<a href="http://asyncdisplaykit.org/">AsyncDisplayKit’s Quick Start introduction</a></p>
+
+<p>好消息是你已经知道了UIKit,那么你已经了解AsyncDisplayKit一些属性和方法了，因为API是很相似的。随后，你将会学到:</p>
+
+<ul>
+<li>如何去创建你自己的 AsDisplayNode</li>
+<li>如何嵌套一个node到一个单个Node容器中，并且管理和重用</li>
+<li>如何用一个Node层次结构支持View的层次结构，因为你自动减少在主线程绘制的机会，保持你的界面平滑和响应</li>
+</ul>
+
+
+<p>下面是你将要做的：你将要创建一个容器Node,并且添加两个子Node-其中一个是图片node,其中一个是文本node,你将会看到容器是如何测量他们的子Node尺寸和大小的.最后，你将会转化一个已经存在的UIview容器为一个ASDisplaytNode子类。</p>
+
+<p>效果图如下:</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/ASDK_NodeHierarchies-7-e1434332214236.jpg" alt="node" /></p>
+
+<h2>开始</h2>
+
+<p>这个app,你将要创建一个卡片展示世界上一个奇观-泰姬陵</p>
+
+<p>下载<a href="http://www.raywenderlich.com/wp-content/uploads/2015/06/Wonders-Starter.zip">开始工程</a></p>
+
+<p>这个工程只有一个ViewController,这个工程是用 cocoaPods构建的，所以你必须安装 pods,然后创建 Podfile,引入 AsyncDisplayKit.</p>
+
+<blockquote><p><em>注意</em>
+如果你不了解 Pods,请学习<a href="http://www.raywenderlich.com/64546/introduction-to-cocoapods-2">Introduction to CocoaPods Tutorial</a></p></blockquote>
+
+<p>打开  ViewController.swift，然后注意到这个view controller只有一个常量<code>card</code>,它保存了一个泰姬陵的模型对象，你将会使用这个模型创建一个卡片的node去展示。</p>
+
+<p>编译运行工程，你将会看到一个空的黑色屏幕
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/ASDK_NodeHierarchies-1-281x500.jpg" alt="logo" /></p>
+
+<h2>创建并且显示一个容器Node</h2>
+
+<p>现在你要开始构建你的第一个Node层次结构，它是非常相似的和创建一个UIview的层次结构</p>
+
+<p>打开 Wonders-Bridging-Header.h，然后添加如下代码:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>#import &lt;AsyncDisplayKit/ASDisplayNode+Subclasses.h&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>ASDisplayNode+Subclasses.h</code>是AsDisplayNode的一个内部方法，你需要在<code>ASDisplayNode</code>子类中实现这个header中定义的方法，但是你只能调用这些方法在你的 ASDisplayNode的子类中，这是和<code>UIGestureRecognizer</code>模式很相似的。</p>
+
+<p>打开CardNode.swift，然后添加ASDisplayNode子类实现:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>class CardNode: ASDisplayNode {}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>定义了一个新的ASDisplayNode子类，你将会把它作为一个容器去处理用户的交互</p>
+
+<p>打开ViewController.swift,在viewDidLoad()中实现如下:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>override func viewDidLoad() {
+</span><span class='line'>  super.viewDidLoad()
+</span><span class='line'>  // Create, configure, and lay out container node
+</span><span class='line'>  let cardNode = CardNode()
+</span><span class='line'>  cardNode.backgroundColor = UIColor(white: 1.0, alpha: 0.27)
+</span><span class='line'>  let origin = CGPointZero
+</span><span class='line'>  let size = CGSize(width: 100, height: 100)
+</span><span class='line'>  cardNode.frame = CGRect(origin: origin, size: size)
+</span><span class='line'>  // Create container node’s view and add to view hierarchy
+</span><span class='line'>  view.addSubview(cardNode.view)
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上面的代码创建了一个新的卡片node,它定位在左上角并且高宽都是100.
+不用担心之前的约束，你将会定位到中心在这个view controller中。</p>
+
+<p>编译运行 ：</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/ASDK_NodeHierarchies-2-281x500.jpg" alt="logo" /></p>
+
+<p>太好了！你已经有了一个自定义的node在屏幕上显示，下一步是给你的子node取名为 <code>CardNode</code>,并且计算它的尺寸。在view中居中这是必须要知道的，你应该理解node布局引擎的工作原理。</p>
+
+<h2>Node布局引擎</h2>
+
+<p>下一步是询问Node去计算自己的尺寸通过调用<code>measure(constrainedSize:)</code>,你将会通过方法中constrainedSize参数去告诉node去计算一个尺寸去适应constrainedSize</p>
+
+<p>通俗的说,这意味着计算大小不能大于限制大小。例如,考虑下面的图
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/ASDK_measure.png" alt="logo" /></p>
+
+<p>这个展示了一个约束的尺寸使用确定的宽度和高度，这个计算尺寸是和宽度相等的，但是比高度要小，它可能和宽度和高度都相等，或者比宽度和高度都要小，但是宽度和高度都不允许比约束的尺寸要大。</p>
+
+<p>这个工作和UIView&rsquo;s<code>sizeThatFits(size:)</code>方法很相似。但是不同之处在于<code>measure(constrainedSize:)</code>计算它的尺寸，允许你访问缓存
+node的calculatedSize属性。</p>
+
+<p>一个例子就是当计算的高度和宽度的尺寸比约束尺寸更小的时候：
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/ASDK_constrained2.png" alt="lgo" /></p>
+
+<p>这里图片的尺寸是更小比约束的尺寸，没有任何的sizing-to-fit，这里计算的尺寸比约束尺寸更小。</p>
+
+<p>原因就是AsyncDisplayKit经常需要花费时间去计算尺寸，读取一个图片从硬盘中，可能会非常慢，通过合并尺寸到nodeApi,这个是线程安全的操作，这意味着计算尺寸可以在后台线程中运行！优雅的！它是一个有用的特性让你的UI程序平滑如黄油一般。</p>
+
+<p>一个Node将会运行计算尺寸加入它没有存储值的话，假如这个约束尺寸提供是不同的，约束尺寸常常决定缓存的计算大小。</p>
+
+<p>在程序中，工作如下:</p>
+
+<ul>
+<li>measure(constrainedSize:)返回一个存储你的尺寸或者进行一个计算尺寸通过调用calculateSizeThatFits(constrainedSize:)</li>
+<li>你替换所有的尺寸计算通过<code>calculateSizeThatFits(constrainedSize:)</code>在你的ASDisplayNode子类中</li>
+</ul>
+
+
+<blockquote><p><em>注意</em>
+calculateSizeThatFits(constrainedSize:)是ASDisplayNode的内部方法，你不应该在外部调用它</p></blockquote>
+
+<h2>测量Node的大小</h2>
+
+<p>现在是时候测量你的自己的node大小了。</p>
+
+<p>打开CardNode.swift,然后替换这个类中的代码:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>class CardNode: ASDisplayNode {
+</span><span class='line'> 
+</span><span class='line'>  override func calculateSizeThatFits(constrainedSize: CGSize) -&gt; CGSize {
+</span><span class='line'>    return CGSize(width: constrainedSize.width * 0.2, height: constrainedSize.height * 0.2)
+</span><span class='line'>  }
+</span><span class='line'> 
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>到现在为止，这个方法返回的大小是约束提供尺寸的20%.</p>
+
+<p>打开ViewController.swift,删除viewDidLoad() 中的实现，然后实现下面的<code>createCardNode(containerRect:)</code>方法:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>/* Delete this method
+</span><span class='line'> 
+</span><span class='line'>override func viewDidLoad() {
+</span><span class='line'>  super.viewDidLoad()
+</span><span class='line'>  // 1
+</span><span class='line'>  let cardNode = CardNode()
+</span><span class='line'>  cardNode.backgroundColor = UIColor(white: 1.0, alpha: 0.27)
+</span><span class='line'>  let origin = CGPointZero
+</span><span class='line'>  let size = CGSize(width: 100, height: 100)
+</span><span class='line'>  cardNode.frame = CGRect(origin: origin, size: size)
+</span><span class='line'> 
+</span><span class='line'>  // 2
+</span><span class='line'>  view.addSubview(cardNode.view)
+</span><span class='line'>}
+</span><span class='line'>*/
+</span><span class='line'> 
+</span><span class='line'>func createCardNode(#containerRect: CGRect) -&gt; CardNode {
+</span><span class='line'>  // 3
+</span><span class='line'>  let cardNode = CardNode()
+</span><span class='line'>  cardNode.backgroundColor = UIColor(white: 1.0, alpha: 0.27)
+</span><span class='line'>  cardNode.measure(containerRect.size)
+</span><span class='line'> 
+</span><span class='line'>  // 4
+</span><span class='line'>  let size = cardNode.calculatedSize
+</span><span class='line'>  let origin = containerRect.originForCenteredRectWithSize(size)
+</span><span class='line'>  cardNode.frame = CGRect(origin: origin, size: size)
+</span><span class='line'>  return cardNode
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上面的代码做的工作如下:</p>
+
+<ol>
+<li>删除之前创建的代码，配置和布局代码</li>
+<li>删除之前的代码，把node加入到view的层次结构中</li>
+<li>createCardNode(containerRect:) 创建了一个卡片Node使用相同的背景颜色和容器node,它用作一个容器去约束卡片node的大小，所以这个卡片Node不能比containerRect’的尺寸更大</li>
+<li>通过originForCenteredRectWithSize(size:) 方法设置卡片到中心位置。</li>
+</ol>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">安路</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2016-04-26T15:13:13+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>26</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>3:13 pm</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/swift/'>swift</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+
+<!-- JiaThis Button BEGIN -->
+<div class="jiathis_style_32x32">
+	<a class="jiathis_button_qzone"></a>
+	<a class="jiathis_button_tsina"></a>
+	<a class="jiathis_button_tqq"></a>
+	<a class="jiathis_button_weixin"></a>
+	<a class="jiathis_button_renren"></a>
+	<a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank"></a>
+	<a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+<br><br>
+<!-- UY BEGIN -->
+<div id="uyan_frame"></div>
+<script type="text/javascript" src="http://v2.uyan.cc/code/uyan.js?uid=2052593"></script>
+<!-- UY END -->
+
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2016/04/24/zi-ding-yi-colletionviewbu-ju/" title="Previous Post: 自定义ColletionView布局">&laquo; 自定义ColletionView布局</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+<h1>
+	QQ群
+</h1>
+   <br/>
+	<p>欢迎加入swift学习交流群:252710124</p>
+</section>
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/04/26/zi-ding-yi-asyncdisplaykit-node/">自定义AsyncDisplayKit-Node</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/04/24/zi-ding-yi-colletionviewbu-ju/">自定义ColletionView布局</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/04/22/ohhttpstubsjie-shao/">OHHTTPStubs介绍</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/04/22/xcodegeng-xin-hou-cha-jian-shi-xiao-de-jie-jue-fang-an/">Xcode更新后插件失效的解决方案</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/04/21/ce-shi-bing-fa-cheng-xu/">测试并发程序</a>
+      </li>
+    
+  </ul>
+</section>
+<section>
+	<h1>文章分类</h1>
+	<ul id="categories">
+		<li class='category'><a href='/blog/categories/cocoapods/'>cocoapods (1)</a></li>
+<li class='category'><a href='/blog/categories/git/'>git (3)</a></li>
+<li class='category'><a href='/blog/categories/ios/'>ios (16)</a></li>
+<li class='category'><a href='/blog/categories/life/'>life (1)</a></li>
+<li class='category'><a href='/blog/categories/mac/'>mac (1)</a></li>
+<li class='category'><a href='/blog/categories/octopress/'>octopress (2)</a></li>
+<li class='category'><a href='/blog/categories/swift/'>swift (10)</a></li>
+<li class='category'><a href='/blog/categories/xcode/'>xcode (1)</a></li>
+
+	</ul>
+</section>
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/andrew-anlu">@andrew-anlu</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'andrew-anlu',
+            count: 3,
+            skip_forks: false,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+<section>
+  <h1>On Delicious</h1>
+  <div id="delicious"></div>
+  <script type="text/javascript" src="http://feeds.delicious.com/v2/json/Andrewswift1987?count=3&amp;sort=date&amp;callback=renderDeliciousLinks"></script>
+  <p><a href="http://delicious.com/Andrewswift1987">My Delicious Bookmarks &raquo;</a></p>
+</section>
+
+ <section>
+      <h1>访客统计</h1>
+      <br/>
+    <a href="http://info.flagcounter.com/Bkif"><img src="http://s01.flagcounter.com/count2/Bkif/bg_ffffff/txt_000000/border_CCCCCC/columns_3/maxflags_10/viewers_0/labels_1/pageviews_1/flags_1/percent_0/" alt="Free counters!" border="0"></a>
+    </section>
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><!--返回顶部开始-->
+<div id="full" style="width:0px; height:0px; position:fixed; right:180px; bottom:150px; z-index:100; text-align:center; background-color:transparent; cursor:pointer;">
+  <a href="#" onclick="goTop();return false;"><img src="http://7xsn4e.com2.z0.glb.clouddn.com/top.png" border=0 alt="返回顶部" width="50" height="50"></a>
+</div>
+<script src="/javascripts/top.js" type="text/javascript"></script>
+<!--返回顶部结束-->
+
+
+<p>
+  Copyright &copy; 2016 - 安路 -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'Andrewswift1987';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://andrew-anlu.github.io/blog/2016/04/26/zi-ding-yi-asyncdisplaykit-node/';
+        var disqus_url = 'http://andrew-anlu.github.io/blog/2016/04/26/zi-ding-yi-asyncdisplaykit-node/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
