@@ -4,7 +4,7 @@
   <title><![CDATA[安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-04-26T16:48:06+08:00</updated>
+  <updated>2016-04-27T09:52:07+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -240,6 +240,141 @@ calculateSizeThatFits(constrainedSize:)是ASDisplayNode的内部方法，你不�
 <li>通过originForCenteredRectWithSize(size:) 方法设置卡片到中心位置。</li>
 </ol>
 
+
+<p>定位到createCardNode(containerRect:) 这个方法，替换viewDidLoad():</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>override func viewDidLoad() {
+</span><span class='line'>  super.viewDidLoad()
+</span><span class='line'>  let cardNode = createCardNode(containerRect: UIScreen.mainScreen().bounds)
+</span><span class='line'>  view.addSubview(cardNode.view)
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>当视图加载的时候，createCardNode(containerRect:)创建一个新的CardNode,这个卡片的Node不能比主屏幕的bounds尺寸更大。</p>
+
+<p>在这个观点中，这个ViewController的视图还没有加载出来，因此，它不是安全的对用于ViewContrller的bounds尺寸。所以你使用主屏幕的尺寸去约束卡片Node的大小。</p>
+
+<p>运行起来，尽管达不到优雅，因为这个视图控制器横跨了整个屏幕，稍后，我们将添加适当的方法，现在，它工作还可以。</p>
+
+<p>编译运行，你将会看到你的node在正中心了.
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/ASDK_NodeHierarchies-3-281x500.jpg" alt="logo" /></p>
+
+<h2>异步节点设置和布局</h2>
+
+<p>有时它会花费人们很多时间去解析复杂的层次结构，假如这是在主线程发生，这将会阻塞主线程，假如你想取悦用户的话，你不能让用户一直等待，之前用户是不能和程序有任何交互的。</p>
+
+<p>因为这个原因，你将会在后台线程创建设置nodes，这样你能避免阻塞主线程。</p>
+
+<p>在createCardNode(containerRect:)和viewDidLoad():中实现addCardViewAsynchronously(containerRect:)</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>func addCardViewAsynchronously(#containerRect: CGRect) {
+</span><span class='line'>  dispatch_async(dispatch_get_global_queue(QOS_CLASS_BACKGROUND, 0)) {
+</span><span class='line'>    let cardNode = self.createCardNode(containerRect: containerRect)
+</span><span class='line'>    dispatch_async(dispatch_get_main_queue()) {
+</span><span class='line'>      self.view.addSubview(cardNode.view)
+</span><span class='line'>    }
+</span><span class='line'>  }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>addCardViewAsynchronously(containerRect:)</code>创建这个<code>CardNode</code>在一个线程队列中，这是很好的，因为nodes是线程安全的！创建好之后，配置这个Node,然后异步调用主线程把Node添加到视图控制器中&ndash;毕竟，UIKit不是线程安全的！</p>
+
+<blockquote><p><em>注意</em>
+一旦你创建了Node的视图，所有访问node的节点只在主线程</p></blockquote>
+
+<p>重新实现viewDidLoad()通过调用<code>addCardViewAsynchronously(containerRect:):</code></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>override func viewDidLoad() {
+</span><span class='line'>  super.viewDidLoad()
+</span><span class='line'>  addCardViewAsynchronously(containerRect: UIScreen.mainScreen().bounds)
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这将不再阻塞主线程，确保用户界面是可以随时响应的。</p>
+
+<p>编译运行，和之前一样，不过所有的操作都是在后台线程执行的</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/ASDK_NodeHierarchies-3-281x500.jpg" alt="logo" /></p>
+
+<h2>约束节点大小</h2>
+
+<p>记得之前我你会使用一个更优雅的解决方案节点不仅仅依靠屏幕尺寸的大小
+?现在我来兑换我的诺言</p>
+
+<p>打开 ViewController.swift，添加下面的属性：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>var cardViewSetupStarted = false</span></code></pre></td></tr></table></div></figure>
+
+
+<p>然后替换viewDidLoad()为viewWillLayoutSubviews():</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>/* Delete this method
+</span><span class='line'>override func viewDidLoad() {
+</span><span class='line'>  super.viewDidLoad()
+</span><span class='line'>  addCardViewAsynchronously(containerRect: UIScreen.mainScreen().bounds)
+</span><span class='line'>}
+</span><span class='line'>*/
+</span><span class='line'> 
+</span><span class='line'>override func viewWillLayoutSubviews() {
+</span><span class='line'>  super.viewWillLayoutSubviews()
+</span><span class='line'>  if !cardViewSetupStarted {
+</span><span class='line'>    addCardViewAsynchronously(containerRect: view.bounds)
+</span><span class='line'>    cardViewSetupStarted = true
+</span><span class='line'>  }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>替换掉了住屏幕的尺寸，这上面的逻辑是视图控制器的尺寸去约束卡片的尺寸。</p>
+
+<p>现在它是线程安全的,去用这个视图控制器的尺寸，当viewWillLayoutSubviews()替换调viewDidLoad()。这一次在这个声明周期中，这个视图控制器已经设置好了它的尺寸。</p>
+
+<p>这种加载方式是很出众的，因为一个视图控制器能被设置任何尺寸,你不想依赖视图控制器去横跨整个屏幕</p>
+
+<p><img src="http://www.raywenderlich.com/wp-content/uploads/2015/06/screen_size_tyranny.png" alt="log" /></p>
+
+<p>这个视图可能会加载多次，所以viewWillLayoutSubviews()能被调用多次，你仅仅想创建这个CardNode一次，所以这就是为什么你需要一个cardViewSetupStarted标识去证明这个视图控制创建多次。</p>
+
+<p>编译运行：</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/ASDK_NodeHierarchies-3-281x500.jpg" alt="logo" /></p>
+
+<h2>Node层次结构</h2>
+
+<p>现在你有一个空的Node容器在屏幕上，现在你想展示一些内容，方式的就是你添加一些子node到这个Node容器中，下面的结构图展示了简单的Node结构图</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/ASDK_Nodes.png" alt="node" /></p>
 ]]></content>
   </entry>
   
