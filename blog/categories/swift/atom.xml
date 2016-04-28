@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Swift | 安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/blog/categories/swift/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-04-27T09:52:07+08:00</updated>
+  <updated>2016-04-28T09:33:36+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -295,6 +295,114 @@ override func viewWillLayoutSubviews() {
 <p>现在你有一个空的Node容器在屏幕上，现在你想展示一些内容，方式的就是你添加一些子node到这个Node容器中，下面的结构图展示了简单的Node结构图</p>
 
 <p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/ASDK_Nodes.png" alt="node" /></p>
+
+<p>添加子Node看起来将会非常像你在UIview中添加子View的过程。</p>
+
+<p>第一步你需要添加一个图片的node,但是首先你的需要了解容器Node是如何布局子Node的。</p>
+
+<h2>子Node的布局</h2>
+
+<p>你现在知道了如何去测量容器的尺寸和如何去计算容器尺寸去布局容器内的node视图，但是这个容器node是如何布局它们的子Node呢？</p>
+
+<p>有以下两步:</p>
+
+<ol>
+<li>第一，你测量每个子Node的尺寸在<code>calculateSizeThatFits(constrainedSize:).</code>中，这将确保每一个子Node都缓存一个计算好的尺寸</li>
+<li>在UIKIt的主线程布局中，AsyncDisplayKit将会调用<code>layout()</code>在你的自定义的ASDisplayNode子类中，<code>layout()</code>的工作就像UIview的 <code>layoutSubivews()</code>，除了这个<code>layout()</code>不会计算所有子视图的尺寸，布局()简单查询计算每个节点的大小</li>
+</ol>
+
+
+<p>回到UI上，这个泰姬陵卡片尺寸将会和它的图片大小一样，并且这个标题将会适合它的大小。最简单的方式就是去测量这个<code>泰姬陵图片</code>node的大小并且使用这个结果去约束文本node的尺寸，所以这个文本node将会适合图片尺寸的大小</p>
+
+<p>接下来，你将要使用lay out去布局你的卡片子Node,让我们开始</p>
+
+<h2>添加一个子Node</h2>
+
+<p>打开CardNode.swift,然后添加下面的代码在CardNode</p>
+
+<pre><code>// 1
+let imageNode: ASImageNode
+
+// 2
+init(card: Card) {
+  imageNode = ASImageNode()
+  super.init()
+  setUpSubnodesWithCard(card)
+  buildSubnodeHierarchy()
+}
+
+// 3
+func setUpSubnodesWithCard(card: Card) {
+  // Set up image node
+  imageNode.image = card.image
+}
+
+// 4
+func buildSubnodeHierarchy() {
+  addSubnode(imageNode)
+}
+</code></pre>
+
+<p>上面的代码做的工作如下:</p>
+
+<ol>
+<li>图片Node属性:这行代码添加一个图片Node的属性，去引用卡片图像的子Node</li>
+<li>初始化:这个设计的初始化使用一个卡片模型保存卡片的图像和文本</li>
+<li>设置子Node:这个方法使用卡片模型的图像去保存开始项目中的子Node图片</li>
+<li>容器层次结构:你设置Node的层次结构就像你能设置视图的层次结构一样，这个方法创建卡片的层次结构通过添加一个子Node来实现。</li>
+</ol>
+
+
+<p>下一步，实现calculateSizeThatFits(constrainedSize:):</p>
+
+<pre><code>override func calculateSizeThatFits(constrainedSize: CGSize) -&gt; CGSize {
+  // 1 
+  imageNode.measure(constrainedSize)
+
+  // 2 
+  let cardSize = imageNode.calculatedSize
+
+  // 3 
+  return cardSize
+}
+</code></pre>
+
+<p>上面的代码做的工作如下:</p>
+
+<ol>
+<li>这个卡片的尺寸就会匹配背景图片的大小，这个测量背景图片的尺寸会适合内嵌的约束尺寸，所有Node的子类都会被AsyncDisplay框架感知并且知道如何设置它们的尺寸，包括AsImageNode</li>
+<li>这行代码临时存储图片计算的尺寸，特别说明的是，它使用图片Node测量尺寸正如卡片Node尺寸去约束子NOde，当添加更多的子Node的时候，你将会使用这个值</li>
+<li>返回这个卡片Node的计算好的尺寸</li>
+</ol>
+
+
+<p>下一步，覆盖layout():</p>
+
+<pre><code>override func layout() {
+  imageNode.frame =
+    CGRect(origin: CGPointZero, size: imageNode.calculatedSize).integerRect
+}
+</code></pre>
+
+<p>这个图片的逻辑位置在左上角，坐标轴原点，它也确保了这个图片Node的frame没有任何多余的值，所以你能避免像素边界显示问题</p>
+
+<p>注意这个方法是如何使用图片的Node去缓存计算尺寸的在布局的过程中。</p>
+
+<p>因为这个图片Node的尺寸决定了卡片Node的尺寸，这个图片将会横跨这个卡片</p>
+
+<p>回到ViewController.swift，然后添加一个createCardNode(containerRect:), 替换到之前初始化的<code>CardNode</code>：</p>
+
+<pre><code>let cardNode = CardNode(card: card)
+</code></pre>
+
+<p>这行代码使用新的初始化去添加一个卡片Node,这个卡片值将会在初始化的时候被传入，并且存储这个泰姬陵的卡片模型</p>
+
+<p>编译运行:
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/ASDK_NodeHierarchies-6-281x500.jpg" alt="t" /></p>
+
+<p>漂亮，你成功的创建了容器Node并且呈现了Node的层次结构，当然，这个很简单，但是它是一个完成的Node层次！</p>
+
+<h2>添加更多的子Node</h2>
 ]]></content>
   </entry>
   
