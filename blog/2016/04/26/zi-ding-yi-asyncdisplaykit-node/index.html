@@ -589,6 +589,67 @@ calculateSizeThatFits(constrainedSize:)是ASDisplayNode的内部方法，你不�
 <p>漂亮，你成功的创建了容器Node并且呈现了Node的层次结构，当然，这个很简单，但是它是一个完成的Node层次！</p>
 
 <h2>添加更多的子Node</h2>
+
+<p>也许你已经注意到了，没有添加标题，不用担心，让我们开始添加吧。</p>
+
+<p>打开CardNode.swift，然后添加下面的属性titleTextNode在类中：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>let titleTextNode: ASTextNode</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在<code>init(card:)</code>方法中初始化<code>titleTextNode</code>，在super.init()这行代码之前:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>titleTextNode = ASTextNode()</span></code></pre></td></tr></table></div></figure>
+
+
+<p>添加下面的这行代码在<code>setUpSubnodesWithCard(card:):</code></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>titleTextNode.attributedString = NSAttributedString.attributedStringForTitleText(card.name)
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这行代码给titleTextNode设置了富文本内容，<code>attributedStringForTitleText(text:)</code>是一个帮助方法被加到了NSAttributedString扩展属性中。在之前的开始工程中，它创建了富文本使用提供的标题。</p>
+
+<p>下一步，在<code>buildSubnodeHierarchy():</code>的结尾增加如下代码:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>addSubnode(titleTextNode)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>要确保它是在添加到图片Node的后面，不然图片将会遮盖住标题。</p>
+
+<p>在内置的方法<code>calculateSizeThatFits(constrainedSize:)</code>中，添加如下代码:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>titleTextNode.measure(cardSize)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>使用子Node的测量尺寸来作为卡片的约束尺寸</p>
+
+<p>添加如下的布局代码layout():</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>titleTextNode.frame =
+</span><span class='line'>  FrameCalculator.titleFrameForSize(titleTextNode.calculatedSize, containerFrame: imageNode.frame)
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这行代码计算标题Node的frame通过工具方法FrameCalculator</p>
+
+<p>编译运行:
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/ASDK_NodeHierarchies-7-281x500.jpg" alt="test" /></p>
+
+<p>至此，你已经构建了完整的子Node层次结构，使用了容器Node,并且添加了两个子Node</p>
+
+<h2>完整工程</h2>
+
+<p><a href="https://github.com/TLSwiftDemo/Wonders/archive/master.zip">完整工程在这里下载</a></p>
+
+<p>have fun 😀~</p>
 </div>
 
 
