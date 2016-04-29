@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Mac | 安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/blog/categories/mac/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-04-28T09:33:36+08:00</updated>
+  <updated>2016-04-29T13:09:51+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -12,6 +12,60 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Mac上如何把视频转成.Gif]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/04/29/macshang-ru-he-ba-shi-pin-zhuan-cheng-dot-gif/"/>
+    <updated>2016-04-29T12:56:45+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/04/29/macshang-ru-he-ba-shi-pin-zhuan-cheng-dot-gif</id>
+    <content type="html"><![CDATA[<p>之前看到很多github上的开源项目都带.gif的演示效果，感觉很好，今天就试着制作了一下，今天把我的制作过程记录下来，方便他人参考。</p>
+
+<!--more-->
+
+
+<h2>录制视频</h2>
+
+<p>mac上自带的Quicktime就可以录制视频，选择录制屏幕</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160429-0.png" alt="1" /></p>
+
+<p>录制完之后是 .mov 的后缀视频文件</p>
+
+<h2>通过命令行转换</h2>
+
+<p>在苹果系统上，可以通过命令行的方式转换视频，首先假定你的机器上已经安装了<a href="http://www.brew.sh">homebrew</a>.</p>
+
+<p>然后打开终端，安装<a href="http://baike.baidu.com/link?url=H-RabHoLq9tR0Zxn-jduRSC7NAlSBkEjjsRnXEJ7Rw9RFE6dUNBnYyXidoiXNGCyOWKdcAtQMg-J8x_hFPSg5K">ffmpeg</a>插件</p>
+
+<pre><code>$ brew install ffmpeg
+</code></pre>
+
+<p>然后定位到正确的目录，（有视频文件的那个目录，比如 Desktop）,假定你的视频名字是<code>ScreenFlow.mov</code>,你运行下面的命令就能生成GIF:</p>
+
+<pre><code>$ ffmpeg -i ScreenFlow.mov -pix_fmt rgb24 output.gif
+</code></pre>
+
+<p>你会注意到生成文件很大，可以通过<a href="http://baike.baidu.com/link?url=WENMRejdDuoS2eXPiXrnvF2ohwpbTAe5oW_SOTsr2k099YbjyU4wCi-ngV31jzxvP0TvC-INM0FBcUk1sEDWQK"> image magick</a>工具来减少大小</p>
+
+<pre><code>$ brew install imagemagick
+</code></pre>
+
+<p>运行:</p>
+
+<pre><code>$ convert -layers Optimize output.gif output_optimized.gif
+</code></pre>
+
+<h2>通过软件生成.GIF</h2>
+
+<p><a href="http://gifbrewery.com">GifBrewery</a>是一款GIF动态图片制作工具. 支持将视频文件剪裁输出成GIF动态图片。</p>
+
+<p>并且支持裁剪视频的长度，本人感觉挺好用的。</p>
+
+<h2>上传到云端</h2>
+
+<p>最后把制作好的.gif图片上传到云端就行了，比如 dropbox,七牛,阿里云等。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[如何在Mac系统上搭建PHP开发环境]]></title>

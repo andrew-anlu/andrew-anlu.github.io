@@ -9,7 +9,8 @@
   <meta name="author" content="安路">
 
   
-  <meta name="description" content="启动项目或者编译的时候，xcode总是有一些莫名的错误，现在我把遇到的问题和异常信息都记录下来，以此共勉 CodeSign error: code signing is required for product type &lsquo;Application&rsquo; in SDK & &hellip;">
+  <meta name="description" content="ios在开发的过程中，很容易引发内存泄露问题。也很容易造成循环引用，之前使用block的时候也没有过多注意，其实坑很多。
+对于新手来说，出现循环引用的时候，很难去排查。 ">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -66,6 +67,83 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/03/04/iosde-blockxun-huan-yin-yong/">ios的Block循环引用</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-03-04T13:22:36+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>4</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>1:22 pm</span></time>
+        
+           | <a href="/blog/2016/03/04/iosde-blockxun-huan-yin-yong/#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/03/04/iosde-blockxun-huan-yin-yong/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>ios在开发的过程中，很容易引发内存泄露问题。也很容易造成循环引用，之前使用block的时候也没有过多注意，其实坑很多。
+对于新手来说，出现循环引用的时候，很难去排查。</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/03/04/iosde-blockxun-huan-yin-yong/">阅读全文 &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/03/03/xue-xi-uibezierpath/">学习UIBezierPath</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-03-03T14:05:08+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>3</span><span class='date-suffix'>rd</span>, <span class='date-year'>2016</span></span> <span class='time'>2:05 pm</span></time>
+        
+           | <a href="/blog/2016/03/03/xue-xi-uibezierpath/#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/03/03/xue-xi-uibezierpath/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>前言</h2>
+
+<p>之前就看到很多关于<code>UIBezierPath</code>的介绍，但是平常开发的时候一直没怎么用过，但是这个<code>UIBezierPath</code>对于开发画图是很有用的。故在此整理出来，方便以后使用和查阅。</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/03/03/xue-xi-uibezierpath/">阅读全文 &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -399,84 +477,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/10/12/wei-xin-deng-lu/">微信登录</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-10-12T10:44:41+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>12</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>10:44 am</span></time>
-        
-           | <a href="/blog/2015/10/12/wei-xin-deng-lu/#disqus_thread"
-             data-disqus-identifier="http://andrew-anlu.github.io/blog/2015/10/12/wei-xin-deng-lu/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>微信登录是一个很常见的功能，现在很多应用都集成了微信登录。</p>
-
-<h2>准备工作</h2>
-
-<p>刚下载下来微信的官方demo后，一直运行报错，后来用真机运行demo，可以成功，然后把相关的包拷贝到应用项目中，一直报错，如图
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20151012-0.png" alt="编译报错" /></p>
-
-<p>这个错误是没有导入库 libc++.dylib 导致，General -> Linked Frameworks and Libraries 中添加 libc++.dylib 文件即可</p>
-
-<h2>第一步</h2>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/09/19/iosxue-xi-zi-liao/">Ios学习资料</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-09-19T09:10:54+08:00'><span class='date'><span class='date-month'>Sep</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>9:10 am</span></time>
-        
-           | <a href="/blog/2015/09/19/iosxue-xi-zi-liao/#disqus_thread"
-             data-disqus-identifier="http://andrew-anlu.github.io/blog/2015/09/19/iosxue-xi-zi-liao/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><a href="http://codecloud.net/ios-mac-study-5155.html?hmsr=toutiao.io&amp;utm_medium=toutiao.io&amp;utm_source=toutiao.io">最全学习资料</a></p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2015/09/19/iosxue-xi-zi-liao/">阅读全文 &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/4">&larr; Older</a>
@@ -501,6 +501,14 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/04/29/macshang-ru-he-ba-shi-pin-zhuan-cheng-dot-gif/">Mac上如何把视频转成.Gif</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/04/28/viewcontrollerzhuan-chang-dong-hua/">ViewController转场动画</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/04/26/zi-ding-yi-asyncdisplaykit-node/">自定义AsyncDisplayKit-Node</a>
       </li>
     
@@ -512,14 +520,6 @@
         <a href="/blog/2016/04/22/ohhttpstubsjie-shao/">OHHTTPStubs介绍</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2016/04/22/xcodegeng-xin-hou-cha-jian-shi-xiao-de-jie-jue-fang-an/">Xcode更新后插件失效的解决方案</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/04/21/ce-shi-bing-fa-cheng-xu/">测试并发程序</a>
-      </li>
-    
   </ul>
 </section>
 <section>
@@ -527,9 +527,9 @@
 	<ul id="categories">
 		<li class='category'><a href='/blog/categories/cocoapods/'>cocoapods (1)</a></li>
 <li class='category'><a href='/blog/categories/git/'>git (3)</a></li>
-<li class='category'><a href='/blog/categories/ios/'>ios (16)</a></li>
+<li class='category'><a href='/blog/categories/ios/'>ios (17)</a></li>
 <li class='category'><a href='/blog/categories/life/'>life (1)</a></li>
-<li class='category'><a href='/blog/categories/mac/'>mac (1)</a></li>
+<li class='category'><a href='/blog/categories/mac/'>mac (2)</a></li>
 <li class='category'><a href='/blog/categories/octopress/'>octopress (2)</a></li>
 <li class='category'><a href='/blog/categories/swift/'>swift (10)</a></li>
 <li class='category'><a href='/blog/categories/xcode/'>xcode (1)</a></li>

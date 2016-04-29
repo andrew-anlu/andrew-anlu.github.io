@@ -1,0 +1,456 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>ViewController转场动画 - 安路的技术博客</title>
+  <meta name="author" content="安路">
+
+  
+  <meta name="description" content="自定义转场动画 ios7中最让我激动的特性之一就是提供了新的API来支持自定义ViewController之间的转场动画。 在开始研究新的API之间，我们先看看ios7中 navigation controller之间默认的行为发生了那些改变:在navigation controller中， &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://andrew-anlu.github.io/blog/2016/04/28/viewcontrollerzhuan-chang-dong-hua/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="安路的技术博客" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//libs.baidu.com/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">安路的技术博客</a></h1>
+  
+    <h2>Nothing in life is to be feared. It is only to be understood</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://andrew-anlu.github.io" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="andrew-anlu.github.io">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/blog/">About me</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">ViewController转场动画</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-04-28T15:54:40+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>28</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>3:54 pm</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><h2>自定义转场动画</h2>
+
+<p>ios7中最让我激动的特性之一就是提供了新的API来支持自定义ViewController之间的转场动画。</p>
+
+<!--more-->
+
+
+<p>在开始研究新的API之间，我们先看看ios7中 navigation controller之间默认的行为发生了那些改变:在navigation controller中，切换两个view controller的动画变得更有交互性。比方说你想要pop一个view controller出去，你可以用手指从屏幕的左边缘开始拖动，慢慢地把当前的viewcontroller向右拖出屏幕去.</p>
+
+<p>接下来，我们来看看这个新API。很有趣，这部分API大量的使用了协议而不是具体的对象。这初看起来有点奇怪，但是我更喜欢这样的设计，因为这种设计给我们这些开发者更大的灵活性。下面，让我们来做件简单的事情:在Navigation Controller中，实现一个自定义的push动画效果，为了完成这个任务，需要实现UINavigationControllerDelegate中的新方法:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (id&lt;UIViewControllerAnimatedTransitioning&gt;)
+</span><span class='line'>                   navigationController:(UINavigationController *)navigationController
+</span><span class='line'>        animationControllerForOperation:(UINavigationControllerOperation)operation
+</span><span class='line'>                     fromViewController:(UIViewController*)fromVC
+</span><span class='line'>                       toViewController:(UIViewController*)toVC
+</span><span class='line'>{
+</span><span class='line'>    if (operation == UINavigationControllerOperationPush) {
+</span><span class='line'>        return self.animator;
+</span><span class='line'>    }
+</span><span class='line'>    return nil;
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>从上面的代码可以看出，我们可以根据不同的操作(push或pop)返回不同的animator.我们可以把anmitor存到一个属性中，从而在多个操作之间实现共享，或者我们也可以为每个操作都创建一个新的animator对象，这里的灵活性很多。</p>
+
+<p>为了让动画运行起来，我们创建一个自定义类，并且实现<code>UIViewControllerAnimatedTransitioning</code>这个协议:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>@interface Animator : NSObject &lt;UIViewControllerAnimatedTransitioning&gt;
+</span><span class='line'>
+</span><span class='line'>@end</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这个协议要求我们实现两个方法，其中一个定义了动画的持续时间:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (NSTimeInterval)transitionDuration:(id &lt;UIViewControllerContextTransitioning&gt;)transitionContext
+</span><span class='line'>{
+</span><span class='line'>    return 0.25;
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>另一个方法描述整个动画的执行效果 ：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (void)animateTransition:(id&lt;UIViewControllerContextTransitioning&gt;)transitionContext
+</span><span class='line'>{
+</span><span class='line'>    UIViewController* toViewController = [transitionContext viewControllerForKey:UITransitionContextToViewControllerKey];
+</span><span class='line'>    UIViewController* fromViewController = [transitionContext viewControllerForKey:UITransitionContextFromViewControllerKey];
+</span><span class='line'>    [[transitionContext containerView] addSubview:toViewController.view];
+</span><span class='line'>    toViewController.view.alpha = 0;
+</span><span class='line'>
+</span><span class='line'>    [UIView animateWithDuration:[self transitionDuration:transitionContext] animations:^{
+</span><span class='line'>        fromViewController.view.transform = CGAffineTransformMakeScale(0.1, 0.1);
+</span><span class='line'>        toViewController.view.alpha = 1;
+</span><span class='line'>    } completion:^(BOOL finished) {
+</span><span class='line'>        fromViewController.view.transform = CGAffineTransformIdentity;
+</span><span class='line'>        [transitionContext completeTransition:![transitionContext transitionWasCancelled]];
+</span><span class='line'>
+</span><span class='line'>    }];
+</span><span class='line'>
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>从上面的例子汇总，你可以看到如何运用洗衣的：这个方法中通过接受一个类型为<code>id&lt;UIViewControllerContextTransitioning&gt;</code>的参数，来获取transition context.值的注意的是，执行完动画之后，我们需要调用transitionContext的<code>completeTransition :</code>这个方法来更新ViewController的状态。剩下的代码和ios7之前的一样了，我们从transition context 中得到了需要做转场的两个View controller,然后使用最简单的Uiview animation来实现转场动画。这就是全部代码了，我们已经实现了缩放效果的转场动画了。</p>
+
+<p>注意，这里只是为push操作实现了自定义效果的转场动画，对于pop操作，还是会使用默认的滑动效果，另外，上面我们实现的转场动画无法交互，下面我们就来看看解决这个问题。</p>
+
+<h2>交互式的转场动画</h2>
+
+<p>想要动画变地交互非常简单，我们只需要覆盖另一个UINavigationControllerDelegate的方法:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (id &lt;UIViewControllerInteractiveTransitioning&gt;)navigationController:(UINavigationController*)navigationController
+</span><span class='line'>                          interactionControllerForAnimationController:(id &lt;UIViewControllerAnimatedTransitioning&gt;)animationController
+</span><span class='line'>{
+</span><span class='line'>    return self.interactionController;
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>注意，在非交互式动画效果中，该方法返回nil.</p>
+
+<p>这里返回的interaction controller是<code>UIPercentDrivenInteractionTransition</code>类的一个实例，开发者不需要任何配置就可以工作。我们创建了一个拖动收拾(Pan REcognizer),下面是处理该手势的代码:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>if (panGestureRecognizer.state == UIGestureRecognizerStateBegan) {
+</span><span class='line'>    if (location.x &gt;  CGRectGetMidX(view.bounds)) {
+</span><span class='line'>        navigationControllerDelegate.interactionController = [[UIPercentDrivenInteractiveTransition alloc] init];
+</span><span class='line'>        [self performSegueWithIdentifier:PushSegueIdentifier sender:self];
+</span><span class='line'>    }
+</span><span class='line'>} </span></code></pre></td></tr></table></div></figure>
+
+
+<p>只有当用户从屏幕的右半部分开始触摸的时候，我们才把下一次动画效果设置为交互的（通过设置interactionController这个属性来实现），然后执行方法performSegueWithIdentifier:（如果你不是使用的storyboards,那么就直接调用pushViewController&hellip;这类方法）。为了让转场动画持续进行，我们需要调用 interaction controller的一个方法:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>else if (panGestureRecognizer.state == UIGestureRecognizerStateChanged) {
+</span><span class='line'>    CGFloat d = (translation.x / CGRectGetWidth(view.bounds)) * -1;
+</span><span class='line'>    [interactionController updateInteractiveTransition:d];
+</span><span class='line'>} </span></code></pre></td></tr></table></div></figure>
+
+
+<p>该方法会根据用户手指拖动的距离计算一个百分比，切换的动画效果也随着这个百分比来走，最酷的是，interaction controller会和animation controller一起协作，我们只使用了简单的UIView animation的动画效果，但是interaction controller却控制了动画的执行进度，我们并不需要吧interaction controller和Animation controller关联起来，因为所有这些系统都以一种解耦的方式自动地替我们完成了。</p>
+
+<p>最后</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">安路</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2016-04-28T15:54:40+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>28</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>3:54 pm</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/ios/'>ios</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+
+<!-- JiaThis Button BEGIN -->
+<div class="jiathis_style_32x32">
+	<a class="jiathis_button_qzone"></a>
+	<a class="jiathis_button_tsina"></a>
+	<a class="jiathis_button_tqq"></a>
+	<a class="jiathis_button_weixin"></a>
+	<a class="jiathis_button_renren"></a>
+	<a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank"></a>
+	<a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+<br><br>
+<!-- UY BEGIN -->
+<div id="uyan_frame"></div>
+<script type="text/javascript" src="http://v2.uyan.cc/code/uyan.js?uid=2052593"></script>
+<!-- UY END -->
+
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2016/04/26/zi-ding-yi-asyncdisplaykit-node/" title="Previous Post: 自定义AsyncDisplayKit-Node">&laquo; 自定义AsyncDisplayKit-Node</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2016/04/29/macshang-ru-he-ba-shi-pin-zhuan-cheng-dot-gif/" title="Next Post: Mac上如何把视频转成.Gif">Mac上如何把视频转成.Gif &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+<h1>
+	QQ群
+</h1>
+   <br/>
+	<p>欢迎加入swift学习交流群:252710124</p>
+</section>
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/04/29/macshang-ru-he-ba-shi-pin-zhuan-cheng-dot-gif/">Mac上如何把视频转成.Gif</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/04/28/viewcontrollerzhuan-chang-dong-hua/">ViewController转场动画</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/04/26/zi-ding-yi-asyncdisplaykit-node/">自定义AsyncDisplayKit-Node</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/04/24/zi-ding-yi-colletionviewbu-ju/">自定义ColletionView布局</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/04/22/ohhttpstubsjie-shao/">OHHTTPStubs介绍</a>
+      </li>
+    
+  </ul>
+</section>
+<section>
+	<h1>文章分类</h1>
+	<ul id="categories">
+		<li class='category'><a href='/blog/categories/cocoapods/'>cocoapods (1)</a></li>
+<li class='category'><a href='/blog/categories/git/'>git (3)</a></li>
+<li class='category'><a href='/blog/categories/ios/'>ios (17)</a></li>
+<li class='category'><a href='/blog/categories/life/'>life (1)</a></li>
+<li class='category'><a href='/blog/categories/mac/'>mac (2)</a></li>
+<li class='category'><a href='/blog/categories/octopress/'>octopress (2)</a></li>
+<li class='category'><a href='/blog/categories/swift/'>swift (10)</a></li>
+<li class='category'><a href='/blog/categories/xcode/'>xcode (1)</a></li>
+
+	</ul>
+</section>
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/andrew-anlu">@andrew-anlu</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'andrew-anlu',
+            count: 3,
+            skip_forks: false,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+<section>
+  <h1>On Delicious</h1>
+  <div id="delicious"></div>
+  <script type="text/javascript" src="http://feeds.delicious.com/v2/json/Andrewswift1987?count=3&amp;sort=date&amp;callback=renderDeliciousLinks"></script>
+  <p><a href="http://delicious.com/Andrewswift1987">My Delicious Bookmarks &raquo;</a></p>
+</section>
+
+ <section>
+      <h1>访客统计</h1>
+      <br/>
+    <a href="http://info.flagcounter.com/Bkif"><img src="http://s01.flagcounter.com/count2/Bkif/bg_ffffff/txt_000000/border_CCCCCC/columns_3/maxflags_10/viewers_0/labels_1/pageviews_1/flags_1/percent_0/" alt="Free counters!" border="0"></a>
+    </section>
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><!--返回顶部开始-->
+<div id="full" style="width:0px; height:0px; position:fixed; right:180px; bottom:150px; z-index:100; text-align:center; background-color:transparent; cursor:pointer;">
+  <a href="#" onclick="goTop();return false;"><img src="http://7xsn4e.com2.z0.glb.clouddn.com/top.png" border=0 alt="返回顶部" width="50" height="50"></a>
+</div>
+<script src="/javascripts/top.js" type="text/javascript"></script>
+<!--返回顶部结束-->
+
+
+<p>
+  Copyright &copy; 2016 - 安路 -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'Andrewswift1987';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://andrew-anlu.github.io/blog/2016/04/28/viewcontrollerzhuan-chang-dong-hua/';
+        var disqus_url = 'http://andrew-anlu.github.io/blog/2016/04/28/viewcontrollerzhuan-chang-dong-hua/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

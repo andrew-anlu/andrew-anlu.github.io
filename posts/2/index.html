@@ -9,7 +9,7 @@
   <meta name="author" content="安路">
 
   
-  <meta name="description" content="NSUrlSession是NSUrlConnection的替代品。 NSUrlConennection指的是一组构成 Foundation框架中URL加载系统的相互关联的组件:NSURLRequest,NSUrlResponse,NSURlProtocol等,在协商发送一个请求到服务器的过程中， &hellip;">
+  <meta name="description" content="UIStackView类提供了一个高效的接口用于平铺一行或一列的视图组合.Stack视图使你的依靠自动布局的能力，创建用户接口使得可以动态的调整设备的朝向，屏幕尺寸以及任何可用范围内的变化。Stack视图管理着所有它的 arrageedSubviews属性中视图的布局， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -66,6 +66,102 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/04/04/uistackviewjie-shao/">UIStackView介绍</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-04-04T15:47:37+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>4</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>3:47 pm</span></time>
+        
+           | <a href="/blog/2016/04/04/uistackviewjie-shao/#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/04/04/uistackviewjie-shao/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>UIStackView类提供了一个高效的接口用于平铺一行或一列的视图组合.Stack视图使你的依靠自动布局的能力，创建用户接口使得可以动态的调整设备的朝向，屏幕尺寸以及任何可用范围内的变化。Stack视图管理着所有它的 arrageedSubviews属性中视图的布局，这些视图根据它们在arrangedSubviews数组中的顺序沿着stack视图的轴向排列，精确的布局变量根据Stack视图的 axixs,distribution,allignment,spcing,和其它属性决定。</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/04/04/uistackviewjie-shao/">阅读全文 &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/03/29/shen-ru-li-jie-runloop/">深入理解RunLoop</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-03-29T17:29:43+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>29</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>5:29 pm</span></time>
+        
+           | <a href="/blog/2016/03/29/shen-ru-li-jie-runloop/#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/03/29/shen-ru-li-jie-runloop/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/1432799466416554.jpeg" alt="runloop" /></p>
+
+<p>RunLoop是ios和OSX开发中非常基础的一个概念，本章将会介绍一下在ios中，苹果是利用RunLoop实现自动释放池，延迟回调，触摸事件，屏幕刷新等.</p>
+
+<h2>RunLoop的概念</h2>
+
+<p>一般来讲，一个线程一次只能执行一个任务，执行完成之后线程就会退出。如果我们需要一个机制，让线程能随时处理事件但并不退出，通常的代码逻辑是这样的:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>function loop() {
+</span><span class='line'>    initialize();
+</span><span class='line'>    do {
+</span><span class='line'>        var message = get_next_message();
+</span><span class='line'>        process_message(message);
+</span><span class='line'>    } while (message != quit);
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/03/29/shen-ru-li-jie-runloop/">阅读全文 &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -380,83 +476,6 @@ swift会为您管理在捕获过程中涉及到所有内存操作。</p>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/03/04/iosde-blockxun-huan-yin-yong/">ios的Block循环引用</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-03-04T13:22:36+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>4</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>1:22 pm</span></time>
-        
-           | <a href="/blog/2016/03/04/iosde-blockxun-huan-yin-yong/#disqus_thread"
-             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/03/04/iosde-blockxun-huan-yin-yong/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>ios在开发的过程中，很容易引发内存泄露问题。也很容易造成循环引用，之前使用block的时候也没有过多注意，其实坑很多。
-对于新手来说，出现循环引用的时候，很难去排查。</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/03/04/iosde-blockxun-huan-yin-yong/">阅读全文 &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/03/03/xue-xi-uibezierpath/">学习UIBezierPath</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-03-03T14:05:08+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>3</span><span class='date-suffix'>rd</span>, <span class='date-year'>2016</span></span> <span class='time'>2:05 pm</span></time>
-        
-           | <a href="/blog/2016/03/03/xue-xi-uibezierpath/#disqus_thread"
-             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/03/03/xue-xi-uibezierpath/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>前言</h2>
-
-<p>之前就看到很多关于<code>UIBezierPath</code>的介绍，但是平常开发的时候一直没怎么用过，但是这个<code>UIBezierPath</code>对于开发画图是很有用的。故在此整理出来，方便以后使用和查阅。</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/03/03/xue-xi-uibezierpath/">阅读全文 &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/3">&larr; Older</a>
@@ -481,6 +500,14 @@ swift会为您管理在捕获过程中涉及到所有内存操作。</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/04/29/macshang-ru-he-ba-shi-pin-zhuan-cheng-dot-gif/">Mac上如何把视频转成.Gif</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/04/28/viewcontrollerzhuan-chang-dong-hua/">ViewController转场动画</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/04/26/zi-ding-yi-asyncdisplaykit-node/">自定义AsyncDisplayKit-Node</a>
       </li>
     
@@ -492,14 +519,6 @@ swift会为您管理在捕获过程中涉及到所有内存操作。</p>
         <a href="/blog/2016/04/22/ohhttpstubsjie-shao/">OHHTTPStubs介绍</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2016/04/22/xcodegeng-xin-hou-cha-jian-shi-xiao-de-jie-jue-fang-an/">Xcode更新后插件失效的解决方案</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/04/21/ce-shi-bing-fa-cheng-xu/">测试并发程序</a>
-      </li>
-    
   </ul>
 </section>
 <section>
@@ -507,9 +526,9 @@ swift会为您管理在捕获过程中涉及到所有内存操作。</p>
 	<ul id="categories">
 		<li class='category'><a href='/blog/categories/cocoapods/'>cocoapods (1)</a></li>
 <li class='category'><a href='/blog/categories/git/'>git (3)</a></li>
-<li class='category'><a href='/blog/categories/ios/'>ios (16)</a></li>
+<li class='category'><a href='/blog/categories/ios/'>ios (17)</a></li>
 <li class='category'><a href='/blog/categories/life/'>life (1)</a></li>
-<li class='category'><a href='/blog/categories/mac/'>mac (1)</a></li>
+<li class='category'><a href='/blog/categories/mac/'>mac (2)</a></li>
 <li class='category'><a href='/blog/categories/octopress/'>octopress (2)</a></li>
 <li class='category'><a href='/blog/categories/swift/'>swift (10)</a></li>
 <li class='category'><a href='/blog/categories/xcode/'>xcode (1)</a></li>

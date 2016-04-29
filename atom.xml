@@ -4,7 +4,7 @@
   <title><![CDATA[安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-04-28T09:33:36+08:00</updated>
+  <updated>2016-04-29T13:09:51+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -12,6 +12,222 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Mac上如何把视频转成.Gif]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/04/29/macshang-ru-he-ba-shi-pin-zhuan-cheng-dot-gif/"/>
+    <updated>2016-04-29T12:56:45+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/04/29/macshang-ru-he-ba-shi-pin-zhuan-cheng-dot-gif</id>
+    <content type="html"><![CDATA[<p>之前看到很多github上的开源项目都带.gif的演示效果，感觉很好，今天就试着制作了一下，今天把我的制作过程记录下来，方便他人参考。</p>
+
+<!--more-->
+
+
+<h2>录制视频</h2>
+
+<p>mac上自带的Quicktime就可以录制视频，选择录制屏幕</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160429-0.png" alt="1" /></p>
+
+<p>录制完之后是 .mov 的后缀视频文件</p>
+
+<h2>通过命令行转换</h2>
+
+<p>在苹果系统上，可以通过命令行的方式转换视频，首先假定你的机器上已经安装了<a href="http://www.brew.sh">homebrew</a>.</p>
+
+<p>然后打开终端，安装<a href="http://baike.baidu.com/link?url=H-RabHoLq9tR0Zxn-jduRSC7NAlSBkEjjsRnXEJ7Rw9RFE6dUNBnYyXidoiXNGCyOWKdcAtQMg-J8x_hFPSg5K">ffmpeg</a>插件</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ brew install ffmpeg</span></code></pre></td></tr></table></div></figure>
+
+
+<p>然后定位到正确的目录，（有视频文件的那个目录，比如 Desktop）,假定你的视频名字是<code>ScreenFlow.mov</code>,你运行下面的命令就能生成GIF:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ffmpeg -i ScreenFlow.mov -pix_fmt rgb24 output.gif</span></code></pre></td></tr></table></div></figure>
+
+
+<p>你会注意到生成文件很大，可以通过<a href="http://baike.baidu.com/link?url=WENMRejdDuoS2eXPiXrnvF2ohwpbTAe5oW_SOTsr2k099YbjyU4wCi-ngV31jzxvP0TvC-INM0FBcUk1sEDWQK"> image magick</a>工具来减少大小</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ brew install imagemagick</span></code></pre></td></tr></table></div></figure>
+
+
+<p>运行:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ convert -layers Optimize output.gif output_optimized.gif</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>通过软件生成.GIF</h2>
+
+<p><a href="http://gifbrewery.com">GifBrewery</a>是一款GIF动态图片制作工具. 支持将视频文件剪裁输出成GIF动态图片。</p>
+
+<p>并且支持裁剪视频的长度，本人感觉挺好用的。</p>
+
+<h2>上传到云端</h2>
+
+<p>最后把制作好的.gif图片上传到云端就行了，比如 dropbox,七牛,阿里云等。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[ViewController转场动画]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/04/28/viewcontrollerzhuan-chang-dong-hua/"/>
+    <updated>2016-04-28T15:54:40+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/04/28/viewcontrollerzhuan-chang-dong-hua</id>
+    <content type="html"><![CDATA[<h2>自定义转场动画</h2>
+
+<p>ios7中最让我激动的特性之一就是提供了新的API来支持自定义ViewController之间的转场动画。</p>
+
+<!--more-->
+
+
+<p>在开始研究新的API之间，我们先看看ios7中 navigation controller之间默认的行为发生了那些改变:在navigation controller中，切换两个view controller的动画变得更有交互性。比方说你想要pop一个view controller出去，你可以用手指从屏幕的左边缘开始拖动，慢慢地把当前的viewcontroller向右拖出屏幕去.</p>
+
+<p>接下来，我们来看看这个新API。很有趣，这部分API大量的使用了协议而不是具体的对象。这初看起来有点奇怪，但是我更喜欢这样的设计，因为这种设计给我们这些开发者更大的灵活性。下面，让我们来做件简单的事情:在Navigation Controller中，实现一个自定义的push动画效果，为了完成这个任务，需要实现UINavigationControllerDelegate中的新方法:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (id&lt;UIViewControllerAnimatedTransitioning&gt;)
+</span><span class='line'>                   navigationController:(UINavigationController *)navigationController
+</span><span class='line'>        animationControllerForOperation:(UINavigationControllerOperation)operation
+</span><span class='line'>                     fromViewController:(UIViewController*)fromVC
+</span><span class='line'>                       toViewController:(UIViewController*)toVC
+</span><span class='line'>{
+</span><span class='line'>    if (operation == UINavigationControllerOperationPush) {
+</span><span class='line'>        return self.animator;
+</span><span class='line'>    }
+</span><span class='line'>    return nil;
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>从上面的代码可以看出，我们可以根据不同的操作(push或pop)返回不同的animator.我们可以把anmitor存到一个属性中，从而在多个操作之间实现共享，或者我们也可以为每个操作都创建一个新的animator对象，这里的灵活性很多。</p>
+
+<p>为了让动画运行起来，我们创建一个自定义类，并且实现<code>UIViewControllerAnimatedTransitioning</code>这个协议:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>@interface Animator : NSObject &lt;UIViewControllerAnimatedTransitioning&gt;
+</span><span class='line'>
+</span><span class='line'>@end</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这个协议要求我们实现两个方法，其中一个定义了动画的持续时间:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (NSTimeInterval)transitionDuration:(id &lt;UIViewControllerContextTransitioning&gt;)transitionContext
+</span><span class='line'>{
+</span><span class='line'>    return 0.25;
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>另一个方法描述整个动画的执行效果 ：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (void)animateTransition:(id&lt;UIViewControllerContextTransitioning&gt;)transitionContext
+</span><span class='line'>{
+</span><span class='line'>    UIViewController* toViewController = [transitionContext viewControllerForKey:UITransitionContextToViewControllerKey];
+</span><span class='line'>    UIViewController* fromViewController = [transitionContext viewControllerForKey:UITransitionContextFromViewControllerKey];
+</span><span class='line'>    [[transitionContext containerView] addSubview:toViewController.view];
+</span><span class='line'>    toViewController.view.alpha = 0;
+</span><span class='line'>
+</span><span class='line'>    [UIView animateWithDuration:[self transitionDuration:transitionContext] animations:^{
+</span><span class='line'>        fromViewController.view.transform = CGAffineTransformMakeScale(0.1, 0.1);
+</span><span class='line'>        toViewController.view.alpha = 1;
+</span><span class='line'>    } completion:^(BOOL finished) {
+</span><span class='line'>        fromViewController.view.transform = CGAffineTransformIdentity;
+</span><span class='line'>        [transitionContext completeTransition:![transitionContext transitionWasCancelled]];
+</span><span class='line'>
+</span><span class='line'>    }];
+</span><span class='line'>
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>从上面的例子汇总，你可以看到如何运用洗衣的：这个方法中通过接受一个类型为<code>id&lt;UIViewControllerContextTransitioning&gt;</code>的参数，来获取transition context.值的注意的是，执行完动画之后，我们需要调用transitionContext的<code>completeTransition :</code>这个方法来更新ViewController的状态。剩下的代码和ios7之前的一样了，我们从transition context 中得到了需要做转场的两个View controller,然后使用最简单的Uiview animation来实现转场动画。这就是全部代码了，我们已经实现了缩放效果的转场动画了。</p>
+
+<p>注意，这里只是为push操作实现了自定义效果的转场动画，对于pop操作，还是会使用默认的滑动效果，另外，上面我们实现的转场动画无法交互，下面我们就来看看解决这个问题。</p>
+
+<h2>交互式的转场动画</h2>
+
+<p>想要动画变地交互非常简单，我们只需要覆盖另一个UINavigationControllerDelegate的方法:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (id &lt;UIViewControllerInteractiveTransitioning&gt;)navigationController:(UINavigationController*)navigationController
+</span><span class='line'>                          interactionControllerForAnimationController:(id &lt;UIViewControllerAnimatedTransitioning&gt;)animationController
+</span><span class='line'>{
+</span><span class='line'>    return self.interactionController;
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>注意，在非交互式动画效果中，该方法返回nil.</p>
+
+<p>这里返回的interaction controller是<code>UIPercentDrivenInteractionTransition</code>类的一个实例，开发者不需要任何配置就可以工作。我们创建了一个拖动收拾(Pan REcognizer),下面是处理该手势的代码:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>if (panGestureRecognizer.state == UIGestureRecognizerStateBegan) {
+</span><span class='line'>    if (location.x &gt;  CGRectGetMidX(view.bounds)) {
+</span><span class='line'>        navigationControllerDelegate.interactionController = [[UIPercentDrivenInteractiveTransition alloc] init];
+</span><span class='line'>        [self performSegueWithIdentifier:PushSegueIdentifier sender:self];
+</span><span class='line'>    }
+</span><span class='line'>} </span></code></pre></td></tr></table></div></figure>
+
+
+<p>只有当用户从屏幕的右半部分开始触摸的时候，我们才把下一次动画效果设置为交互的（通过设置interactionController这个属性来实现），然后执行方法performSegueWithIdentifier:（如果你不是使用的storyboards,那么就直接调用pushViewController&hellip;这类方法）。为了让转场动画持续进行，我们需要调用 interaction controller的一个方法:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>else if (panGestureRecognizer.state == UIGestureRecognizerStateChanged) {
+</span><span class='line'>    CGFloat d = (translation.x / CGRectGetWidth(view.bounds)) * -1;
+</span><span class='line'>    [interactionController updateInteractiveTransition:d];
+</span><span class='line'>} </span></code></pre></td></tr></table></div></figure>
+
+
+<p>该方法会根据用户手指拖动的距离计算一个百分比，切换的动画效果也随着这个百分比来走，最酷的是，interaction controller会和animation controller一起协作，我们只使用了简单的UIView animation的动画效果，但是interaction controller却控制了动画的执行进度，我们并不需要吧interaction controller和Animation controller关联起来，因为所有这些系统都以一种解耦的方式自动地替我们完成了。</p>
+
+<p>最后</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[自定义AsyncDisplayKit-Node]]></title>
@@ -8848,689 +9064,6 @@ swift会为您管理在捕获过程中涉及到所有内存操作。</p>
 
 <p>
 我们要实现这个效果，是通过 <code>stokeStart</code>和<code>stokeEnd</code>这两个属性好实现的，这两个的取值范围是[0-1],当stokeStart的值慢慢变成1时，我们看到路径是慢慢消失的。这里实现的效果并不好，因为不能一直循环。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[ios的Block循环引用]]></title>
-    <link href="http://andrew-anlu.github.io/blog/2016/03/04/iosde-blockxun-huan-yin-yong/"/>
-    <updated>2016-03-04T13:22:36+08:00</updated>
-    <id>http://andrew-anlu.github.io/blog/2016/03/04/iosde-blockxun-huan-yin-yong</id>
-    <content type="html"><![CDATA[<p>ios在开发的过程中，很容易引发内存泄露问题。也很容易造成循环引用，之前使用block的时候也没有过多注意，其实坑很多。
-对于新手来说，出现循环引用的时候，很难去排查。</p>
-
-<!--more-->
-
-
-<h2>Controller之间的block循环引用</h2>
-
-<p>现在，我们声明两个类，一个是ViewController,另一个是TLController,在ViewController中有个按钮，点击 push到TlController中。
-先看TLController中类的声明：</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>typedef void(^CallbackBlock)();
-</span><span class='line'>
-</span><span class='line'>@interface TLController : UIViewController
-</span><span class='line'>- (instancetype)initWithCallback:(CallbackBlock)callback;
-</span><span class='line'>
-</span><span class='line'>@property (nonatomic, copy) CallbackBlock callbackBlock;</span></code></pre></td></tr></table></div></figure>
-
-
-<p>TlController.m</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>- (instancetype)initWithCallback:(CallbackBlock)callback{
-</span><span class='line'>    self=[super init];
-</span><span class='line'>    if(self){
-</span><span class='line'>        _callbackBlock=callback;
-</span><span class='line'>    }
-</span><span class='line'>    return self;
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>为了验证该类是不是被释放掉了，我们重写两个方法来检测:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>-(void)viewDidAppear:(BOOL)animated{
-</span><span class='line'>    [super viewDidAppear:animated];
-</span><span class='line'>    NSLog(@"进入控制器：%@", [[self class] description]);
-</span><span class='line'>}
-</span><span class='line'>- (void)dealloc {
-</span><span class='line'>    NSLog(@"控制器被dealloc: %@", [[self class] description]);
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>在 ViewController中，创建一个按钮，按钮的单击事件如下:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>// 点击button时
-</span><span class='line'>- (void)goToNext {
-</span><span class='line'>    //__weak __typeof(self) weakSelf=self;
-</span><span class='line'>    
-</span><span class='line'>    TLController *vc = [[TLController alloc] initWithCallback:^{
-</span><span class='line'>        [self.button setTitleColor:[UIColor greenColor] forState:UIControlStateNormal];
-</span><span class='line'>    }];
-</span><span class='line'>    self.vc = vc;
-</span><span class='line'>    [self.navigationController pushViewController:vc animated:YES];
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>现在看Viewcontroller，这里就形成了两个循环，因此vc属性得不到释放，如图:
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160304-0.png" alt="logo" /></p>
-
-<p>这里形成了两个循环</p>
-
-<ol>
-<li><p>ViewContrller->强引用了vc->强引用了callback->强引用了Viewcontroller</p></li>
-<li><p>Viewcontroler->强引用了属性vc->强引用了callback->强引用了Viewcontroller的属性button</p></li>
-</ol>
-
-
-<p>我们要解决这两个循环引用，可以如下操作:</p>
-
-<p>不声明vc属性，或者将vc属性声明为weak弱引用类型，在callback回调处，将self.button改为 weakSelf.button,也就是让callback的这个block对viewcontroller弱引用，这样内存就可以顺利释放了。</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>// 点击button时
-</span><span class='line'>- (void)goToNext {
-</span><span class='line'>    __weak __typeof(self) weakSelf=self;
-</span><span class='line'>    
-</span><span class='line'>    TLController *vc = [[TLController alloc] initWithCallback:^{
-</span><span class='line'>        [weakSelf.button setTitleColor:[UIColor greenColor] forState:UIControlStateNormal];
-</span><span class='line'>    }];
-</span><span class='line'>   // self.vc = vc;
-</span><span class='line'>    [self.navigationController pushViewController:vc animated:YES];
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Controller和View之间的block引用</h2>
-
-<p>我们先定义一个view,用于和Contrller交互，当点击view上的按钮时，就把结果回调给controller;</p>
-
-<p>TLView定义如下:
-TlView.h</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>typedef void(^FeedbackBlock)(id model);
-</span><span class='line'>@interface TLView : UIView
-</span><span class='line'>@property (nonatomic, copy) FeedbackBlock block;
-</span><span class='line'>- (instancetype)initWithBlock:(FeedbackBlock)block;
-</span><span class='line'>@end</span></code></pre></td></tr></table></div></figure>
-
-
-<p>TlView.m</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>-(instancetype)initWithBlock:(FeedbackBlock)block{
-</span><span class='line'>    self=[super init];
-</span><span class='line'>    if(self){
-</span><span class='line'>        self.block=block;
-</span><span class='line'>        UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
-</span><span class='line'>        [button setTitle:@"反馈给controller" forState:UIControlStateNormal];
-</span><span class='line'>        button.frame = CGRectMake(50, 200, 200, 45);
-</span><span class='line'>        button.backgroundColor = [UIColor redColor];
-</span><span class='line'>        [button setTitleColor:[UIColor yellowColor] forState:UIControlStateNormal];
-</span><span class='line'>        [button addTarget:self action:@selector(feedback) forControlEvents:UIControlEventTouchUpInside];
-</span><span class='line'>        [self addSubview:button];
-</span><span class='line'>    }
-</span><span class='line'>    return self;
-</span><span class='line'>}
-</span><span class='line'>
-</span><span class='line'>
-</span><span class='line'>- (void)feedback {
-</span><span class='line'>    if (self.block) {
-</span><span class='line'>        // 传模型回去，这里没有数据，假设传nil
-</span><span class='line'>        self.block(nil);
-</span><span class='line'>    }
-</span><span class='line'>}
-</span><span class='line'>
-</span><span class='line'>/*
-</span><span class='line'>// Only override drawRect: if you perform custom drawing.
-</span><span class='line'>// An empty implementation adversely affects performance during animation.
-</span><span class='line'>- (void)drawRect:(CGRect)rect {
-</span><span class='line'>    // Drawing code
-</span><span class='line'>}
-</span><span class='line'>*/
-</span><span class='line'>
-</span><span class='line'>- (void)dealloc {
-</span><span class='line'>    NSLog(@"dealloc: %@", [[self class] description]);
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>接下来，在TlController中增加两个属性</p>
-
-<pre><code>@property (nonatomic, strong) TLView *aView;
-@property (nonatomic, strong) id currentModel;
-</code></pre>
-
-<p>  调用如下:</p>
-
-<pre><code class="``">  -(void)testView{
-
-   // __weak __typeof(self) weakSelf=self;
-
-    self.aView = [[TLView alloc] initWithBlock:^(id model) {
-        // 假设要更新model
-        self.currentModel = model;
-        //weakSelf.currentModel=model;
-    }];
-    // 假设占满全屏
-    self.aView.frame = self.view.bounds;
-    [self.view addSubview:self.aView];
-    self.aView.backgroundColor = [UIColor whiteColor];
-}
-</code></pre>
-
-<p>  在viewDidLoad方法中，调用<code>[self testView]</code></p>
-
-<p>  这样Controller和view之间就形成了循环引用，如图:
-  <img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160304-1.png" alt="logo" /></p>
-
-<ol>
-<li>TlViewController->强引用aView->block->tlViewcontroller属性的currentModel</li>
-</ol>
-
-
-<p>  解决的办法是:在创建aView的时候，block内对currentModel的引用改成弱引用</p>
-
-<pre><code class="``">  __weak __typeof(self) weakSelf=self;
-
-    self.aView = [[TLView alloc] initWithBlock:^(id model) {
-        // 假设要更新model
-        weakSelf.currentModel=model;
-    }];
-</code></pre>
-
-<p>  很多程序员直接使用<em>currentModel,其实这样也会造成循环引用，因为</em>currentModel也是属于类的成员变量，也会被强引用的。要解决此问题，也要改成弱引用</p>
-
-<pre><code class="``">  __block __weak __typeof(_currentModel) weakModel = _currentModel;
-self.aView = [[TLView alloc] initWithBlock:^(id model) {
-  // 假设要更新model
-  weakModel = model;
-}];
-</code></pre>
-
-<h2>模拟循环引用</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>@autoreleasepool {
-</span><span class='line'>  A *aVC = [[A alloc] init];
-</span><span class='line'>  B *bVC = [[B allcok] init];
-</span><span class='line'>  aVC.controller = bVC;
-</span><span class='line'>  bVC.controller = aVC;
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>aVC->强引用了bVC</p>
-
-<p>bVC->强引用了aVC</p>
-
-<p>如果是这样引用，就形成环了。aVC->bVC->aVC，这就形成了环。</p>
-
-<h3>如果一个Controller中，存在一个局部变量，是否循环引用呢?</h3>
-
-<p>在Viewcontroller中声明一个变量
-<code>@property (nonatomic,strong)NSMutableArray *array;</code></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>-(void)test1{
-</span><span class='line'>    self.array = [NSMutableArray arrayWithObjects:@"a",@"b",@"abc",nil];
-</span><span class='line'>    TLController *vc = [[TLController alloc] initWithCallback:^{
-</span><span class='line'>        [self.array removeObjectAtIndex:0];
-</span><span class='line'>    }];
-</span><span class='line'>    [self.navigationController pushViewController:vc animated:YES];
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>点击跳转按钮，控制台打印</p>
-
-<pre><code>BlockDemo1[5511:1169090] 进入控制器：TLController
-2016-03-04 14:08:45.612 
-</code></pre>
-
-<p>点击回退,控制台打印</p>
-
-<pre><code>BlockDemo1[5511:1169090] 控制器被dealloc: TLController
-</code></pre>
-
-<p>  说明成员变量NSMutableArray不会形成循环引用。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[学习UIBezierPath]]></title>
-    <link href="http://andrew-anlu.github.io/blog/2016/03/03/xue-xi-uibezierpath/"/>
-    <updated>2016-03-03T14:05:08+08:00</updated>
-    <id>http://andrew-anlu.github.io/blog/2016/03/03/xue-xi-uibezierpath</id>
-    <content type="html"><![CDATA[<h2>前言</h2>
-
-<p>之前就看到很多关于<code>UIBezierPath</code>的介绍，但是平常开发的时候一直没怎么用过，但是这个<code>UIBezierPath</code>对于开发画图是很有用的。故在此整理出来，方便以后使用和查阅。</p>
-
-<!--more-->
-
-
-<p>使用<code>UIBezierPath</code>可以创建基于矢量的路径，此类是Core Graphics框架关于路径的疯转。使用<code>UIBezierPath</code>可以定义简单的形状，如三角形，矩形或有多个直线和曲线组成的形状等。</p>
-
-<p><code>UIBezierPath</code>是CGPathRef数据类型的封装。</p>
-
-<p>使用<code>UIBezierPath</code>画图的步骤</p>
-
-<ol>
-<li>创建一个<code>UIBezierPath</code>对象</li>
-<li>调用 -moveToPoint:设置初始线段的起点</li>
-<li>添加线或者曲线去定义或者多个子路径</li>
-<li>改变<code>UIBezierPath</code>对象跟绘图属性。我们可以设置画笔的颜色，size大小等等</li>
-</ol>
-
-
-<h2>UIBezierPath创建方法</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>
-</span><span class='line'>+ (instancetype)bezierPath;
-</span><span class='line'>+ (instancetype)bezierPathWithRect:(CGRect)rect;
-</span><span class='line'>+ (instancetype)bezierPathWithOvalInRect:(CGRect)rect;
-</span><span class='line'>+ (instancetype)bezierPathWithRoundedRect:(CGRect)rect
-</span><span class='line'>                            cornerRadius:(CGFloat)cornerRadius;
-</span><span class='line'>+ (instancetype)bezierPathWithRoundedRect:(CGRect)rect
-</span><span class='line'>                        byRoundingCorners:(UIRectCorner)corners 
-</span><span class='line'>                              cornerRadii:(CGSize)cornerRadii;
-</span><span class='line'>+ (instancetype)bezierPathWithArcCenter:(CGPoint)center 
-</span><span class='line'>                                 radius:(CGFloat)radius 
-</span><span class='line'>                             startAngle:(CGFloat)startAngle 
-</span><span class='line'>                               endAngle:(CGFloat)endAngle 
-</span><span class='line'>                              clockwise:(BOOL)clockwise;
-</span><span class='line'>+ (instancetype)bezierPathWithCGPath:(CGPathRef)CGPath;</span></code></pre></td></tr></table></div></figure>
-
-
-<pre><code>  + (instancetype)bezierPath;
-</code></pre>
-
-<p>   这个使用比较多，因为我们可以根据我们的需要任意定制样式，可以画出我们想要的图形</p>
-
-<pre><code>+ (instancetype)bezierPathWithRect:(CGRect)rect;
-</code></pre>
-
-<p>这个工厂方法根据一个矩形画贝塞尔曲线</p>
-
-<pre><code>+ (instancetype)bezierPathWithOvalInRect:(CGRect)rect;
-</code></pre>
-
-<p> 这个工厂方法根据一个矩形画内切的贝塞尔曲线，通常用它来画圆和椭圆</p>
-
-<pre><code> + (instancetype)bezierPathWithRoundedRect:(CGRect)rect
-                              cornerRadius:(CGFloat)cornerRadius;
-</code></pre>
-
-<p> 这个工厂方法画矩形，但是这个矩形是可以画圆角的。第一个参数是矩形，第二个参数是圆角大小</p>
-
-<pre><code>+ (instancetype)bezierPathWithRoundedRect:(CGRect)rect
-                        byRoundingCorners:(UIRectCorner)corners 
-                              cornerRadii:(CGSize)cornerRadii;
-</code></pre>
-
-<p> 这个工厂方法也是画矩形，但是可以指定某一个角成圆角，像这种我们可以很容易的给UIview扩展成圆角了</p>
-
-<pre><code>+ (instancetype)bezierPathWithArcCenter:(CGPoint)center 
-                                 radius:(CGFloat)radius 
-                             startAngle:(CGFloat)startAngle 
-                               endAngle:(CGFloat)endAngle 
-                              clockwise:(BOOL)clockwise;
-</code></pre>
-
-<p> 这个工厂方法用于画圆弧，参数如下:
- Center:弧线中心点的坐标
- radius:弧线所在圆的半径
- startAngle:弧线开始的角度值
- endAngle:弧线结束时的角度值
- clockwise:是否顺时针画弧线</p>
-
-<h3>画三角形</h3>
-
-<p>如图:
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160303-0.png" alt="三角形" /></p>
-
-<p>代码:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>//画三角形
-</span><span class='line'>-(void)drawTriangle{
-</span><span class='line'>    UIBezierPath *path=[UIBezierPath bezierPath];
-</span><span class='line'>    [path moveToPoint:CGPointMake(20, 20)];
-</span><span class='line'>    [path addLineToPoint:CGPointMake(self.frame.size.width-40, 20)];
-</span><span class='line'>    [path addLineToPoint:CGPointMake(self.frame.size.width/2, self.frame.size.height-20)];
-</span><span class='line'>    //最后的闭合线可以通过closePath方法来自动生成。也可以调用addLineToPoint来添加
-</span><span class='line'>    
-</span><span class='line'>    [path closePath];
-</span><span class='line'>    
-</span><span class='line'>    //设置线宽
-</span><span class='line'>    path.lineWidth=4;
-</span><span class='line'>    //设置填充颜色
-</span><span class='line'>    UIColor *fillColor=[UIColor yellowColor];
-</span><span class='line'>    [fillColor set];
-</span><span class='line'>    
-</span><span class='line'>    [path fill];
-</span><span class='line'>    
-</span><span class='line'>    //设置画笔的颜色
-</span><span class='line'>    UIColor *stokeColor=[UIColor blueColor];
-</span><span class='line'>    [stokeColor set];
-</span><span class='line'>    //根据我们设置的各个点，进行连线
-</span><span class='line'>    [path stroke];
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>画矩形</h3>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160303-1.png" alt="矩形" /></p>
-
-<p>代码</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>//画矩形
-</span><span class='line'>-(void)drawMyRectPath{
-</span><span class='line'>    UIBezierPath *path=[UIBezierPath bezierPathWithRect:CGRectMake(100, 100, self.frame.size.width-120, self.frame.size.height-120)];
-</span><span class='line'>    path.lineWidth=2;
-</span><span class='line'>    path.lineCapStyle=kCGLineCapRound;
-</span><span class='line'>    
-</span><span class='line'>    //设置填充颜色
-</span><span class='line'>    UIColor *fillColor=[UIColor yellowColor];
-</span><span class='line'>    [fillColor set];
-</span><span class='line'>    [path fill];
-</span><span class='line'>    
-</span><span class='line'>    //设置画笔颜色
-</span><span class='line'>    UIColor *stokeColor=[UIColor blueColor];
-</span><span class='line'>    [stokeColor set];
-</span><span class='line'>    //根据我们设置的各个点连线
-</span><span class='line'>    
-</span><span class='line'>    [path stroke];
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>画圆</h3>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160303-2.png" alt=" circle" /></p>
-
-<p>代码:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>//画圆形或者椭圆
-</span><span class='line'>-(void)drawCirlcePath{
-</span><span class='line'>    UIBezierPath *path=[UIBezierPath bezierPathWithOvalInRect:CGRectMake(10, 10, self.frame.size.width-20, self.frame.size.height-20)];
-</span><span class='line'>    //设置线宽
-</span><span class='line'>    path.lineWidth=4;
-</span><span class='line'>    //设置填充颜色
-</span><span class='line'>    UIColor *fillColor=[UIColor yellowColor];
-</span><span class='line'>    [fillColor set];
-</span><span class='line'>    
-</span><span class='line'>    [path fill];
-</span><span class='line'>    
-</span><span class='line'>    //设置画笔的颜色
-</span><span class='line'>    UIColor *stokeColor=[UIColor blueColor];
-</span><span class='line'>    [stokeColor set];
-</span><span class='line'>    //根据我们设置的各个点，进行连线
-</span><span class='line'>    [path stroke];
-</span><span class='line'>    
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>画带圆角的矩形</h3>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160303-3.png" alt="圆角矩形" /></p>
-
-<p>代码</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>//画带圆角的矩形
-</span><span class='line'>-(void)drawRoundedRectPath{
-</span><span class='line'>    UIBezierPath *path=[UIBezierPath bezierPathWithRoundedRect:CGRectMake(20, 20, self.frame.size.width-40, self.frame.size.height-40) cornerRadius:10];
-</span><span class='line'>    
-</span><span class='line'>    //设置填充颜色
-</span><span class='line'>    UIColor *fillColor=[UIColor yellowColor];
-</span><span class='line'>    [fillColor set];
-</span><span class='line'>    [path fill];
-</span><span class='line'>    
-</span><span class='line'>    //设置画笔颜色
-</span><span class='line'>    UIColor *stokeColor=[UIColor blueColor];
-</span><span class='line'>    [stokeColor set];
-</span><span class='line'>    
-</span><span class='line'>    //根据我们设置的各个点连线
-</span><span class='line'>    [path stroke];
-</span><span class='line'>    
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>部分角是圆形的</h3>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160303-4.png" alt="circle" /></p>
-
-<p>只需把上面的代码稍加修改:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>UIBezierPath *path=nil;
-</span><span class='line'>    //[UIBezierPath bezierPathWithRoundedRect:CGRectMake(20, 20, self.frame.size.width-40, self.frame.size.height-40) cornerRadius:10];
-</span><span class='line'>    
-</span><span class='line'>CGRect rect=CGRectMake(20, 20, self.frame.size.width-40, self.frame.size.height-40);
-</span><span class='line'>    
-</span><span class='line'>path=[UIBezierPath bezierPathWithRoundedRect:rect byRoundingCorners:UIRectCornerTopLeft cornerRadii:CGSizeMake(20, 20)];</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>画弧度</h3>
-
-<p>画弧前，我们需要先了解参考系
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160303-5.png" alt="sdf" /></p>
-
-<p>效果图:</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160303-6.png" alt="logo" /></p>
-
-<p>代码:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>-(void)drawARCPath{
-</span><span class='line'>    const CGFloat pi=3.14159;
-</span><span class='line'>    CGPoint center=CGPointMake(self.frame.size.width/2, self.frame.size.height/2);
-</span><span class='line'>    UIBezierPath *path=[UIBezierPath bezierPathWithArcCenter:center radius:100 startAngle:0 endAngle:kDegreesToRadians(135) clockwise:YES];
-</span><span class='line'>    
-</span><span class='line'>    path.lineCapStyle=kCGLineCapRound;
-</span><span class='line'>    path.lineJoinStyle=kCGLineJoinRound;
-</span><span class='line'>    path.lineWidth=5;
-</span><span class='line'>    
-</span><span class='line'>    UIColor *stokeColor=[UIColor redColor];
-</span><span class='line'>    [stokeColor set];
-</span><span class='line'>    
-</span><span class='line'>    [path stroke];
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-
 ]]></content>
   </entry>
   
