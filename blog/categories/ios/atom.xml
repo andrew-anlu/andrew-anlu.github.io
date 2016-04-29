@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Ios | 安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/blog/categories/ios/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-04-29T13:48:19+08:00</updated>
+  <updated>2016-04-29T13:51:25+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -132,6 +132,10 @@
 <p>注意，当切换完成或者取消的时候，记得把interaction controller设置为nil.因为如果下一次的转场是非交互的，我们不应该返回这个旧的interaction controller。</p>
 
 <p>现在我们已经实现了一个完全自定义的可交互的转场动画了。通过简单的手势识别和UIKIT提供的一个类，用几行代码就达到完成了。对于大部分的应用场景，你读到这就够用了，使用上面提到的方法就可以达到你想要的动画效果了。但如果你想更深入了解转场动画或者交互效果进行深度定制，请继续阅读下面的内容。</p>
+
+<h3>完整工程下载</h3>
+
+<p><a href="https://github.com/TLiOSDemo/CustomTransitionController/archive/master.zip">完整的代码在这里下载</a></p>
 
 <h2>使用GPUImage定制动画</h2>
 
