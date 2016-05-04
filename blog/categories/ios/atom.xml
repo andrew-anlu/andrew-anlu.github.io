@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Ios | 安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/blog/categories/ios/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-05-04T15:16:36+08:00</updated>
+  <updated>2016-05-04T15:18:13+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -21,6 +21,9 @@
     <content type="html"><![CDATA[<h2>什么是Rumtime</h2>
 
 <p>我们写的代码在程序运行过程中都会被转化成runtime的C代码执行，例如<code>[target dosomething]</code>会被转化成 <code>objc_msgSend(target,@selector(doSomething));</code>.</p>
+
+<!--more-->
+
 
 <p>oc中一切都被设计成了对象，我们都知道一个类被初始化成一个实例，这个实例是一个对象，实际上一个类本质上也是一个对象，在runTime中用结构体表示:</p>
 

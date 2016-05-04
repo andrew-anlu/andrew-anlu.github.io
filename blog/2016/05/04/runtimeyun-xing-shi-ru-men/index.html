@@ -92,6 +92,9 @@
 
 <p>我们写的代码在程序运行过程中都会被转化成runtime的C代码执行，例如<code>[target dosomething]</code>会被转化成 <code>objc_msgSend(target,@selector(doSomething));</code>.</p>
 
+<!--more-->
+
+
 <p>oc中一切都被设计成了对象，我们都知道一个类被初始化成一个实例，这个实例是一个对象，实际上一个类本质上也是一个对象，在runTime中用结构体表示:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
