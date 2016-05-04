@@ -4,7 +4,7 @@
   <title><![CDATA[安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-05-04T15:18:13+08:00</updated>
+  <updated>2016-05-04T18:14:54+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -12,6 +12,215 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[CATransform3D]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/05/04/catransform3d/"/>
+    <updated>2016-05-04T17:25:54+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/05/04/catransform3d</id>
+    <content type="html"><![CDATA[<h1>图层的几个坐标系</h1>
+
+<p>对于ios来说，坐标系的(0,0)点在左下角，就是越往下，Y值越大。越向右，X值就越大.</p>
+
+<!--more-->
+
+
+<p>一个图层的frame,它是position,bounds,anchorPoint和transform尚需经的一部分。</p>
+
+<p>设置一个新的frame将会相应的改变图层的position和bounds,但是frame本身并没有保存。</p>
+
+<h3>position</h3>
+
+<p>是一个CGPoint值，它指定图层相当于它父图层的位置，该值基于父图层的坐标系</p>
+
+<h3>bounds</h3>
+
+<p>是一个CGRect值，指定图层的大小(bounds.size)和图层的原点(bounds.origin)，这个坐标系是基于自身的。如果改变bounds的origin,那么在该图层的子图层，左边会跟着改变。也就是说，改变自身的坐标系，本身在福图层的位置不变，但它上面的自图层位置变化</p>
+
+<h3>anchorPoint</h3>
+
+<p>是一个CGPoint值，它是指定了一个基于bounds的符合坐标系的位置。锚点(anchor point)制定了bounds相对于position的值，同时也作为一个变化时候的中心点。锚点使用空间坐标系取值范围是0-1之间的数。默认是0.5,也就是图标的中心点，如果是(0,0)那么图层向左上方移动。如果是(1,1)就向右下方移动。</p>
+
+<p>看下面的两个图，就能够清晰的看出锚点变化所带来的不一样。（此图为Mac OS 坐标系，如果是iOS，那么（0，0）点在图的左上方。</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/1511481-ec88270eb7d8c9a0.png" alt="1" /></p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/1511481-bfe77d9ab6636ce0.png" alt="2" /></p>
+
+<p>对于anchorPoint的解释在ios中如图:</p>
+
+<p>下图中的红点位置就是锚点的位置，默认是(0.5,0.5)。在对图像进行变化时，都是按照这个店来进行缩放，偏移等。</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/1511481-76ff5832ae84e2f6.png" alt="1" /></p>
+
+<p>一旦修改锚点位置为:(0,0),那么图像就会变成下图.各种变换就会按照这个点来运动.</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/1511481-e6bcb36d43e12c4d.png" alt="2" /></p>
+
+<p>所以说在ios系统中，锚点的坐标系是:左上角为(0,0),右下角为(1,1)。</p>
+
+<p>根据此图，再理解上面的定义，就直观多了。</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/1511481-47294f41d81081da.png" alt="1" /></p>
+
+<h1>图层的几何变换</h1>
+
+<p>可以通过矩阵来改变一个图层的几何形状。</p>
+
+<p><em>CATransform3D</em>的数据结构定义了一个同质的三维变换(4*4 CGFloat值的矩阵),用于图层的旋转，缩放，偏移和应用的透视。</p>
+
+<p>图层的2歌属性指定了变换矩阵:transform和sublayerTransform。</p>
+
+<h3>transform</h3>
+
+<p>是结合anchorPoint的位置来对图层和图层上的子图层进行变化</p>
+
+<h3>sublayerTransform</h3>
+
+<p>是结合anchorPoint的位置来对图层的子图层进行变化，不包括本身</p>
+
+<h3>CATransform3DIdentity</h3>
+
+<p>是单位矩阵，该矩阵没有缩放，旋转，歪斜，透视。该矩阵应用到图层上，就是设置默认值。</p>
+
+<h1>变换函数</h1>
+
+<h3>CATransform3DMakeTranslation</h3>
+
+<p>官方文档:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Returns a transform that translates by '(tx, ty, tz)'. t' = [1 0 0 0; 0 1 0 0; 0 0 1 0; tx ty tz 1].
+</span><span class='line'>
+</span><span class='line'>CATransform3D CATransform3DMakeTranslation (CGFloat tx, CGFloat ty, CGFloat tz)。</span></code></pre></td></tr></table></div></figure>
+
+
+<p>对于CATransform3D来说，它是一个4*4的 CGFloat的矩阵。而上面的值:<code>[1 0 0 0; 0 1 0 0; 0 0 1 0; tx ty tz 1].</code>给竖起来后，就发现:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>1    0    0    0
+</span><span class='line'>
+</span><span class='line'>0    1    0    0
+</span><span class='line'>
+</span><span class='line'>0    0    1    0
+</span><span class='line'>
+</span><span class='line'>tx   ty   tz   1</span></code></pre></td></tr></table></div></figure>
+
+
+<p>竖起来就很明显了。</p>
+
+<p>CATransform3D又是一个结构，他有自己的一个公式，可以进行套用.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>struct CATransform3D
+</span><span class='line'>
+</span><span class='line'>{
+</span><span class='line'>
+</span><span class='line'>CGFloat    m11（x缩放）,    m12（y切变）,      m13（旋转）,    m14（）;
+</span><span class='line'>
+</span><span class='line'>CGFloat    m21（x切变）,    m22（y缩放）,      m23（）       ,    m24（）;
+</span><span class='line'>
+</span><span class='line'>CGFloat    m31（旋转）  ,    m32（ ）  ,      m33（）       ,    m34（透视效果，要操作的这个对象要有旋转的角度，否则没有效果。正直/负值都有意义）;
+</span><span class='line'>
+</span><span class='line'>CGFloat    m41（x平移）,    m42（y平移）,    m43（z平移） ,    m44（）;
+</span><span class='line'>
+</span><span class='line'>};
+</span><span class='line'>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>根据这个公式就一目了然了。</p>
+
+<p>CATransform3D CATransform3DMakeTranslation (CGFloat tx, CGFloat ty, CGFloat tz)参数的意思就是 <em>tx:：x平移。  ty：y平移。  tz：z平移</em></p>
+
+<p>CATransform3D CATransform3DMakeTranslation (CGFloat tx, CGFloat ty, CGFloat tz)</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>tx：X轴偏移位置，往下为正数。
+</span><span class='line'>
+</span><span class='line'>ty：Y轴偏移位置，往右为正数。
+</span><span class='line'>
+</span><span class='line'>tz：Z轴偏移位置，往外为正数。</span></code></pre></td></tr></table></div></figure>
+
+
+<p>举个栗子:</p>
+
+<p>如果有两个图层，一个是绿色的，一个是红色的，先加载绿色，后加载红色</p>
+
+<p>tx,ty的偏移就先不说了</p>
+
+<p>如果绿色的tz为-10，红色的tz为0，效果如下:</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/1511481-7d642630070e7554.png" alt="1" /></p>
+
+<p>如果绿色的tz为0,红色的tz为-10，效果如下:</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/1511481-29ecdd06f03578f4.png" alt="2" /></p>
+
+<p>对于tz来说，tz越大，那么图层就越靠近屏幕，值越小，图层越往里（离屏幕越远）</p>
+
+<h4>CATransform3D CATransform3DTranslate (CATransform3D t, CGFloat tx, CGFloat ty, CGFloat tz);</h4>
+
+<p>t:就是上一个函数，其它都一样
+就可以理解为函数的叠加，效果的叠加</p>
+
+<h4>CATransform3D CATransform3DMakeScale (CGFloat sx, CGFloat sy, CGFloat sz);</h4>
+
+<p><em>sx:</em> x轴缩放，代表一个缩放比例，一般都是0-1之间的数字
+<em>sy:</em> y轴上缩放
+<em>sz:</em> 整体比例变换时，也就是m11(sx) == m22(sy)时，若m33(sz) > 1时，图形整体缩小，若0&lt;1,图形整体放大，若m33(sz) &lt; 0时，发生关于原点的对称等比变换。</p>
+
+<p>当sx = 1时，sy = 1时，如图:
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/1511481-04771b49561f6d76.png" alt="1" /></p>
+
+<p>当sx=0.5,sy=0.5时，如图:</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/1511481-6023b3794fd9917d.png" alt="2" /></p>
+
+<h4>CATransform3D CATransform3DScale (CATransform3D t, CGFloat sx, CGFloat sy, CGFloat sz)</h4>
+
+<p>t：就是上一个函数。其他的都一样。</p>
+
+<p>就可以理解为：函数的叠加，效果的叠加</p>
+
+<h4>CATransform3D CATransform3DMakeRotation (CGFloat angle, CGFloat x, CGFloat y, CGFloat z);</h4>
+
+<p>旋转效果</p>
+
+<p>angle：旋转的弧度，所以要把角度转换成弧度：角度 * M_PI / 180</p>
+
+<p>x:向X轴方向旋转。值范围-1 &mdash; 1之间</p>
+
+<p>y:向Y轴方向旋转。值范围-1 &mdash; 1之间</p>
+
+<p>z:向Z轴方向旋转。值范围-1 &mdash; 1之间</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Runtime运行时入门]]></title>
@@ -8981,514 +9190,6 @@ s.frameworks和s.libraries指定依赖的SDK中的framework和类库，需要注
 <h1>Done</h1>
 
 <p>👍</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[闭包-swift]]></title>
-    <link href="http://andrew-anlu.github.io/blog/2016/03/11/bi-bao-swift/"/>
-    <updated>2016-03-11T16:48:06+08:00</updated>
-    <id>http://andrew-anlu.github.io/blog/2016/03/11/bi-bao-swift</id>
-    <content type="html"><![CDATA[<h2>前言</h2>
-
-<p>闭包是自包含的函数代码块，可以在代码中被传递和使用。swift中的闭包与oc中的代码块(block)比较相似</p>
-
-<p>闭包可以捕获和存储其所在上下文中任意常量和变量的引用。这就是所谓的闭包并包括着着这些常量和变量，俗称闭包。
-swift会为您管理在捕获过程中涉及到所有内存操作。</p>
-
-<!--more-->
-
-
-<p>闭包采用如下三种形式之一</p>
-
-<ol>
-<li>全局函数是一个有名字但不会捕获任何值的闭包</li>
-<li>嵌套函数是一个有名字并可以捕获其封闭函数域内值的闭包</li>
-<li>闭包表达式是一个利用轻量级语法所写的可以捕获其上下文中常量或变量值的匿名闭包</li>
-</ol>
-
-
-<p>swift的闭包表达式拥有简介的风格，并鼓励在常见场景下进行语法优化，主要优化如下:</p>
-
-<ol>
-<li>利用上下文推断参数和返回值类型</li>
-<li>隐式返回单表达式闭包，即单表达式闭包可以省略 return 关键字</li>
-<li>参数名称缩写</li>
-<li>尾随(Trailing)闭包语法</li>
-</ol>
-
-
-<h2>闭包表达式(Closure Expressions)</h2>
-
-<p>嵌套函数是一个在较复杂函数中方便进行命名和定义字包含代码模块的方式。当然，有时候撰写小巧的没有完整定义和命名的类函数结构也是很有用处的，尤其是在您处理一些函数并需要将另外一些函数作为该函数的参数时。</p>
-
-<p>闭包表达式是一种利用简介语法构建内联闭包的方式。闭包表达式提供一些语法优化，使得撰写闭包变得简单明了。下面的闭包表达式的例子通过使用几次迭代展示了 <code>sort(_:)</code>方法定义和语法优化的方式。
-每一次迭代都用更简洁的方式描述了相同的功能。</p>
-
-<h3>sort方法(The Sort Method)</h3>
-
-<p>Swift标准库提供了名为<code>sort</code>的方法，会根据您提供的用于排序的闭包函数将已知类型数组中的值进行排序。一旦排序排序完成，<code>sort(_:)</code>方法会返回一个与原数组大小相同，包含同类型元素且元素已正确排序的新数组。原数组不会被<code>sort(_:)</code>方法修改。</p>
-
-<p>下面的闭包表达式示例使用<code>sort(_:)</code>方法对一个<code>String</code>类型数组进行字母逆序排序，以下是初始数组值:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>let names = ["Chris", "Alex", "Ewa", "Barry", "Daniella"]</span></code></pre></td></tr></table></div></figure>
-
-
-<p><code>sort(_:)</code>方法接受一个闭包，该闭包函数需要传入与数组元素类型相同的两个值，并返回一个布尔类型的值表明当排序结束后传入的第一个参数排在第二个参数前面还是后面。如果第一个参数值出现在第二个参数值前面，排序闭包函数需要返回 true,反之返回false。</p>
-
-<p>该例子对一个 <code>String</code>类型的数组进行排序，因此排序闭包函数类型需为(String,String)->Bool.
-提供排序闭包函数的一种方式是撰写一个符合其类型要求的普通函数，并将其作为<code>sort(_:)</code>方法的参数传入:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>func backwards(s1: String, s2: String) -&gt; Bool {
-</span><span class='line'>    return s1 &gt; s2
-</span><span class='line'>}
-</span><span class='line'>var reversed = names.sort(backwards)
-</span><span class='line'>// reversed 为 ["Ewa", "Daniella", "Chris", "Barry", "Alex"]</span></code></pre></td></tr></table></div></figure>
-
-
-<p>如果第一个字符串(s1)大于第二个字符串(s2)，<code>backwards(_:_:)</code>函数返回<code>true</code>,表示在新的数组中<code>s1</code>应该出现在<code>s2</code>前。</p>
-
-<h3>闭包表达式语法(Closure Expression Syntax)</h3>
-
-<p>闭包表达式语法有如下一般形式:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>{(parameters) -&gt; return type in
-</span><span class='line'>  statements
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>闭包表达式语法可以使用常量，变量和<code>inout</code>类型作为参数，不能提供默认值。也可以在参数列表的最后使用可变参数。
-元组也可以作为参数和返回值.</p>
-
-<p>下面的例子展示了之前 <code>backwards(_:_:)</code>函数对应的闭包表达式版本的代码:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>reversed = names.sort({ (s1:String , s2:String) -&gt; Bool in 
-</span><span class='line'>  return s1 &gt; s2
-</span><span class='line'>})</span></code></pre></td></tr></table></div></figure>
-
-
-<p>需要注意的是内联闭包参数和返回值类型声明与<code>backwards(_:_:)</code>函数类型声明相同。在这两种方式中，都写成了(s1:String,s2:String) - >Bool.然而在内联闭包表达式中，函数和返回值类型都卸载大括号内，而不是大括号外。</p>
-
-<p>闭包的函数体部分由关键字  in 引入。该关键字表示闭包的参数和返回值类型定义已经完成，闭包函数体即将开始。</p>
-
-<p>由于这个闭包函数体部分如此短，以至于可以将其改写成一行代码:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>reversed = names.sort({(s1:String,s2:String)-&gt;Bool in 
-</span><span class='line'>  return s1&gt;s2
-</span><span class='line'>  })</span></code></pre></td></tr></table></div></figure>
-
-
-<p>该例中<code>sort(_:)</code>方法的整体调用保持不变，一对圆括号仍然包裹住了方法的整个参数。然后，参数现在变成了内联闭包。</p>
-
-<h3>根据上下文推断类型(Inferring Type from Context)</h3>
-
-<p>因为排序闭包函数是作为<code>sort(_:)</code>方法的参数传入的，swift可以推断其参数和返回值类型。<code>sort(_:)</code>方法被一个字符串数组调用，因此其参数必须是(String,String)->Bool类型的函数。这意味着(String,String)和Bool类型并不需要作为闭包表达式定义的一部分。因为所有的类型都可以被正确推断，返回箭头(->)和围绕在参数周围的括号也可以被省略:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>reversed = names.sort({s1,s2 in return s1 &gt; s2})</span></code></pre></td></tr></table></div></figure>
-
-
-<p>实际上任何情况下，通过内联闭包表达式构造的闭包作为参数传递给函数活方法时，都可以推断出闭包的参数和返回值类型。这意味着闭包作为函数或者方法的参数时，您几乎不需要利用完整格式构造内联闭包。</p>
-
-<p>尽管如此，您仍然可以明确写出有着完整格式的闭包。如果完整格式的闭包能提高代码的可读性，则可以采用完整格式的闭包。而在<code>sort(_:)</code>方法这个例子里，闭包的目的就是排序。由于这个闭包是为了处理字符串数组的排序，因此读者能够推测出这个闭包是用于字符串处理的。</p>
-
-<h3>单表达式闭包隐式返回</h3>
-
-<p>单行表达式闭包可以通过省略<code>return</code>关键字来隐式返回单行表达式的结果，如上版本的例子可以改写成:</p>
-
-<pre><code>reversed=names.sort({s1,s2 in s1 &gt; s2})
-</code></pre>
-
-<p>在这个例子中，<code>sort(_:)</code>方法的第二个参数函数类型明确了闭包必须返回一个<code>Bool</code>类型之。因为闭包函数体只包含了一个单一表达式(<code>s1&gt;s2</code>),改表达式返回<code>Bool</code>类型值，因此这里没有歧义，<code>return</code>关键字可以省略</p>
-
-<h3>函数名称缩写</h3>
-
-<p>swift自动为内联闭包提供了参数名称缩写功能，您可以额直接通过<code>$0,$1,$2</code>来顺序调用闭包参数，以此类推。
-如果您在闭包表达式中使用参数名称缩写，您可以在闭包参数列表中省略对其的定义，并且对应参数名称缩写的类型会通过函数类型进行判断。<code>in</code>关键字同样可以被省略额，因为此时闭包表达式完全有闭包函数体构成：</p>
-
-<pre><code>reveserd = names.sort({$0 &gt; $1})
-</code></pre>
-
-<p>在这个例子中，$0和$1表示闭包中第一个和第二个<code>String</code>类型的参数。</p>
-
-<h3>运算符函数(OPerator Functions)</h3>
-
-<p>实际上还有一种更简短的方式来撰写上面例子中的闭包表达式。Swift的<code>String</code>类型定了关于大于号(>)的字符串实现，其作为一个函数接受两个<code>String</code>类型的参数并返回<code>Bool</code>类型的值。而这正好与<code>sort(_:)</code>方法的第二个参数需要的函数类型相符合。因此，您可以简单传递一个大于号，Swift可以自动推断出您想使用大于号的字符串函数实现：</p>
-
-<pre><code>reversed = names.sort(&gt;)
-</code></pre>
-
-<h2>尾随闭包(Trailing Closures)</h2>
-
-<p>如果您需要将一个很长的闭包表达式作为最后一个参数传递给函数，可以使用尾随闭包来增强函数的可读性。尾随闭包是一个书写在函数括号之后的彼表表达式，函数支持将其作为最后一个参数调用:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>func someFunctionThatTakesAClosure(closure: () -&gt; Void){
-</span><span class='line'>     //函数体部分
-</span><span class='line'>  }
-</span><span class='line'>  // 以下是不使用尾随闭包进行函数调用
-</span><span class='line'>  someFunctionThatTakesAClosure({
-</span><span class='line'>    // 闭包主体部分
-</span><span class='line'>  })
-</span><span class='line'>
-</span><span class='line'>  // 以下是使用尾随闭包进行函数调用
-</span><span class='line'> someFunctionThatTakesAClosure() {
-</span><span class='line'>     // 闭包主体部分
-</span><span class='line'> }</span></code></pre></td></tr></table></div></figure>
-
-
-<p>上面的sort排序可以改为:</p>
-
-<pre><code>reversed = names.sort(){$0 &gt; $1}
-</code></pre>
-
-<p>如果函数只需要闭包表达式一个参数，当您使用尾随闭包时，您甚至可以吧()省略掉</p>
-
-<pre><code>reversed = names.sort { $0 &gt; $1}
-</code></pre>
-
-<p>当闭包非常长以至于不能再一行中进行书写时，尾随闭包变得非常有用。举例来说，swift的<code>array</code>类型有一个<code>map(_:)</code>方法，其获取一个闭包表达式作为其唯一参数。该闭包函数会为数组中的每一个元素调用，并返回该元素所映射的值。具体的映射方式和返回值类型由闭包来指定。</p>
-
-<p>当提供给数组的闭包应用于每个数组元素后，<code>map(_:)</code>方法将返回一个新的数组，数组中包含了原数组中的元素-对应的映射后的值</p>
-
-<p>下例介绍了如何在<code>map(_:)</code>方法中使用尾随闭包将<code>Int</code>类型数组<code>[16,58,510]</code>转换为包含对应<code>String</code>类型的值的数组<code>["OneSix", "FiveEight", "FiveOneZero"]</code></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>let digitNames = [
-</span><span class='line'>    0: "Zero", 1: "One", 2: "Two",   3: "Three", 4: "Four",
-</span><span class='line'>    5: "Five", 6: "Six", 7: "Seven", 8: "Eight", 9: "Nine"
-</span><span class='line'>]
-</span><span class='line'>let numbers = [16, 58, 510]</span></code></pre></td></tr></table></div></figure>
-
-
-<p>如上代码创建了一个数字位和它们英文版名字想映射的字典。同时还定义了一个准备转换为字符串数组的整形数组。
-您现在可以通过传递一个尾随闭包给<code>numbers</code>的<code>map(_:)</code>方法来创建对应的字符串版本数组:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>let strings = numbers.map {
-</span><span class='line'>    (var number) -&gt; String in
-</span><span class='line'>    var output = ""
-</span><span class='line'>    while number &gt; 0 {
-</span><span class='line'>        output = digitNames[number % 10]! + output
-</span><span class='line'>        number /= 10
-</span><span class='line'>    }
-</span><span class='line'>    return output
-</span><span class='line'>}
-</span><span class='line'>// strings 常量被推断为字符串类型数组，即 [String]
-</span><span class='line'>// 其值为 ["OneSix", "FiveEight", "FiveOneZero"]</span></code></pre></td></tr></table></div></figure>
-
-
-<p><code>map(_:)</code>为数组中每一个元素调用了闭包表达式。您不需要指定闭包的输入参数<code>number</code>的类型，因为可以通过要映射的数组类型进行判断。</p>
-
-<p>在该例子中，闭包<code>number</code>参数被声明为一个变量参数，因此可以在闭包函数体内对齐进行修改，而不用再定义一个新的局部变量并将<code>number</code>的值赋值给它。闭包表达式指定了返回类型为String,以表明存储映射值的新数组类型为<code>String</code>.</p>
-
-<p>闭包表达式在每次被调用的时候创建了一个叫做<code>output</code>的字符串并返回。</p>
-
-<h3>捕获值(Capturing Values)</h3>
-
-<p>闭包可以在其被定义的上下文中捕获常量或变量。及时定义这些常量和变量的原作用域已经不存在，闭包仍然可以在闭包函数体内引用和修改这些值。</p>
-
-<p>Swift中，可以捕获值的彼表的最简单形式是嵌套函数，也就是定义在其他函数的函数体内的函数。嵌套函数可以捕获其外部函数所有的参数一级定义的常量和变量。</p>
-
-<p>举个例子，这有一个叫做<code>makeIncrementor</code>的函数，其包含了一个叫做<code>incrementor</code>的嵌套函数。嵌套函数<code>incrementor()</code>从上下文中捕获了两个值，<code>reunningTotal</code>和<code>amount</code>。捕获这些值之后，<code>makeIncrementor</code>将<code>incrementor</code>作为闭包返回。每次调用<code>incrementor</code>时，其会以<code>amout</code>作为增量增加<code>runningTotal</code>的值</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>func makeIncrementor(forIncrement amount: Int) -&gt; () -&gt; Int {
-</span><span class='line'>    var runningTotal = 0
-</span><span class='line'>    func incrementor() -&gt; Int {
-</span><span class='line'>        runningTotal += amount
-</span><span class='line'>        return runningTotal
-</span><span class='line'>    }
-</span><span class='line'>    return incrementor
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p><code>makeIncrementor</code>返回类型为<code>()-&gt;Int</code>.这意味着其返回一个函数，而不是一个简单类型的值。该函数在每次调用时不接受参数，值返回一个<code>Int</code>类型的值。
-<code>makeIncrementer(forIncrement:)</code>函数定义了一个初始值为0的整形变量<code>runningTotal</code>，用来存储当前跑步总数。该值通过<code>incrementor</code>返回。</p>
-
-<p><code>makeIncrementor(forIncrement:)</code>有一个<code>Int</code>类型的参数，其外部参数名为<code>forIncrement</code>,内部参数名为<code>amount</code>,该参数表示每次<code>incrementor</code>被调用时<code>runingTotal</code>将要增加的量。</p>
-
-<p>嵌套函数<code>increment</code>用来执行实际的增加操作。该函数简单滴使用<code>runningTotal</code>增加<code>amount</code>，并将其返回。
-如果我们单独看这个函数，会发现看上去不同寻常:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>func incrementor() -&gt; Int {
-</span><span class='line'>    runningTotal += amount
-</span><span class='line'>    return runningTotal
-</span><span class='line'>}
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p><code>incrementer()</code>函数并没有任何参数，但是在函数体访问了<code>runningTotal</code>和<code>amount</code>变量。这是因为它从外围函数捕获了<code>runninTotal</code>和<code>amount</code>变量的引用。捕获引用保证了<code>runningTotal</code>和<code>amount</code>变量在调用完<code>makeIncrementer</code>后不会消失，并且保证了下一次执行<code>incrementer</code>函数时，<code>runningTotal</code>依旧存在。</p>
-
-<p>下面是一个使用<code>makeIncrementor</code>的例子:</p>
-
-<pre><code>let incrementByTen = makeIncrementor(forIncrement: 10)
-</code></pre>
-
-<p>该例子定义了一个叫做 <code>incrementByTen</code>的常量，该常量指向一个每次调用会将<code>runningTotal</code>变量增加10的 <code>incrementor</code>函数。调用这个函数多次可以得到如下结果:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>incrementByTen()
-</span><span class='line'>// 返回的值为10
-</span><span class='line'>incrementByTen()
-</span><span class='line'>// 返回的值为20
-</span><span class='line'>incrementByTen()
-</span><span class='line'>// 返回的值为30</span></code></pre></td></tr></table></div></figure>
-
-
-<p>如果您蒋欢了另一个<code>incrementor</code>，它会有属于它自己的一个全新的，独立的<code>runnintTotal</code>变量的引用:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>let incrementBySeven = makeIncrementor(forIncrement: 7)
-</span><span class='line'>incrementBySeven()
-</span><span class='line'>// 返回的值为7</span></code></pre></td></tr></table></div></figure>
-
-
-<p>再次调用原来的<code>incrementByTen</code>会在原来的变量<code>runningTotal</code>上继续增加值,该变量和<code>incrementBySeven</code>中捕获的变量没有任何联系:</p>
-
-<pre><code>incrementByTen()
-// 返回的值为40  
-</code></pre>
-
-<h2>闭包是引用类型</h2>
-
-<p>上面的例子中，<code>incrementBySeven</code>和<code>incrementByTen</code>是常量，但是这些常量指向的闭包仍然可以增加其捕获的变量的值。这是因为函数和闭包都是引用类型。</p>
-
-<p>无论您将函数或闭包赋值一个常量还是变量，您实际上都是将常量或者变量的值设置为对应函数或闭包的引用。上面的例子中，指向闭包的引用<code>incrementByTen</code>是一个常量，而并非闭包内容本身。</p>
-
-<p>这也意味着如果您将闭包赋值给两个不同的常量或变量，两个值都会指向同一个闭包:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>let alsoIncrementByTen = incrementByTen
-</span><span class='line'>alsoIncrementByTen()
-</span><span class='line'>// 返回的值为50</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>非逃逸闭包(Nonescaping Closures)</h2>
-
-<p>当一个闭包作为参数传到一个函数中，但是这个闭包在函数返回之后才被执行，我们称该闭包从函数中逃逸。当你定义接受闭包作为参数的函数时，你可以在参数名之前标注<code>@noescape</code>,用来指明这个闭包是不允许"逃逸"出这个函数的。将闭包标注<code>@noescape</code>能使编译器知道这个闭包的生命周期,从而可以进行一些比较激进的优化。</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>func someFunctionWithNoescapeClosure(@noescape closure: () -&gt; Void) {
-</span><span class='line'>    closure()
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>举个例子,<code>sort(_:)</code>方法接受一个用来进行元素比较的闭包作为参数。这个参数被标注了<code>@noescape</code>，因为它确保自己在排序结束之后就没用了。</p>
-
-<p>一种能使闭包'逃逸'
-出函数的方法是，将这个闭包保存在一个函数外部定义的变量中。举个例子，很多异步操作的函数接受一个闭包参数作为 completion handler.这类函数会在异步操作开始之后立刻返回，但是闭包直到异步操作结束后才会被调用。在这种情况下，闭包需要“逃逸”出函数，因为闭包需要在函数返回之后被调用。例如:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>var completionHandlers: [() -&gt; Void] = []
-</span><span class='line'>func someFunctionWithEscapingClosure(completionHandler: () -&gt; Void) {
-</span><span class='line'>    completionHandlers.append(completionHandler)
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p><code>someFunctionWithEscapingClosure(_:)</code>函数接受一个闭包作为参数，该闭包被添加到一个函数外定义的数组中。如果你视图将这个参数标注为<code>@noescape</code>，你将会得到一个编译错误。</p>
-
-<p>将闭包标注为<code>@noescape</code>使你能在闭包中隐式地引用<code>self</code>.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>class SomeClass {
-</span><span class='line'>    var x = 10
-</span><span class='line'>    func doSomething() {
-</span><span class='line'>        someFunctionWithEscapingClosure { self.x = 100 }
-</span><span class='line'>        someFunctionWithNoescapeClosure { x = 200 }
-</span><span class='line'>    }
-</span><span class='line'>}
-</span><span class='line'>
-</span><span class='line'>let instance = SomeClass()
-</span><span class='line'>instance.doSomething()
-</span><span class='line'>print(instance.x)
-</span><span class='line'>// prints "200"
-</span><span class='line'>
-</span><span class='line'>completionHandlers.first?()
-</span><span class='line'>print(instance.x)
-</span><span class='line'>// prints "100</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>自动闭包(Autoclosures)</h2>
-
-<p>自动闭包是一种自动创建的闭包，用于包装传递给函数作为参数的表达式。这种闭包不接受任何参数，当它被调用的时候，会返回被包装在其中的表达式的值。这种便利语法让你能够用一个普通的表达式来代替显式的闭包，从而省略闭包的花括号。</p>
-
-<p>自动闭包让你能够延时求值，因为代码段不会被执行直到你显式的调用这个闭包。延迟求值对于那些有副作用和代价昂贵的代码来说是很有益处的，因为你能控制代码什么时候执行。下面的代码展示了闭包如何延时求值。</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>var customersInLine = ["Chris", "Alex", "Ewa", "Barry", "Daniella"]
-</span><span class='line'>print(customersInLine.count)
-</span><span class='line'>// prints "5"
-</span><span class='line'>
-</span><span class='line'>let customerProvider = { customersInLine.removeAtIndex(0) }
-</span><span class='line'>print(customersInLine.count)
-</span><span class='line'>// prints "5"
-</span><span class='line'>
-</span><span class='line'>print("Now serving \(customerProvider())!")
-</span><span class='line'>// prints "Now serving Chris!"
-</span><span class='line'>print(customersInLine.count)
-</span><span class='line'>// prints "4"</span></code></pre></td></tr></table></div></figure>
-
-
-<p>尽管在闭包的代码中，<code>customersInLine</code>的第一个元素被移除了，不过在闭包调用之前，这个元素不会被移除的。如果这个闭包永远不被调用，那么闭包里卖弄的表达式将永远不会执行，那意味着列表中的元素永远不会被删除。请注意，<code>customeerProvider</code>的类型不是<code>String</code>,而是<code>() -&gt; String</code>,一个没有参数且返回值为<code>String</code>的函数。
-将闭包作为参数传递给函数时，你能获的同样的延时求值行为.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>// customersInLine is ["Alex", "Ewa", "Barry", "Daniella"]
-</span><span class='line'>func serveCustomer(customerProvider: () -&gt; String) {
-</span><span class='line'>    print("Now serving \(customerProvider())!")
-</span><span class='line'>}
-</span><span class='line'>serveCustomer( { customersInLine.removeAtIndex(0) } )
-</span><span class='line'>// prints "Now serving Alex!"</span></code></pre></td></tr></table></div></figure>
-
-
-<p><code>serveCustomer(_:)</code>接受一个返回顾客名字的显式的闭包。下面的这个版本的 serveCustomer(_:)完成了相同的操作，不过它并没有接受一个显示的闭包，而是通过该将参数标记为<code>@autoclosure</code>来接收一个自动闭包。现在你可以将该函数当做接受<code>String</code>类型参数的函数来调用。<code>customerProvider</code>参数将自动转化为一个闭包，因为该参数标记了<code>@autoclosure</code>特性。</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>// customersInLine is ["Ewa", "Barry", "Daniella"]
-</span><span class='line'>func serveCustomer(@autoclosure customerProvider: () -&gt; String) {
-</span><span class='line'>    print("Now serving \(customerProvider())!")
-</span><span class='line'>}
-</span><span class='line'>serveCustomer(customersInLine.removeAtIndex(0))
-</span><span class='line'>// prints "Now serving Ewa!"</span></code></pre></td></tr></table></div></figure>
-
-
-<p><code>@autoclosure</code>特性暗含了<code>@noescape</code>特性。如果你想让这个闭包可以"逃逸"，则应该使用<code>@autoclosure(escaping)</code>特性。</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>// customersInLine is ["Barry", "Daniella"]
-</span><span class='line'>var customerProviders: [() -&gt; String] = []
-</span><span class='line'>func collectCustomerProviders(@autoclosure(escaping) customerProvider: () -&gt; String) {
-</span><span class='line'>    customerProviders.append(customerProvider)
-</span><span class='line'>}
-</span><span class='line'>collectCustomerProviders(customersInLine.removeAtIndex(0))
-</span><span class='line'>collectCustomerProviders(customersInLine.removeAtIndex(0))
-</span><span class='line'>
-</span><span class='line'>print("Collected \(customerProviders.count) closures.")
-</span><span class='line'>// prints "Collected 2 closures."
-</span><span class='line'>for customerProvider in customerProviders {
-</span><span class='line'>    print("Now serving \(customerProvider())!")
-</span><span class='line'>}
-</span><span class='line'>// prints "Now serving Barry!"
-</span><span class='line'>// prints "Now serving Daniella!"</span></code></pre></td></tr></table></div></figure>
-
-
-<p>在上面的代码中，<code>collectCustomerProviders(_:)</code>函数并没有调用传入的<code>cusomerProvider</code>闭包，而是将闭包追加到了<code>customerProviders</code>数组中。这个数组定义在函数作用域范围外，这意味着数组内的闭包将会在函数返回之后被调用，因此，<code>customerProvider</code>参数必须允许“逃逸”出函数作用域.</p>
 ]]></content>
   </entry>
   

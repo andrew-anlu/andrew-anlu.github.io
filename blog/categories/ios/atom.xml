@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Ios | 安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/blog/categories/ios/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-05-04T15:18:13+08:00</updated>
+  <updated>2016-05-04T18:14:54+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -12,6 +12,184 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[CATransform3D]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/05/04/catransform3d/"/>
+    <updated>2016-05-04T17:25:54+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/05/04/catransform3d</id>
+    <content type="html"><![CDATA[<h1>图层的几个坐标系</h1>
+
+<p>对于ios来说，坐标系的(0,0)点在左下角，就是越往下，Y值越大。越向右，X值就越大.</p>
+
+<!--more-->
+
+
+<p>一个图层的frame,它是position,bounds,anchorPoint和transform尚需经的一部分。</p>
+
+<p>设置一个新的frame将会相应的改变图层的position和bounds,但是frame本身并没有保存。</p>
+
+<h3>position</h3>
+
+<p>是一个CGPoint值，它指定图层相当于它父图层的位置，该值基于父图层的坐标系</p>
+
+<h3>bounds</h3>
+
+<p>是一个CGRect值，指定图层的大小(bounds.size)和图层的原点(bounds.origin)，这个坐标系是基于自身的。如果改变bounds的origin,那么在该图层的子图层，左边会跟着改变。也就是说，改变自身的坐标系，本身在福图层的位置不变，但它上面的自图层位置变化</p>
+
+<h3>anchorPoint</h3>
+
+<p>是一个CGPoint值，它是指定了一个基于bounds的符合坐标系的位置。锚点(anchor point)制定了bounds相对于position的值，同时也作为一个变化时候的中心点。锚点使用空间坐标系取值范围是0-1之间的数。默认是0.5,也就是图标的中心点，如果是(0,0)那么图层向左上方移动。如果是(1,1)就向右下方移动。</p>
+
+<p>看下面的两个图，就能够清晰的看出锚点变化所带来的不一样。（此图为Mac OS 坐标系，如果是iOS，那么（0，0）点在图的左上方。</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/1511481-ec88270eb7d8c9a0.png" alt="1" /></p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/1511481-bfe77d9ab6636ce0.png" alt="2" /></p>
+
+<p>对于anchorPoint的解释在ios中如图:</p>
+
+<p>下图中的红点位置就是锚点的位置，默认是(0.5,0.5)。在对图像进行变化时，都是按照这个店来进行缩放，偏移等。</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/1511481-76ff5832ae84e2f6.png" alt="1" /></p>
+
+<p>一旦修改锚点位置为:(0,0),那么图像就会变成下图.各种变换就会按照这个点来运动.</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/1511481-e6bcb36d43e12c4d.png" alt="2" /></p>
+
+<p>所以说在ios系统中，锚点的坐标系是:左上角为(0,0),右下角为(1,1)。</p>
+
+<p>根据此图，再理解上面的定义，就直观多了。</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/1511481-47294f41d81081da.png" alt="1" /></p>
+
+<h1>图层的几何变换</h1>
+
+<p>可以通过矩阵来改变一个图层的几何形状。</p>
+
+<p><em>CATransform3D</em>的数据结构定义了一个同质的三维变换(4*4 CGFloat值的矩阵),用于图层的旋转，缩放，偏移和应用的透视。</p>
+
+<p>图层的2歌属性指定了变换矩阵:transform和sublayerTransform。</p>
+
+<h3>transform</h3>
+
+<p>是结合anchorPoint的位置来对图层和图层上的子图层进行变化</p>
+
+<h3>sublayerTransform</h3>
+
+<p>是结合anchorPoint的位置来对图层的子图层进行变化，不包括本身</p>
+
+<h3>CATransform3DIdentity</h3>
+
+<p>是单位矩阵，该矩阵没有缩放，旋转，歪斜，透视。该矩阵应用到图层上，就是设置默认值。</p>
+
+<h1>变换函数</h1>
+
+<h3>CATransform3DMakeTranslation</h3>
+
+<p>官方文档:</p>
+
+<pre><code>Returns a transform that translates by '(tx, ty, tz)'. t' = [1 0 0 0; 0 1 0 0; 0 0 1 0; tx ty tz 1].
+
+CATransform3D CATransform3DMakeTranslation (CGFloat tx, CGFloat ty, CGFloat tz)。
+</code></pre>
+
+<p>对于CATransform3D来说，它是一个4*4的 CGFloat的矩阵。而上面的值:<code>[1 0 0 0; 0 1 0 0; 0 0 1 0; tx ty tz 1].</code>给竖起来后，就发现:</p>
+
+<pre><code>1    0    0    0
+
+0    1    0    0
+
+0    0    1    0
+
+tx   ty   tz   1
+</code></pre>
+
+<p>竖起来就很明显了。</p>
+
+<p>CATransform3D又是一个结构，他有自己的一个公式，可以进行套用.</p>
+
+<pre><code>struct CATransform3D
+
+{
+
+CGFloat    m11（x缩放）,    m12（y切变）,      m13（旋转）,    m14（）;
+
+CGFloat    m21（x切变）,    m22（y缩放）,      m23（）       ,    m24（）;
+
+CGFloat    m31（旋转）  ,    m32（ ）  ,      m33（）       ,    m34（透视效果，要操作的这个对象要有旋转的角度，否则没有效果。正直/负值都有意义）;
+
+CGFloat    m41（x平移）,    m42（y平移）,    m43（z平移） ,    m44（）;
+
+};
+</code></pre>
+
+<p>根据这个公式就一目了然了。</p>
+
+<p>CATransform3D CATransform3DMakeTranslation (CGFloat tx, CGFloat ty, CGFloat tz)参数的意思就是 <em>tx:：x平移。  ty：y平移。  tz：z平移</em></p>
+
+<p>CATransform3D CATransform3DMakeTranslation (CGFloat tx, CGFloat ty, CGFloat tz)</p>
+
+<pre><code>tx：X轴偏移位置，往下为正数。
+
+ty：Y轴偏移位置，往右为正数。
+
+tz：Z轴偏移位置，往外为正数。
+</code></pre>
+
+<p>举个栗子:</p>
+
+<p>如果有两个图层，一个是绿色的，一个是红色的，先加载绿色，后加载红色</p>
+
+<p>tx,ty的偏移就先不说了</p>
+
+<p>如果绿色的tz为-10，红色的tz为0，效果如下:</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/1511481-7d642630070e7554.png" alt="1" /></p>
+
+<p>如果绿色的tz为0,红色的tz为-10，效果如下:</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/1511481-29ecdd06f03578f4.png" alt="2" /></p>
+
+<p>对于tz来说，tz越大，那么图层就越靠近屏幕，值越小，图层越往里（离屏幕越远）</p>
+
+<h4>CATransform3D CATransform3DTranslate (CATransform3D t, CGFloat tx, CGFloat ty, CGFloat tz);</h4>
+
+<p>t:就是上一个函数，其它都一样
+就可以理解为函数的叠加，效果的叠加</p>
+
+<h4>CATransform3D CATransform3DMakeScale (CGFloat sx, CGFloat sy, CGFloat sz);</h4>
+
+<p><em>sx:</em> x轴缩放，代表一个缩放比例，一般都是0-1之间的数字
+<em>sy:</em> y轴上缩放
+<em>sz:</em> 整体比例变换时，也就是m11(sx) == m22(sy)时，若m33(sz) > 1时，图形整体缩小，若0&lt;1,图形整体放大，若m33(sz) &lt; 0时，发生关于原点的对称等比变换。</p>
+
+<p>当sx = 1时，sy = 1时，如图:
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/1511481-04771b49561f6d76.png" alt="1" /></p>
+
+<p>当sx=0.5,sy=0.5时，如图:</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/1511481-6023b3794fd9917d.png" alt="2" /></p>
+
+<h4>CATransform3D CATransform3DScale (CATransform3D t, CGFloat sx, CGFloat sy, CGFloat sz)</h4>
+
+<p>t：就是上一个函数。其他的都一样。</p>
+
+<p>就可以理解为：函数的叠加，效果的叠加</p>
+
+<h4>CATransform3D CATransform3DMakeRotation (CGFloat angle, CGFloat x, CGFloat y, CGFloat z);</h4>
+
+<p>旋转效果</p>
+
+<p>angle：旋转的弧度，所以要把角度转换成弧度：角度 * M_PI / 180</p>
+
+<p>x:向X轴方向旋转。值范围-1 &mdash; 1之间</p>
+
+<p>y:向Y轴方向旋转。值范围-1 &mdash; 1之间</p>
+
+<p>z:向Z轴方向旋转。值范围-1 &mdash; 1之间</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Runtime运行时入门]]></title>
@@ -981,225 +1159,6 @@ end
 <h2>完整工程</h2>
 
 <p><a href="https://github.com/TLOpenSpring/OHHTTPStubsDemo/archive/master.zip">完整工程在这里下载</a></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[测试并发程序]]></title>
-    <link href="http://andrew-anlu.github.io/blog/2016/04/21/ce-shi-bing-fa-cheng-xu/"/>
-    <updated>2016-04-21T17:38:05+08:00</updated>
-    <id>http://andrew-anlu.github.io/blog/2016/04/21/ce-shi-bing-fa-cheng-xu</id>
-    <content type="html"><![CDATA[<p>在开发高质量应用程序的过程中，测试时一个很重要的工具。在过去，当并发不是应用程序架构中重要组成部分的时候，测试就想单简单。随着这几年的发展，使用并发设计模式变得越来越重要了，想要测试好并发应用程序，已成了一个不小的挑战.</p>
-
-<!--more-->
-
-
-<p>测试并发代码最主要的困难在于程序或信息流不是反应在调用堆栈上。函数并不会立即返回给调用者，而是通过回调函数block，通知或者一些类似的机制，这些使得测试变得更加困难。</p>
-
-<p>然后，测试异步代码也会带来一些好处，比如可以揭露较差的程序设计，让最终的实现变得更加清晰。</p>
-
-<h1>异步测试的问题</h1>
-
-<p>首先，我们来看一个简单地同步单元测试的例子，两个数求和的方法.</p>
-
-<pre><code>+ (int)add:(int)a to:(int)b {
-    return a + b;
-}
-</code></pre>
-
-<p>测试这个方法很简单，只需要比较该方法返回值是否和期望值相同，如果不相同，则测试失败。</p>
-
-<pre><code>- (void)testAddition {
-    int result = [Calculator add:2 to:2];
-    STAssertEquals(result, 4, nil);
-}
-</code></pre>
-
-<p>接下来，我们利用block将该方法改成异步返回结果，为了模拟测试失败，我们会在方法实现中故意添加一个bug.</p>
-
-<pre><code>+ (int)add:(int)a to:(int)b block:(void(^)(int))block {
-    [[NSOperationQueue mainQueue] addOperationWithBlock:^{
-        block(a - b); // 带有bug的实现
-    }];
-}
-</code></pre>
-
-<p>虽然这是一个人为的例子，但是它却真实的反映了编程中可能经常遇到的问题，只不过实际过程更加复杂罢了。</p>
-
-<p>测试上面的方法最简单的做法就是把断言放到Block中。尽管我们的方法实现中存在bug,但是这种测试永远不是失败的；</p>
-
-<pre><code>// 千万不要使用这些代码！
-- (void)testAdditionAsync {
-    [Calculator add:2 to:2 block:^(int result) {
-        STAssertEquals(result, 4, nil); // 永远不会被调用到
-    }];
-}
-</code></pre>
-
-<p>这里的断言为什么没失败呢？</p>
-
-<h1>关于SenTestingKit</h1>
-
-<p>在老版本的xcode中所使用的测试框架是基于 <a href="http://www.sente.ch/software/ocunit/">OCUnit</a>。为了理解之前所提到的异步测试问题，我们需要了解一下测试包中的各个部分之间的执行顺序。下图展示了一个简化的流程。</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/SenTestingKit-call-stack.png" alt="test" /></p>
-
-<p>在测试框架在主run loop开始运行之后，主要执行了一下几个步骤:</p>
-
-<ol>
-<li>配置一个包含所有相关测试的测试包</li>
-<li>运行测试包，内部会调用所有以test开头测试用例的方法。运行结束后会返回一个包含单个测试结果的对象。</li>
-<li>调用exit()退出测试</li>
-</ol>
-
-
-<p>这其中我们最感兴趣的是单个测试时如何被调用的。在异步测试中，包含断言的Block会被加到run loop。当所有的测试执行完毕后，测试框架就会退出，而block却从来没有被执行，因此不会引起测试失败。</p>
-
-<p>当然我们有很多种方法来解决这个问题。但是素有的方法都必须在住run loop中运行，而且在测试方法返回和比较结果之前需要处理已入队的所有操作。</p>
-
-<p><a href="https://github.com/allending/Kiwi">kiwi</a>使用测试轮询，它可以在测试方法中被滴啊用。<a href="https://github.com/gabriel/gh-unit/">GHUnit</a>编写了一个单独的测试类，它必须在测试的方法内初始化，并在结束时接受一个通知。以上两种方式都是通过编写相应的代码来确保异步异步测试方法在测试结束之前都不会返回。</p>
-
-<h1>SenTesgingKit的异步扩展</h1>
-
-<p>我们对这个问题的解决方案是对SenTestingKit添加一个扩展，它在栈上使用同步执行，并把每个部分加入到主队列中。正如下图所见，在验证整个测试框架结果之前，报告异步测试成功或失败的Block就被加入到队列。这种执行顺序允许我们开启一个测试并等待它的测试结果。</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/SenTestingKitAsync-call-stack.png" alt="test" /></p>
-
-<p>如果测试方法以Async结尾，框架就睡认为该方法是异步测试。此外，在异步测试中，我们必须手动的报告测试成功，同时为了防止Block永远不会被调用，我们还需要添加了一个超时方法，之前的错误的测试方法修改如下:</p>
-
-<pre><code>- (void)testAdditionAsync {
-    [Calculator add:2 to:2 block^(int result) {
-        STAssertEquals(result, 4, nil);
-        STSuccess(); // 通过调用这个宏来判断是否测试成功
-    }];
-    STFailAfter(2.0, @"Timeout");
-}
-</code></pre>
-
-<h1>设计异步测试</h1>
-
-<p>就像同步测试一样，异步测试也应该比被测试的功能简单许多。复杂的测试并不会改进代码的质量，反而会给测试本身带来更多的Bug,在以测试驱动开发的情况下，简单的测试会让我们对组件，接口以及架构的行为有更清醒的认识.</p>
-
-<p>为了运行到实际中，我们创建了一个实例框架: <a href="sd">AsyncTestDemo</a>,它从一个虚拟的服务器获取图像信息，框架中包含了一个资源管理器，它对外提供了一个可以根据图像Id获取图像对象的接口。该接口的工作原理是资源管理器从虚拟服务器获取图片对象信息，并更新到数据库。</p>
-
-<p>虽然这个示例框架只是为了演示，但在我们自己开发的许多应用中也使用了这种模式。</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/PinacotecaCore.png" alt="test" /></p>
-
-<p>从上图我们可以知道，示例框架有三个组件我们需要测试:</p>
-
-<ol>
-<li>模型层</li>
-<li>模拟服务器请求的服务器接口控制器(API Controller)</li>
-<li>管理Core data堆栈以及连接模型层和服务接口控制器的资源管理器</li>
-</ol>
-
-
-<h2>模型层</h2>
-
-<p>测试应该尽量使用同步的方式进行，而模型层就是一个很好的实例。只要不同的被托管对象上下文之间没有复杂的依赖关系，测试用例都应该根据上下文在主线程上设置它自己的core data堆栈，并在其中执行各自的操作。</p>
-
-<p>在这个测试实例中，我们就是在 setup 方法中设置core data堆栈，然后检查 PCImage实体的描述是否存在，如果不存在就构造一个，并更新它的值，当然这和异步测试没有关系，我们就不深入细说了。</p>
-
-<h2>服务器接口控制器</h2>
-
-<p>框架中的第二个组件就是服务器接口控制器，它主要处理服务器请求以及服务器API到模型的映射关系。让我们来看一下下面这个方法:</p>
-
-<pre><code>- [PCServerAPIController fetchImageWithId:queue:completionHandler:]
-</code></pre>
-
-<p>调用它需要三个形参：一个图片对象Id，所在的执行队列，以及一个完成后的回调方法。</p>
-
-<p>因为服务器根本不存在，一个比较好的做法就是伪造一个代理服务器，正好<a href="https://github.com/AliSoftware/OHHTTPStubs">OHHTTPStubs</a>可以解决这个问题。在它的最新版本中，可以在示例的请求响应中包含一个bundle,发送给客户端。</p>
-
-<p>为了能stub请求，OHHTTPStubs需要在测试类初始化时或者 setup方法中进行配置。首先我们需要加载一个包含请求响应对象(response)的bundle:</p>
-
-<pre><code>NSURL *url = [[NSBundle bundleForClass:[self class]]
-                        URLForResource:@"ServerAPIResponses"
-                         withExtension:@"bundle"];
-
-NSBundle *bundle = [NSBundle url];
-</code></pre>
-
-<p>然后我们从bundle加载response对象，作为请求的响应值:</p>
-
-<pre><code>OHHTTPStubsResponse *response;
-response = [OHHTTPStubsResponse responseNamed:@"images/123"
-                                   fromBundle:responsesBundle
-                                 responseTime:0.1];
-
-[OHHTTPStubs stubRequestsPassingTest:^BOOL(NSURLRequest *request) {
-    return YES /* 如果所返回的request是我们所期望的，就返回YES */;
-} withStubResponse:^OHHTTPStubsResponse *(NSURLRequest *request) {
-    return response;
-}];
-</code></pre>
-
-<p>通过如上的设置之后，简化版的<a href="https://github.com/objcio/issue-2-async-testing/blob/master/PinacotecaCore/PinacotecaCoreTests/PCServerAPIControllerTests.m">测试服务器接口控制器</a>如下:</p>
-
-<pre><code>- (void)testFetchImageAsync
-{
-    [self.server
-        fetchImageWithId:@"123"
-                   queue:[NSOperationQueue mainQueue]
-       completionHandler:^(id imageData, NSError *error) {
-          STAssertEqualObjects([NSOperationQueue currentQueue], queue, nil);
-          STAssertNil(error, [error localizedDescription]);
-          STAssertTrue([imageData isKindOfClass:[NSDictionary class]], nil);
-
-          // 检查返回的字典中的值.
-
-          STSuccess();
-       }];
-    STFailAfter(2.0, nil);    
-}
-</code></pre>
-
-<h2>资源管理器</h2>
-
-<p>最后一个部分是资源管理器，它不但把服务器接口控制器和膜形成呢个联系起来，还管理着core data堆栈。下面我们想测试获取一个图片对象的方法:</p>
-
-<pre><code>-[PCResourceManager imageWithId:usingManagedObjectContext:queue:updateHandler:]
-</code></pre>
-
-<p>该方法根据Id返回一个图片对象。如果图片在数据库中不存在，它会创建一个包含Id的新对象，然后通过服务器接口控制器获取图片对象的详细信息。</p>
-
-<p>由于资源管理器的测试不应该依赖于服务器接口控制器，所以我们可以用<a href="http://ocmock.org/">OCMock</a>来模拟，如果要做方法的部分stub,它是一个理想的框架.如以下的 <a href="https://github.com/objcio/issue-2-async-testing/blob/master/PinacotecaCore/PinacotecaCoreTests/PCResourceManagerTests.m">资源管理器测试</a>:</p>
-
-<pre><code>OCMockObject *mo;
-mo = [OCMockObject partialMockForObject:self.resourceManager.server];
-
-id exp = [[serverMock expect] 
-             andCall:@selector(fetchImageWithId:queue:completionHandler:)
-            onObject:self];
-[exp fetchImageWithId:OCMOCK_ANY queue:OCMOCK_ANY completionHandler:OCMOCK_ANY];
-</code></pre>
-
-<p>上面的代码实际上它并没有真正调用服务器接口控制器的方法，而是调用我们卸载测试类中的方法。</p>
-
-<p>用上面的作坊，对资源管理的测试就变得很直观。当我们调用资源管理器获取资源时，实际上调用的使我们模拟的服务器接口控制器的方法，这样我们也能检查调用服务器接口控制器时参数是否正确。在调用了获取图像对象的方法后，资源管理器会更新模型，然后调用验证测试成功与否的宏。</p>
-
-<pre><code>- (void)testGetImageAsync
-{
-    NSManagedObjectContext *ctx = self.resourceManager.mainManagedObjectContext;
-    __block PCImage *img;
-    img = [self.resourceManager imageWithId:@"123"
-                  usingManagedObjectContext:ctx
-                                      queue:[NSOperationQueue mainQueue]
-                              updateHandler:^(NSError *error) {
-                                       // 检查error是否为空以及image是否已经被更新 
-                                       STSuccess();
-                                   }];    
-    STAssertNotNil(img, nil);
-    STFailAfter(2.0, @"Timeout");
-}
-</code></pre>
-
-<h1>总结</h1>
-
-<p>刚开始的时候，使用并发设计模式测试应用程序是具有一定的挑战性，但是一旦你理解了他们的不同，并建立最佳实践，一切都会变得简单而有趣。</p>
-
-<p>😀fun~</p>
 ]]></content>
   </entry>
   

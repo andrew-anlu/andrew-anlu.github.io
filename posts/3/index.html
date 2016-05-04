@@ -9,7 +9,8 @@
   <meta name="author" content="安路">
 
   
-  <meta name="description" content="前言 CAShapeLayer继承自CALayer,因此，可以使用CaLayer的所有属性。但是，CAShapeLayer需要和贝塞尔曲线配合使用才有意义. CAShapeLayer是在其坐标系统内绘制贝塞尔曲线的。因此使用CAShapeLayer需要与 UIbezierPath一起使用。 &hellip;">
+  <meta name="description" content="前言 闭包是自包含的函数代码块，可以在代码中被传递和使用。swift中的闭包与oc中的代码块(block)比较相似 闭包可以捕获和存储其所在上下文中任意常量和变量的引用。这就是所谓的闭包并包括着着这些常量和变量，俗称闭包。
+swift会为您管理在捕获过程中涉及到所有内存操作。 ">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -66,6 +67,48 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/03/11/bi-bao-swift/">闭包-swift</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-03-11T16:48:06+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>11</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>4:48 pm</span></time>
+        
+           | <a href="/blog/2016/03/11/bi-bao-swift/#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/03/11/bi-bao-swift/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>前言</h2>
+
+<p>闭包是自包含的函数代码块，可以在代码中被传递和使用。swift中的闭包与oc中的代码块(block)比较相似</p>
+
+<p>闭包可以捕获和存储其所在上下文中任意常量和变量的引用。这就是所谓的闭包并包括着着这些常量和变量，俗称闭包。
+swift会为您管理在捕获过程中涉及到所有内存操作。</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/03/11/bi-bao-swift/">阅读全文 &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -425,55 +468,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/10/22/ru-he-zai-macxi-tong-shang-da-jian-phpkai-fa-huan-jing/">如何在Mac系统上搭建PHP开发环境</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-10-22T20:28:05+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>22</span><span class='date-suffix'>nd</span>, <span class='date-year'>2015</span></span> <span class='time'>8:28 pm</span></time>
-        
-           | <a href="/blog/2015/10/22/ru-he-zai-macxi-tong-shang-da-jian-phpkai-fa-huan-jing/#disqus_thread"
-             data-disqus-identifier="http://andrew-anlu.github.io/blog/2015/10/22/ru-he-zai-macxi-tong-shang-da-jian-phpkai-fa-huan-jing/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>前言</h2>
-
-<p>现在有个项目后台用php做的，所以就想学习一下php，研究了差不多一天，终于可以在Mac系统上运行php环境了，现在总结一下。</p>
-
-<h2>运行环境</h2>
-
-<p>需要的软件如下：</p>
-
-<ul>
-<li>MAMP</li>
-<li>zend studio</li>
-</ul>
-
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2015/10/22/ru-he-zai-macxi-tong-shang-da-jian-phpkai-fa-huan-jing/">阅读全文 &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/4">&larr; Older</a>
@@ -498,6 +492,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/05/04/catransform3d/">CATransform3D</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/05/04/runtimeyun-xing-shi-ru-men/">Runtime运行时入门</a>
       </li>
     
@@ -513,10 +511,6 @@
         <a href="/blog/2016/04/26/zi-ding-yi-asyncdisplaykit-node/">自定义AsyncDisplayKit-Node</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2016/04/24/zi-ding-yi-colletionviewbu-ju/">自定义ColletionView布局</a>
-      </li>
-    
   </ul>
 </section>
 <section>
@@ -524,7 +518,7 @@
 	<ul id="categories">
 		<li class='category'><a href='/blog/categories/cocoapods/'>cocoapods (1)</a></li>
 <li class='category'><a href='/blog/categories/git/'>git (3)</a></li>
-<li class='category'><a href='/blog/categories/ios/'>ios (18)</a></li>
+<li class='category'><a href='/blog/categories/ios/'>ios (19)</a></li>
 <li class='category'><a href='/blog/categories/life/'>life (1)</a></li>
 <li class='category'><a href='/blog/categories/mac/'>mac (2)</a></li>
 <li class='category'><a href='/blog/categories/octopress/'>octopress (2)</a></li>
