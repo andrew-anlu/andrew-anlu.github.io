@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
+<loc>http://andrew-anlu.github.io/blog/2016/05/04/runtimeyun-xing-shi-ru-men/</loc>
+<lastmod>2016-05-04T14:36:36+08:00</lastmod>
+</url>
+<url>
 <loc>http://andrew-anlu.github.io/blog/2016/04/29/macshang-ru-he-ba-shi-pin-zhuan-cheng-dot-gif/</loc>
 <lastmod>2016-04-29T12:56:45+08:00</lastmod>
 </url>
@@ -185,5 +189,14 @@
 </url>
 <url>
 <loc>http://andrew-anlu.github.io/blog/categories/xcode/</loc>
+</url>
+<url>
+<loc>http://andrew-anlu.github.io/posts/2/</loc>
+</url>
+<url>
+<loc>http://andrew-anlu.github.io/posts/3/</loc>
+</url>
+<url>
+<loc>http://andrew-anlu.github.io/posts/4/</loc>
 </url>
 </urlset>

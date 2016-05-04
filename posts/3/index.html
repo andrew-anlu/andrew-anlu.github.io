@@ -9,8 +9,7 @@
   <meta name="author" content="安路">
 
   
-  <meta name="description" content="ios在开发的过程中，很容易引发内存泄露问题。也很容易造成循环引用，之前使用block的时候也没有过多注意，其实坑很多。
-对于新手来说，出现循环引用的时候，很难去排查。 ">
+  <meta name="description" content="前言 CAShapeLayer继承自CALayer,因此，可以使用CaLayer的所有属性。但是，CAShapeLayer需要和贝塞尔曲线配合使用才有意义. CAShapeLayer是在其坐标系统内绘制贝塞尔曲线的。因此使用CAShapeLayer需要与 UIbezierPath一起使用。 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -67,6 +66,49 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/03/04/xue-xi-cashapelayer/">学习CAShapeLayer</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-03-04T14:20:24+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>4</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>2:20 pm</span></time>
+        
+           | <a href="/blog/2016/03/04/xue-xi-cashapelayer/#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/03/04/xue-xi-cashapelayer/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>前言</h2>
+
+<p>CAShapeLayer继承自CALayer,因此，可以使用CaLayer的所有属性。但是，CAShapeLayer需要和贝塞尔曲线配合使用才有意义.</p>
+
+<p>CAShapeLayer是在其坐标系统内绘制贝塞尔曲线的。因此使用CAShapeLayer需要与 <code>UIbezierPath</code>一起使用。</p>
+
+<p>它有一个 <code>path</code>属性，而<code>UIBezierPath</code>就是对 <code>CGPathRef</code>类型的封装，因此这两者是绝配</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/03/04/xue-xi-cashapelayer/">阅读全文 &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -432,51 +474,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/10/22/sheng-ji-xcode7hou-yu-dao-de-wen-ti/">升级xcode7后遇到的问题</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-10-22T14:08:21+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>22</span><span class='date-suffix'>nd</span>, <span class='date-year'>2015</span></span> <span class='time'>2:08 pm</span></time>
-        
-           | <a href="/blog/2015/10/22/sheng-ji-xcode7hou-yu-dao-de-wen-ti/#disqus_thread"
-             data-disqus-identifier="http://andrew-anlu.github.io/blog/2015/10/22/sheng-ji-xcode7hou-yu-dao-de-wen-ti/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>前言</h2>
-
-<p>升级xocde7后遇到一些问题，先记录如下</p>
-
-<h3>xcode7网络请求报错</h3>
-
-<p>错误如下:</p>
-
-<p>The resource could not be loaded because the App Transport Security policy requires the use of a secure connection.}</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2015/10/22/sheng-ji-xcode7hou-yu-dao-de-wen-ti/">阅读全文 &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/4">&larr; Older</a>
@@ -501,6 +498,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/05/04/runtimeyun-xing-shi-ru-men/">Runtime运行时入门</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/04/29/macshang-ru-he-ba-shi-pin-zhuan-cheng-dot-gif/">Mac上如何把视频转成.Gif</a>
       </li>
     
@@ -516,10 +517,6 @@
         <a href="/blog/2016/04/24/zi-ding-yi-colletionviewbu-ju/">自定义ColletionView布局</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2016/04/22/ohhttpstubsjie-shao/">OHHTTPStubs介绍</a>
-      </li>
-    
   </ul>
 </section>
 <section>
@@ -527,7 +524,7 @@
 	<ul id="categories">
 		<li class='category'><a href='/blog/categories/cocoapods/'>cocoapods (1)</a></li>
 <li class='category'><a href='/blog/categories/git/'>git (3)</a></li>
-<li class='category'><a href='/blog/categories/ios/'>ios (17)</a></li>
+<li class='category'><a href='/blog/categories/ios/'>ios (18)</a></li>
 <li class='category'><a href='/blog/categories/life/'>life (1)</a></li>
 <li class='category'><a href='/blog/categories/mac/'>mac (2)</a></li>
 <li class='category'><a href='/blog/categories/octopress/'>octopress (2)</a></li>
