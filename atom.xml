@@ -4,7 +4,7 @@
   <title><![CDATA[安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-05-04T18:14:54+08:00</updated>
+  <updated>2016-05-05T09:31:14+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -137,13 +137,13 @@
 </span><span class='line'>
 </span><span class='line'>{
 </span><span class='line'>
-</span><span class='line'>CGFloat    m11（x缩放）,    m12（y切变）,      m13（旋转）,    m14（）;
+</span><span class='line'>CGFloat    m11（x缩放）,    m12（y切变）,      m13（旋转）,   m14（）;
 </span><span class='line'>
-</span><span class='line'>CGFloat    m21（x切变）,    m22（y缩放）,      m23（）       ,    m24（）;
+</span><span class='line'>CGFloat    m21（x切变）,    m22（y缩放）,      and（）   ,   m24（）;
 </span><span class='line'>
-</span><span class='line'>CGFloat    m31（旋转）  ,    m32（ ）  ,      m33（）       ,    m34（透视效果，要操作的这个对象要有旋转的角度，否则没有效果。正直/负值都有意义）;
+</span><span class='line'>CGFloat    m31（旋转）  ,    m32（ ）  ,      m33（z轴缩放）   ,   m34（透视效果，要操作的这个对象要有旋转的角度，否则没有效果。正直/负值都有意义）;
 </span><span class='line'>
-</span><span class='line'>CGFloat    m41（x平移）,    m42（y平移）,    m43（z平移） ,    m44（）;
+</span><span class='line'>CGFloat    m41（x平移）,    m42（y平移）,      m43（z平移） ,   m44（）;
 </span><span class='line'>
 </span><span class='line'>};
 </span><span class='line'>
@@ -219,6 +219,96 @@
 <p>y:向Y轴方向旋转。值范围-1 &mdash; 1之间</p>
 
 <p>z:向Z轴方向旋转。值范围-1 &mdash; 1之间</p>
+
+<p>原始图像如下:</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160505-1.png" alt="1" /></p>
+
+<p>例如：向X轴旋转60度</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160505-2.png" alt="1" /></p>
+
+<p>向Y轴旋转60度</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160505-3.png" alt="1" /></p>
+
+<p>向z轴方向旋转60度</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160505-4.png" alt="test" /></p>
+
+<p>向x轴和y轴都旋转60度，就是沿着对角线旋转</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160505-5.png" alt="t" /></p>
+
+<h4>CATransform3D CATransform3DRotate (CATransform3D t, CGFloat angle, CGFloat x, CGFloat y, CGFloat z);</h4>
+
+<p>t:就是上一个函数
+可以理解为函数的叠加，效果的叠加</p>
+
+<h4>CATransform3D CATransform3DInvert (CATransform3D t);</h4>
+
+<p>翻转效果</p>
+
+<p>原始效果如下:</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160505-6.png" alt="test" /></p>
+
+<p>调用翻转后的效果:</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160505-7.png" alt="result" /></p>
+
+<h4>CGAffineTransform CATransform3DGetAffineTransform (CATransform3D t);</h4>
+
+<p>仿射效果</p>
+
+<p>就是把一个CATransform3D对象转化成一个CGAffineTransform对象，也就是把CATransform3D矩阵转化成CGAffineTransform矩阵</p>
+
+<p>变换函数同时提供了可以比较一个变换矩阵是否是单位矩阵，或者两个矩阵是否相等。</p>
+
+<h4>bool CATransform3DEqualToTransform (CATransform3D a, CATransform3D b);</h4>
+
+<p>判断两个变换的矩阵是否相等</p>
+
+<p>也可以通过修改数据结构和键值来设置变换效果</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>struct CATransform3D
+</span><span class='line'>
+</span><span class='line'>{
+</span><span class='line'>
+</span><span class='line'>CGFloat m11, m12, m13, m14；
+</span><span class='line'>
+</span><span class='line'>CGFloat m21, m22, m23, m24；
+</span><span class='line'>
+</span><span class='line'>CGFloat m31, m32, m33, m34；
+</span><span class='line'>
+</span><span class='line'>CGFloat m41, m42, m43, m44；
+</span><span class='line'>
+</span><span class='line'>}
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>可以直接修改其中一个值，来达到相同的效果</p>
+
+<p>或者修改键值</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[myLayer setValue:[NSNumber numberWithInt:0] forKeyPath:@"transform.rotation.x"];</span></code></pre></td></tr></table></div></figure>
+
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/1511481-43f4b4134597cd19.png" alt="e" /></p>
 ]]></content>
   </entry>
   
