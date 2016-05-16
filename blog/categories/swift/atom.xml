@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Swift | 安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/blog/categories/swift/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-05-05T09:31:14+08:00</updated>
+  <updated>2016-05-16T16:55:43+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -12,6 +12,264 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Swift-构造函数]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/05/16/swift-gou-zao-han-shu/"/>
+    <updated>2016-05-16T15:38:28+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/05/16/swift-gou-zao-han-shu</id>
+    <content type="html"><![CDATA[<p>本章包含的内容的如下:</p>
+
+<ul>
+<li><a href="#%E5%AD%98%E5%82%A8%E5%B1%9E%E6%80%A7%E7%9A%84%E5%88%9D%E5%A7%8B%E8%B5%8B%E5%80%BC">存储属性的初始赋值</a></li>
+<li><a href="#%E8%87%AA%E5%AE%9A%E4%B9%89%E6%9E%84%E9%80%A0%E8%BF%87%E7%A8%8B">自定义构造过程</a></li>
+<li><a href="#%E9%BB%98%E8%AE%A4%E6%9E%84%E9%80%A0%E5%99%A8">默认构造器</a></li>
+<li><a href="#%E5%80%BC%E7%B1%BB%E5%9E%8B%E7%9A%84%E6%9E%84%E9%80%A0%E5%99%A8%E4%BB%A3%E7%90%86">值类型的构造器代理</a></li>
+<li><a href="#%E7%B1%BB%E7%9A%84%E9%9B%86%E6%88%90%E5%92%8C%E6%9E%84%E9%80%A0%E8%BF%87%E7%A8%8B">类的集成和构造过程</a></li>
+<li><a href="#%E5%8F%AF%E5%A4%B1%E8%B4%A5%E6%9E%84%E9%80%A0%E5%99%A8">可失败构造器</a></li>
+<li><a href="#%E5%BF%85%E8%A6%81%E6%9E%84%E9%80%A0%E5%99%A8">必要构造器</a></li>
+<li><a href="#%E9%80%9A%E8%BF%87%E9%97%AD%E5%8C%85%E6%88%96%E5%87%BD%E6%95%B0%E8%AE%BE%E7%BD%AE%E5%B1%9E%E6%80%A7%E7%9A%84%E9%BB%98%E8%AE%A4%E5%80%BC">通过闭包或函数设置属性的默认值</a></li>
+</ul>
+
+
+<!--more-->
+
+
+<p>构造过程是使用类，结构体或枚举型的实例之前的准备过程。在新实例可用钳必须执行这个过程，具体操作包括设置实例中的每个存储属性的初始值和执行其他必须的设置或初始化工作</p>
+
+<p>通过定义构造器(Initializers)来实现构造过程，这些构造器可以看做是用来创建特定类型新实例的特殊方法。与Objc中的构造器不同，Swift的构造器无需返回值，它们的主要任务是保证新实例在第一次使用前完成正确的初始化。</p>
+
+<p>类的实例也可以通过定义析构器(deinitializer)在实例释放前执行特定的清除工作。</p>
+
+<h2><a name="存储属性的初始赋值">存储属性的初始赋值</a></h2>
+
+<p>类和结构体在创建实例时，必须为所有的存储属性设置合适的初始值。存储型属性的值不能处于一个未知的状态。</p>
+
+<p>你可以在构造器中为存储属性赋初值，也可以在定义属性时为其设置默认值。以下小节详细讨论这两个方法。</p>
+
+<blockquote><p><em>注意</em>
+当你为存储型属性设置默认值或者在构造器中为期赋值时，它们的值是被直接设置的，不会触发任何属性观察期(property observers)</p></blockquote>
+
+<h3>构造器</h3>
+
+<p>构造器在创建某个特定类型的新实例时被调用。它的最简单形式类似于一个不带任何参数的实例方法，以关键字init命名:</p>
+
+<pre><code>init(){
+  //在此执行构造过程
+}
+</code></pre>
+
+<p>下面例子中定义了一个用来保存华氏温度的结构体Fahrenheit,它拥有一个<code>double</code>类型的存储型属性 temperature:</p>
+
+<pre><code>struct Fahrenheit{
+  var temperature:Double
+  init(){
+    temparture = 32.0
+  }
+}
+
+var f = Fahrenheit()
+print("The default temperature is \(f.temperature)° Fahrenheit")
+// 输出 "The default temperature is 32.0° Fahrenheit”
+</code></pre>
+
+<p>这个结构体定义了一个不带参数的构造器init,并在里面将存储属性temperature 的值初始化为32</p>
+
+<h3>默认初始值</h3>
+
+<p>如前所述，你可以在构造器中为存储型属性设置初始化，同样，你也可以在属性声明时为其设置默认值</p>
+
+<blockquote><p><em>注意</em>
+如果一个属性总是使用相同的初始值，那么为其设置一个默认值比每次都在构造器中赋值要好。两种方法的效果是一样的。只不过使用默认值让属性的初始化和声明结合的更紧密。使用默认值能让你的构造器更简洁，更清晰，且能通过默认值自动推导出属性的类型；同时，它也能让你充分利用默认构造器，构造器继承等特性</p></blockquote>
+
+<p>你可以使用更简单的方式在定义结构体Fahrenheit时为属性temperature设置默认值:</p>
+
+<pre><code>struct Fahrenheit{
+  var temperature = 32.0
+}
+</code></pre>
+
+<h2><a name="自定义构造过程">自定义构造过程</a></h2>
+
+<p>你可以通过输入参数可可选类型的属性来自定义构造过程，也可以在构造过程中修改常量属性。</p>
+
+<h3>构造参数</h3>
+
+<p>自定义构造过程时，可以在定义中提供构造函数，指定所需值的类型和名字。构造参数的功能和语法跟函数的方法的参数相同。</p>
+
+<p>下面例子中定义了一个包含摄氏温度的结构体<code>Celsius</code>.它定义了两个不同的构造器:init(fromFahrenheit:)和init(fromKelvin:),两者分别通过接受不同温标下的温度值来创建新的实例:</p>
+
+<pre><code>struct Celsius {
+    var temperatureInCelsius: Double
+    init(fromFahrenheit fahrenheit: Double) {
+        temperatureInCelsius = (fahrenheit - 32.0) / 1.8
+    }
+    init(fromKelvin kelvin: Double) {
+        temperatureInCelsius = kelvin - 273.15
+    }
+}
+let boilingPointOfWater = Celsius(fromFahrenheit: 212.0)
+// boilingPointOfWater.temperatureInCelsius 是 100.0
+let freezingPointOfWater = Celsius(fromKelvin: 273.15)
+// freezingPointOfWater.temperatureInCelsius 是 0.0”
+</code></pre>
+
+<p>第一个构造器拥有一个构造参数，其外部名字为fromFahrenheit，内部名字为fahrenheit;第二个构造器也拥有一个构造函数，其外部名字为 fromKelvin,内部名字为 kelvin.这两个构造器都将唯一的参数值转换成摄氏温度值，并保存在属性temperatureInCelsius中</p>
+
+<h3>参数的内部名称和外部名称</h3>
+
+<p>跟函数和方法参数相同，构造参数也拥有一个在构造器内部使用的参数名字和一个在调用构造器时使用的外部参数名字。</p>
+
+<p>然而，构造器并不像函数和方法那样在括号前有一个可辨别的名字。因此在调用构造器时，主要工作构造器中的参数名和类型来确定应该被调用的构造器。正因为参数如此重要，如果你在定义构造器时没有提供参数的外部名字，Swift会为构造器的每个参数自动生成一个跟内部名字相同的外部名.</p>
+
+<p>以下例子中定义了一个结构体Color,它包含了三个常量:<code>red</code>,<code>green</code>和<code>blue</code>.这些属性可以存储在0-1之间的值，用来表示红绿蓝成分的含量</p>
+
+<p><code>Color</code>提供了一个构造器，其中包含三个<code>Double</code>类型的构造函数，Color也可以提供第二个狗奥奇，它只包含名为white的double类型的参数，它被用于给上述三个构造参数赋予同样的值。</p>
+
+<pre><code>struct Color {
+    let red, green, blue: Double
+    init(red: Double, green: Double, blue: Double) {
+        self.red   = red
+        self.green = green
+        self.blue  = blue
+    }
+    init(white: Double) {
+        red   = white
+        green = white
+        blue  = white
+    }
+}
+</code></pre>
+
+<p>两种构造器都能用于创建一个新的color实例，你需要为构造器每个外部参数传入值:</p>
+
+<pre><code>let magenta = Color(red: 1.0, green: 0.0, blue: 1.0)
+let halfGray = Color(white: 0.5)
+</code></pre>
+
+<p>注意,如果不通过外部参数名子传值，你是没法调用这个构造器的，只要构造器定义了某个外部参数名，你就必须使用它，忽略它将导致编译错误:</p>
+
+<pre><code>let veryGreen = Color(0.0, 1.0, 0.0)
+// 报编译时错误，需要外部名称
+</code></pre>
+
+<h4>不带外部名的构造参数</h4>
+
+<p>如果你不希望为构造器的某个参数提供外部名字，你可以使用下划线(_)来显式描述它的外部名，以此重写上面所说的默认行为.</p>
+
+<p>下面是之前的Celsius例子的扩展，跟之前相比添加了一个带有double类型参数的构造器，其外部名用_代替:</p>
+
+<pre><code>struct Celsius {
+    var temperatureInCelsius: Double
+    init(fromFahrenheit fahrenheit: Double) {
+        temperatureInCelsius = (fahrenheit - 32.0) / 1.8
+    }
+    init(fromKelvin kelvin: Double) {
+        temperatureInCelsius = kelvin - 273.15
+    }
+    init(_ celsius: Double){
+        temperatureInCelsius = celsius
+    }
+}
+let bodyTemperature = Celsius(37.0)
+// bodyTemperature.temperatureInCelsius 为 37.0
+</code></pre>
+
+<p>调用Celsius(37.0)意图明确，不需要外部参数名称。以此适合使用
+<code>Celsius(37.0)</code>这样的构造器，从而可以通过提供Double类型的参数值调用构造器，而不需要加上外部名。</p>
+
+<h3>可选属性类型</h3>
+
+<p>如果你你定制的类型包含一个逻辑上允许取值为空的存储性属性 &ndash; 无论是因为它无法再初始化时赋值，还是因为它在之后某个时间点可以赋值为空&ndash;你都需要将它定为可选类型(optional type).可选类型的属性将自动初始化为nil,表示这个属性是有意在初始化时设置为空的。</p>
+
+<p>下面的例子中定义了类<code>SurveyQuestion</code>,它包含了一个可选字符串属性response:</p>
+
+<pre><code>class SurveyQuestion {
+    var text: String
+    var response: String?
+    init(text: String) {
+        self.text = text
+    }
+    func ask() {
+        print(text)
+    }
+}
+let cheeseQuestion = SurveyQuestion(text: "Do you like cheese?")
+cheeseQuestion.ask()
+// 输出 "Do you like cheese?"
+cheeseQuestion.response = "Yes, I do like cheese."
+</code></pre>
+
+<p>迪奥哈问题的答案在回答前是无法确定的，因此我们将属性response声明为string?类型，或者说是可选字符串类型，当<code>SurveyQuestion</code>实例化时，它将自动赋值为nil,表明此字符串暂时还没有值</p>
+
+<h3>构造过程中的属性修改</h3>
+
+<p>你可以在构造过程中的任意时间点给常量属性指定一个值，只要在构造过程结束时是一个确定的值。一旦常量尚需经被赋值，它将永远不可更改。</p>
+
+<blockquote><p><em>注意:</em>
+对于类的实例来说，它的常量属性只能在定义它的类的构造过程中修改；不能在子类中修改</p></blockquote>
+
+<p>你可以修改上面的SurveyQuestion实例，用常量属性替代变量属性text,表示问题内容text在SurveyQuestion的实例被创建之后不会再被修改。尽管text属性现在是常量，我们仍然可以在类的构造器中设置它的值</p>
+
+<pre><code>class SurveyQuestion {
+    let text: String
+    var response: String?
+    init(text: String) {
+        self.text = text
+    }
+    func ask() {
+        print(text)
+    }
+}
+let beetsQuestion = SurveyQuestion(text: "How about beets?")
+beetsQuestion.ask()
+// 输出 "How about beets?"
+beetsQuestion.response = "I also like beets. (But not with cheese.)"
+</code></pre>
+
+<h2><a name="默认构造器">默认构造器</a></h2>
+
+<p>如果结构体或类的所有属性都有默认值，同事没有自定义的构造器，那么Swift会给这些结构体或类提供一个默认的构造器(default initalilizers)。这个默认构造器将简单地创建一个所有属性值都设置为默认值的实例。</p>
+
+<p>下面例子中创建了一个类ShoppingListItem,它封装了购物清单中的某一个物品的属性:名字，数量和购买状态</p>
+
+<pre><code>class ShoppingListItem {
+    var name: String?
+    var quantity = 1
+    var purchased = false
+}
+var item = ShoppingListItem()
+</code></pre>
+
+<p>由于ShoppingListItem类中所有属性都有默认值，且它没有父类的基类，它将自动获得一个可以为所有属性设置默认值的默认构造器，上面例子中使用默认构造创造了一个ShoppingListItem类的实例，并将其赋值给变量 item</p>
+
+<h3>结构起的逐一成员的构造器</h3>
+
+<p>除了上面提到的默认构造器，如果结构起没有提供自定义的构造器，他们将自动获得一个逐一成员构造器，及时结构天气的存储型尚需经没有默认值。</p>
+
+<p>逐一成员构造器是用来初始化结构体新实例成员属性的快捷方法。我们在调用逐一成员构造器时，通过与成员属性名相同的参数名进行传值来完成对成员属性的初始赋值</p>
+
+<p>下面例子中定义了结构体size,包含两个属性width和height。swift可以根据这两个属性的初始赋值0自动推导出他们的类型为double</p>
+
+<p>结构体size自动获得了一个逐一成员构造器init(width:height:)。你可以用它来为size创建新的实例:</p>
+
+<pre><code>struct Size {
+    var width = 0.0, height = 0.0
+}
+let twoByTwo = Size(width: 2.0, height: 2.0)
+</code></pre>
+
+<h2><a name="值类型的构造器代理">值类型的构造器代理</a></h2>
+
+<h2><a name="类的集成和构造过程">类的集成和构造过程</a></h2>
+
+<h2><a name="可失败构造器">可失败构造器</a></h2>
+
+<h2><a name="必要构造器">必要构造器</a></h2>
+
+<h2><a name="通过闭包或函数设置属性的默认值">通过闭包或函数设置属性的默认值</a></h2>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[自定义AsyncDisplayKit-Node]]></title>
@@ -2174,364 +2432,6 @@ spacing Property  (New in iOS 9.0)
 <pre><code>UIStackViewDistribution
 UIStackViewAlignment
 </code></pre>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Swift-泛型]]></title>
-    <link href="http://andrew-anlu.github.io/blog/2016/03/24/swift-fan-xing/"/>
-    <updated>2016-03-24T10:11:56+08:00</updated>
-    <id>http://andrew-anlu.github.io/blog/2016/03/24/swift-fan-xing</id>
-    <content type="html"><![CDATA[<p>泛型代码可以让你编写使用自定义需求以及任意类型的灵活可冲中的函数和类型，它可以让你避免重复的代码，用一种清晰和抽象的方式来表达代码的意图。</p>
-
-<!--more-->
-
-
-<p>泛型是swift的强大特性之一，许多swift标准库是通过泛型代码构建的。事实上，泛型的使用贯穿饿了正本语言手册，只是你可能没有发现而已。例如,swift的<code>Array</code>和<code>Dictionary</code>都是泛型集合。你可以创建一个<code>Int</code>数组，也可以创建一个<code>String</code>数组，甚至可以是任意其它Swift类型的数组。同样的，你也可以创建存储任意指定类型的字典。</p>
-
-<h2>泛型所解决的问题</h2>
-
-<p>下面是一个标准的非泛型函数 <code>swapTwoInts(_:_:)</code>，用来交换两个<code>Int</code>值:</p>
-
-<pre><code>func swapTwoInts(inout a: Int, inout _ b: Int) {
-    let temporaryA = a
-    a = b
-    b = temporaryA
-}
-</code></pre>
-
-<p>这个函数使用输入输出函数(<code>inout</code>)来交换<code>a</code>和<code>b</code>的值。</p>
-
-<p><code>swapTwoInts(_:_:)</code>函数交换<code>b</code>的原始值到<code>a</code>,并交换<code>a</code>的原始值到<code>b</code>,你可以调用这个函数交换两个<code>Int</code>变量的值:</p>
-
-<pre><code>var someInt = 3
-var anotherInt = 107
-swapTwoInts(&amp;someInt, &amp;anotherInt)
-print("someInt is now \(someInt), and anotherInt is now \(anotherInt)")
-// 打印 “someInt is now 107, and anotherInt is now 3”
-</code></pre>
-
-<p>诚然，<code>swapTwoInts(_:_:)</code>函数挺有用，但是它只能交换<code>Int</code>值，如果你想要交换两个<code>String</code>值或者<code>Double</code>值，就不能不写更多的函数，例如<code>swapTwoStrings(_:_:)</code>和<code>swapTwoDoubles(_:_:)</code>,如下所示:</p>
-
-<pre><code>func swapTwoStrings(inout a: String, inout _ b: String) {
-    let temporaryA = a
-    a = b
-    b = temporaryA
-}
-
-func swapTwoDoubles(inout a: Double, inout _ b: Double) {
-    let temporaryA = a
-    a = b
-    b = temporaryA
-}
-</code></pre>
-
-<p>你可能注意到<code>swapTwoInts(_:_:) 和 swapTwoDoubles(_:_:)</code>,的函数功能都是相同的，唯一不同之处就在于传入的变量类型不同，分别是 int,String,Double.</p>
-
-<p>在实际的应用中，通常需要一个更实用更灵活的函数来交换两个任意类型的值，幸运的是，泛型代码帮你解决了这种问题。</p>
-
-<blockquote><p><em>注意</em>
-在上面的三个函数中，<code>a</code>和<code>b</code>类型相同，如果<code>a</code>和<code>b</code>类型不同，那他们俩就不能交换值。Swift是类型安全的语言，所以不会允许一个<code>String</code>类型的变量和一个<code>Double</code>类型的变量互换值。视图这样做将导致编译错误。</p></blockquote>
-
-<h2>泛型函数</h2>
-
-<p>泛型函数可以适用于任何类型，下面的<code>swapTwoValues(_:_:)</code>函数是上面三个函数的泛型版本:</p>
-
-<pre><code>func swapTwoValues&lt;T&gt;(inout a:T,inout _ b:T){
- let temporaryA=a;
- a=b;
- b= temporaryA;
-}
-</code></pre>
-
-<p><code>swapTwoValues(_:_:)</code>的函数主体和<code>swapTwoInts(_:_:)</code>函数是一样的。他们只在第一行有所不同，如下所示:</p>
-
-<pre><code>func swapTwoInts(inout a: Int, inout _ b: Int)
-func swapTwoValues&lt;T&gt;(inout a: T, inout _ b: T)
-</code></pre>
-
-<p>这个函数的泛型版本使用了占位类型名(在这里用字母<code>T</code>来表示)来代替实际的类型名(例如<code>Int</code>,<code>String</code>或者<code>Double</code>).占位类型名没有指明<code>T</code>必须是什么类型，但是它指明了<code>a</code>和<code>b</code>必须是同一类型<code>T</code>,而不论<code>T</code>代表什么类型，只有<code>swapTwoValues(_:_:)</code>函数在调用时，才能根据所传入的实际类型决定<code>T</code>所代表的类型。</p>
-
-<p>另外一个不同之处在于这个泛型函数名后面跟着占位类型名(T),而且使用尖括号括起来的(<code>&lt;T&gt;</code>).这个尖括号告诉Swift那个<code>T</code>是<code>swapTwoValues(_:_:)</code>函数定义的一个占位类型名，因此swift不会去查找名为<code>T</code>的实际类型。</p>
-
-<p>swapTwoValues(<em>:</em>:) 函数现在可以像 swapTwoInts(<em>:</em>:) 那样调用，可以传入任意类型的值，只要两个值的类型相同。<code>swapTwoValues(_:_:)</code>函数调用时，<code>T</code>所代表的类型都会由传入的值的类型判断出来.</p>
-
-<p>在下面的两个例子中，<code>T</code>分别代表<code>Int</code>和<code>String</code></p>
-
-<pre><code>var someInt = 3
-var anotherInt = 107
-swapTwoValues(&amp;someInt, &amp;anotherInt)
-// someInt is now 107, and anotherInt is now 3
-
-var someString = "hello"
-var anotherString = "world"
-swapTwoValues(&amp;someString, &amp;anotherString)
-// someString is now "world", and anotherString is now "hello"
-</code></pre>
-
-<h2>类型参数</h2>
-
-<p>在上面的<code>swapTwoValues(_:_:)</code>例子中，占位类型<code>T</code>是类型参数的一个例子。类型参数指定并命名一个占位类型，并且紧随在函数名后面，使用一对尖括号括起来(<T>).</p>
-
-<p>一旦一个类型参数被指定，你可以用它来定义一个函数的参数类型，或者作为函数的返回类型，还可以用作函数主题中的注释类型。在这些情况下，类型参数在函数调用时被实际类型所代替。</p>
-
-<h2>命名类型参数</h2>
-
-<p>在大多数情况下，类型参数具有一个描述性名字，例如<code>Dictionary&lt;Key,Value&gt;</code>中的key和value,以及<code>Array&lt;Element&gt;</code>中的<code>Element</code>，这可以告诉阅读代码的人这些类型参数和泛型函数之间的关系。然而，当他们之间的关系没有意义时，通常使用单一的字母来命名，例如<code>T</code>,<code>U</code>,<code>V</code>，正如上面演示的<code>swapTwoValues(_:_:)</code>函数中的<code>T</code>一样.</p>
-
-<h2>泛型类型</h2>
-
-<p>除了泛型函数，Swift还允许你定义泛型类型。这些自定义类，结构体和枚举可以适用于任何类型，如同<code>Array</code>和<code>Dictionary</code>的用法。</p>
-
-<p>这部分内容将向你展示如何编写一个名为<code>stack</code>（栈）的泛型集合类型。栈是一系列值的有序集合，如<code>Array</code>类型，但它比Swift的array类型有更多的操作限制。数组允许对其中任意位置的元素执行插入或删除操作。而栈，只允许在集合的末端添加新的元素，称为入栈。同样滴，栈也只能从末端移除元素。</p>
-
-<p>下面展示了一个如何编写一个非泛型版本的栈，在这种情况下是<code>Int</code>型的栈.</p>
-
-<pre><code>struct IntStack {
-    var items=[Int]()
-
-    mutating func push(item:Int){
-        items.append(item);
-    }
-
-    mutating func pop()-&gt;Int{
-        return items.removeLast();
-    }
-}
-</code></pre>
-
-<p>这个结构体在栈中使用一个名为<code>items</code>的<code>array</code>属性来存储值。<code>Stack</code>提供了两个方法:<code>push(_:)</code>和<code>pop()</code>，用来向栈中压入值以及从栈中移除值。这些方法被标记为<code>mutating</code>，因为他们需要修改结构体的<code>items</code>数组。</p>
-
-<p>上面的<code>IntStack</code>结构体只能用于Int类型，不过可以定义一个泛型的<code>Stack</code>结构体，从而能够处理任意类型的值。</p>
-
-<p>下面是相同代码的泛型版本:</p>
-
-<pre><code>struct Stack&lt;Element&gt; {
-    var items=[Element]();
-
-    mutating func push(item:Element){
-        items.append(item);
-    }
-
-    mutating func pop()-&gt;Element{
-        return items.removeLast();
-    }
-
-}
-</code></pre>
-
-<p>注意，<code>Stack</code>基本上和<code>IntStack</code>相同，只是占位类型参数<code>Element</code>代替了实际的<code>Int</code>类型。这种类型参数包裹在一对尖括号里(<code>&lt;Element&gt;</code>)，紧跟在结构体名后面、</p>
-
-<p><code>Element</code>为尚未提供的类型定义了一个占位名。这种尚未提供的类型可以在结构体定义中通过<code>Element</code>来引用。在这种情况下，<code>Element</code>在如下三个地方被用作占位符:</p>
-
-<ul>
-<li>创建 items 属性，使用<code>Element</code>类型的空数组进行初始化</li>
-<li>执行<code>psh(_:)</code>方法的单一参数<code>item</code>的类型必须是<code>Element</code>类型</li>
-<li>指定<code>pop()</code>方法的返回值类型必须是<code>Element</code>类型.</li>
-</ul>
-
-
-<p>由于<code>stack</code>是泛型类型，因此可以用来创建Swift中任意有效类型的栈，如同<code>Array</code>和<code>Dictionary</code>.</p>
-
-<p>你可以通过在尖括号中写出栈中需要存储的数据类型来创建并初始化一个<code>Stack</code>实例。例如，要创建一个<code>String</code>类型的栈，可以写成<code>Stack&lt;String&gt;</code>：</p>
-
-<pre><code>var stackOfStrings = Stack&lt;String&gt;()
-stackOfStrings.push("uno")
-stackOfStrings.push("dos")
-stackOfStrings.push("tres")
-stackOfStrings.push("cuatro")
-// 栈中现在有 4 个字符串
-</code></pre>
-
-<p>移除并返回栈顶部的值</p>
-
-<pre><code>let fromTheTop = stackOfStrings.pop()
-// fromTheTop 的值为 "cuatro"，现在栈中还有 3 个字符串
-</code></pre>
-
-<h2>扩展一个泛型类型</h2>
-
-<p>当你扩展一个泛型类型的时候，你并不需要在扩展的定义中提供类型的参数列表。更加方便的是，原始类型定义中声明的类型参数列表在扩展中可以直接使用，并且这些来自原始类型中的参数名称会被用作原始定义中类型参数的引用。</p>
-
-<p>下面的例子扩展了泛型类型<code>Stack</code>，为其添加了一个名为<code>topItem</code>的只读计算型属性，它将会返回当前栈顶端的元素而不会将其从栈中移除:</p>
-
-<pre><code>extension Stack{
-    var topItem:Element?{
-        return items.isEmpty ? nil:items[items.count];
-    }
-}
-</code></pre>
-
-<p><code>topItem</code>属性会返回一个<code>Element</code>类型的可选值。当栈为空的时候，<code>topItem</code>会返回<code>nil</code>;当栈不为空的时候，<code>topItem</code>会返回<code>nil</code>;当栈不为空的时候，<code>topItem</code>会返回<code>items</code>数组中的最后一个元素.</p>
-
-<p>注意，这个扩展并没有定义一个类型参数列表。相反地，<code>Stack</code>类型已有的类型参数名<code>Element</code>，被用在扩展中表示计算型属性<code>topItem</code>的可选类型，<code>topItem</code>现在可以用来访问任意<code>Stack</code>实例的顶端元素而不是移除它</p>
-
-<pre><code>if let topItem = stackOfStrings.topItem {
-    print("The top item on the stack is \(topItem).")
-}
-// 打印 “The top item on the stack is tres.”
-</code></pre>
-
-<h2>类型约束</h2>
-
-<p><code>swapTwoValues(_:_:)</code>函数和<code>Stack</code>类型可以作用于任何类型。不过，有的时候如果能将使用在泛型函数和泛型类型中的类型，强制约束为某种特定类型，将会是非常有用的。类型约束可以指定一个类型参数必须集成自特定类，或者符合一个特定的协议或者协议组合。</p>
-
-<p>例如,Swift的<code>Dictionary</code>类型对字典的键的类型做了限制，在字典的描述中，字典的键必须是可哈希的。也就是说，必须有一种方法能作为其唯一的表示。<code>Dictionary</code>之所以需要其键是可哈希的，是为了便于检查字典是否已经包含了某个特定键的值。如无此要求，Dictionary将无法判断是否可以插入或者替换某个指定键的值，也不能查找到已经存储在字典中指定键的值。</p>
-
-<p>这个要求强制加上了一个类型约束作用域<code>Dictionary</code>的键类型上，其键类型必须符合<code>Hashable</code>协议，这是swift标准库中定义的一个特定协议。所有的swfit基本类型(String,Int,Double)默认都是可哈希的。</p>
-
-<p>当你创建自定义反省类型时，你可以定义你自己的类型约束，这些约束将提供更为强大的泛型编程能力。抽象概念，例如可哈希的。</p>
-
-<h2>类型约束语法</h2>
-
-<p>你可以在一个类型参数名后面放置一个类名或者协议名，通过冒号分割，从而定义类型约束，它们将作为类型参数列表的一部分。这种基本的类型约束作用于泛型函数时的语法如下：</p>
-
-<pre><code>func someFunction&lt;T: SomeClass, U: SomeProtocol&gt;(someT: T, someU: U) {
-    // 这里是泛型函数的函数体部分
-}
-</code></pre>
-
-<p>上面的这个函数有两个类型参数。第一个类型是参数<code>T</code>,有一个要求<code>T</code>必须是<code>SomeClass</code>自雷的类型约束；第二个类型参数<code>U</code>,有一个要求<code>U</code>必须符合<code>someProtocol</code>协议的类型约束.</p>
-
-<h2>类型约束实践</h2>
-
-<p>这里有个名为<code>findStringIndex</code>的非泛型函数，该函数的功能在<code>String</code>值的数组中查找指定<code>String</code>值的索引。弱查找到匹配的字符串，<code>findStringIndex(_:_:)</code>函数返回该字符串在数组中的索引值，反之则返回<code>nil</code>:</p>
-
-<pre><code>func findStringIndex(array: [String], _ valueToFind: String) -&gt; Int? {
-    for (index, value) in array.enumerate() {
-        if value == valueToFind {
-            return index
-        }
-    }
-    return nil
-}
-</code></pre>
-
-<p>该函数可以用于查找字符串数组中的某个字符串:</p>
-
-<pre><code>let strings = ["cat", "dog", "llama", "parakeet", "terrapin"]
-if let foundIndex = findStringIndex(strings, "llama") {
-    print("The index of llama is \(foundIndex)")
-}
-// 打印 “The index of llama is 2”
-</code></pre>
-
-<p>如果只能查找字符串在数组中的索引，用处不是很大，不过，你可以写出相同功能的泛型函数<code>findIndex(_:_:)</code>,用占位类型<code>T</code>代替<code>String</code>类型。</p>
-
-<p>下面展示了<code>findStringIndex(_:_:)</code>函数的泛型版本<code>findIndex(_:_:)</code>.请注意这个函数仍然返回<code>Int?</code>，那是因为函数返回的是一个可选的索引数，而不是从数组中得到一个可选值。需要提醒的是，这个函数无法通过编译，原因例子后面说明:</p>
-
-<pre><code>
-func findIndex&lt;T&gt;(array:[T], valueToField:T)-&gt;Int?{
-    for (index, value)in array.enumerate(){
-        if value == valueToField{
-            return index;
-        }
-    }
-
-    return nil;
-}
-</code></pre>
-
-<p>上面所写的函数无法通过编译。这个问题出在相等性检查上，即<code>if vlaue == valueToField</code>。不是所有的Swift类型都可以用等号(==)进行比较。例如，如果你创建一个你自己的类活结构体表示一个复杂的数据模型，那么Swift无法猜到对于这个类或者结构体而言 “相等”意味着什么。正因为如此，这部分代码无法保证适用于每个可能的类型<code>T</code>,当你试图编译这部分代码的时候会出现相应的错误。</p>
-
-<p>不过所有的这些并不会让我们无从下手。Swift标准库中定义了一个<code>Equatable</code>协议，该协议要求任何符合该协议的类型必须实现等式符号(==),从而对符合该协议的类型的任意两个值进行比较。所有的Swift标准类型自动支持Equatable协议。</p>
-
-<p>任何<code>Equatable</code>类型都可以安全地使用在<code>findIndex(_:_:)</code>函数中，因为其保证支持等式操作符。为了说明事实，当你定义一个函数时，你可以定义一个<code>Equatable</code>类型约束作为类型参数定义的一部分:</p>
-
-<pre><code>func findIndex&lt;T: Equatable&gt;(array: [T], _ valueToFind: T) -&gt; Int? {
-    for (index, value) in array.enumerate() {
-        if value == valueToFind {
-            return index
-        }
-    }
-    return nil
-}
-</code></pre>
-
-<p><code>findIndex(_:_:)</code>中的这个单一类型参数协作<code>T:Equatable</code>，也就意味着<code>任何符合Equatable</code>协议的<code>T</code>类型。</p>
-
-<p>findIndex函数现在可以成功编译了。并且可以作用于任何符合<code>Equatable</code>的类型，如<code>Double</code>或<code>String</code>:</p>
-
-<pre><code>let doubleIndex = findIndex([3.14159, 0.1, 0.25], 9.3)
-// doubleIndex 类型为 Int?，其值为 nil，因为 9.3 不在数组中
-let stringIndex = findIndex(["Mike", "Malcolm", "Andrea"], "Andrea")
-// stringIndex 类型为 Int?，其值为 2
-</code></pre>
-
-<h2>关联类型</h2>
-
-<p>下面例子定义了一个<code>Container</code>协议，该协议定义了关联类型<code>ItemType</code>:</p>
-
-<pre><code>protocol Container{
-   typealias ItemType
-    mutating func append(item:ItemType)
-
-    var count:Int{get}
-
-    subscript(i:Int)-&gt;ItemType{get}
-}
-</code></pre>
-
-<p><code>Container</code>协议定义了三个任何采纳协议的类型必须提供的功能：</p>
-
-<ul>
-<li>必须可以通过<code>append</code>方法添加一个新元素到容器里。</li>
-<li>必须可以通过<code>count</code>属性获取容易中元素的数量，并返回一个Int</li>
-<li>必须可以通过接受<code>Int</code>索引值的下标检索到每一个元素</li>
-</ul>
-
-
-<p>这个协议没有指定容易中元素该如何存储，以及元素必须是何种类型。这个协议只指定了三个任何采纳<code>Container</code>协议的类型必须是提供的功能。采纳协议的类型在满足这三个条件的情况下也可以提供其他额外的功能。</p>
-
-<p>任何采纳<code>Container</code>协议的类型必须能够指定其存储的元素的类型，必须保证只有正确类型的元素可以加进容器中，必须明确通过其下标返回的元素类型。</p>
-
-<p>为了定义这三个条件，<code>Container</code>协议需要在不知道容易中元素具体类型的情况下引用这种类型。</p>
-
-<p><code>Container</code>协议声明了一个关联类型<code>ItemType</code>，协作<code>typealias Itemtype</code>.这个协议无法定义<code>ItemType</code>是什么类型的别名，这个信息将留给采纳协议的类型来提供。尽管如此，<code>ItemType</code>别名提供了一种方式来引用<code>Container</code>中元素的类型，并将之用于<code>append</code>方法和下标，从而保证任何<code>Container</code>的预期行为都能够被执行。</p>
-
-<p>下面采用复合<code>Container</code>协议:</p>
-
-<pre><code>struct IntStackContainer:Container {
-    var items:[Int]
-
-    mutating func push(item:Int){
-     items.append(item)
-    }
-
-    mutating func pop()-&gt;Int{
-        return items.removeLast();
-    }
-
-    //Container协议的实现部分
-    typealias ItemType=Int
-
-    mutating func append(item: ItemType) {
-        self.push(item)
-    }
-
-    var count:Int{
-      return items.count
-    }
-
-    subscript(i:Int)-&gt;Int{
-        return items[i];
-    }
-
-}
-</code></pre>
-
-<p><code>IntStackContainer</code>结构体实现了<code>Container</code>协议的三个要求，其原有功能也不会和这些要求冲突。</p>
-
-<p>此外，<code>IntStackContainer</code>指定 ItemType为Int类型，即<code>typealias ItemType = Int</code>，从而将<code>Container</code>协议中抽象的<code>ItemType</code>类型转为具体的<code>Int</code>类型。</p>
-
-<h2>通过扩展一个存在的类型来指定关联类型</h2>
-
-<p>Swift的<code>Array</code>已经提供了<code>append(_:_:)</code>方法，一个<code>count</code>属性，以及一个接受<code>Int</code>型索引值的可用来检索数组元素的下标。这三个功能都符合<code>Container</code>协议的要求，也就意味着你可以扩展<code>Array</code>去符合<code>Container</code>协议，只需简单滴声明<code>Array</code>采纳该协议即可。你可以通过一个空扩展来实现这点</p>
-
-<pre><code>extension Array:Container{}
-</code></pre>
-
-<p>如何上面的泛型<code>Stack</code>结构一样，array的<code>append(_:)</code>方法和下标确保了Swift可以推断出<code>ItemType</code>的类型，定义了这个扩展后，你可以将任意<code>Array</code>当做<code>Container</code>来使用</p>
 ]]></content>
   </entry>
   

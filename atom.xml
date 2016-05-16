@@ -4,7 +4,7 @@
   <title><![CDATA[安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-05-05T09:31:14+08:00</updated>
+  <updated>2016-05-16T16:55:43+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -12,6 +12,362 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Swift-构造函数]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/05/16/swift-gou-zao-han-shu/"/>
+    <updated>2016-05-16T15:38:28+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/05/16/swift-gou-zao-han-shu</id>
+    <content type="html"><![CDATA[<p>本章包含的内容的如下:</p>
+
+<ul>
+<li><a href="#%E5%AD%98%E5%82%A8%E5%B1%9E%E6%80%A7%E7%9A%84%E5%88%9D%E5%A7%8B%E8%B5%8B%E5%80%BC">存储属性的初始赋值</a></li>
+<li><a href="#%E8%87%AA%E5%AE%9A%E4%B9%89%E6%9E%84%E9%80%A0%E8%BF%87%E7%A8%8B">自定义构造过程</a></li>
+<li><a href="#%E9%BB%98%E8%AE%A4%E6%9E%84%E9%80%A0%E5%99%A8">默认构造器</a></li>
+<li><a href="#%E5%80%BC%E7%B1%BB%E5%9E%8B%E7%9A%84%E6%9E%84%E9%80%A0%E5%99%A8%E4%BB%A3%E7%90%86">值类型的构造器代理</a></li>
+<li><a href="#%E7%B1%BB%E7%9A%84%E9%9B%86%E6%88%90%E5%92%8C%E6%9E%84%E9%80%A0%E8%BF%87%E7%A8%8B">类的集成和构造过程</a></li>
+<li><a href="#%E5%8F%AF%E5%A4%B1%E8%B4%A5%E6%9E%84%E9%80%A0%E5%99%A8">可失败构造器</a></li>
+<li><a href="#%E5%BF%85%E8%A6%81%E6%9E%84%E9%80%A0%E5%99%A8">必要构造器</a></li>
+<li><a href="#%E9%80%9A%E8%BF%87%E9%97%AD%E5%8C%85%E6%88%96%E5%87%BD%E6%95%B0%E8%AE%BE%E7%BD%AE%E5%B1%9E%E6%80%A7%E7%9A%84%E9%BB%98%E8%AE%A4%E5%80%BC">通过闭包或函数设置属性的默认值</a></li>
+</ul>
+
+
+<!--more-->
+
+
+<p>构造过程是使用类，结构体或枚举型的实例之前的准备过程。在新实例可用钳必须执行这个过程，具体操作包括设置实例中的每个存储属性的初始值和执行其他必须的设置或初始化工作</p>
+
+<p>通过定义构造器(Initializers)来实现构造过程，这些构造器可以看做是用来创建特定类型新实例的特殊方法。与Objc中的构造器不同，Swift的构造器无需返回值，它们的主要任务是保证新实例在第一次使用前完成正确的初始化。</p>
+
+<p>类的实例也可以通过定义析构器(deinitializer)在实例释放前执行特定的清除工作。</p>
+
+<h2><a name="存储属性的初始赋值">存储属性的初始赋值</a></h2>
+
+<p>类和结构体在创建实例时，必须为所有的存储属性设置合适的初始值。存储型属性的值不能处于一个未知的状态。</p>
+
+<p>你可以在构造器中为存储属性赋初值，也可以在定义属性时为其设置默认值。以下小节详细讨论这两个方法。</p>
+
+<blockquote><p><em>注意</em>
+当你为存储型属性设置默认值或者在构造器中为期赋值时，它们的值是被直接设置的，不会触发任何属性观察期(property observers)</p></blockquote>
+
+<h3>构造器</h3>
+
+<p>构造器在创建某个特定类型的新实例时被调用。它的最简单形式类似于一个不带任何参数的实例方法，以关键字init命名:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>init(){
+</span><span class='line'>  //在此执行构造过程
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>下面例子中定义了一个用来保存华氏温度的结构体Fahrenheit,它拥有一个<code>double</code>类型的存储型属性 temperature:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>struct Fahrenheit{
+</span><span class='line'>  var temperature:Double
+</span><span class='line'>  init(){
+</span><span class='line'>    temparture = 32.0
+</span><span class='line'>  }
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>var f = Fahrenheit()
+</span><span class='line'>print("The default temperature is \(f.temperature)° Fahrenheit")
+</span><span class='line'>// 输出 "The default temperature is 32.0° Fahrenheit”</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这个结构体定义了一个不带参数的构造器init,并在里面将存储属性temperature 的值初始化为32</p>
+
+<h3>默认初始值</h3>
+
+<p>如前所述，你可以在构造器中为存储型属性设置初始化，同样，你也可以在属性声明时为其设置默认值</p>
+
+<blockquote><p><em>注意</em>
+如果一个属性总是使用相同的初始值，那么为其设置一个默认值比每次都在构造器中赋值要好。两种方法的效果是一样的。只不过使用默认值让属性的初始化和声明结合的更紧密。使用默认值能让你的构造器更简洁，更清晰，且能通过默认值自动推导出属性的类型；同时，它也能让你充分利用默认构造器，构造器继承等特性</p></blockquote>
+
+<p>你可以使用更简单的方式在定义结构体Fahrenheit时为属性temperature设置默认值:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>struct Fahrenheit{
+</span><span class='line'>  var temperature = 32.0
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h2><a name="自定义构造过程">自定义构造过程</a></h2>
+
+<p>你可以通过输入参数可可选类型的属性来自定义构造过程，也可以在构造过程中修改常量属性。</p>
+
+<h3>构造参数</h3>
+
+<p>自定义构造过程时，可以在定义中提供构造函数，指定所需值的类型和名字。构造参数的功能和语法跟函数的方法的参数相同。</p>
+
+<p>下面例子中定义了一个包含摄氏温度的结构体<code>Celsius</code>.它定义了两个不同的构造器:init(fromFahrenheit:)和init(fromKelvin:),两者分别通过接受不同温标下的温度值来创建新的实例:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>struct Celsius {
+</span><span class='line'>    var temperatureInCelsius: Double
+</span><span class='line'>    init(fromFahrenheit fahrenheit: Double) {
+</span><span class='line'>        temperatureInCelsius = (fahrenheit - 32.0) / 1.8
+</span><span class='line'>    }
+</span><span class='line'>    init(fromKelvin kelvin: Double) {
+</span><span class='line'>        temperatureInCelsius = kelvin - 273.15
+</span><span class='line'>    }
+</span><span class='line'>}
+</span><span class='line'>let boilingPointOfWater = Celsius(fromFahrenheit: 212.0)
+</span><span class='line'>// boilingPointOfWater.temperatureInCelsius 是 100.0
+</span><span class='line'>let freezingPointOfWater = Celsius(fromKelvin: 273.15)
+</span><span class='line'>// freezingPointOfWater.temperatureInCelsius 是 0.0”</span></code></pre></td></tr></table></div></figure>
+
+
+<p>第一个构造器拥有一个构造参数，其外部名字为fromFahrenheit，内部名字为fahrenheit;第二个构造器也拥有一个构造函数，其外部名字为 fromKelvin,内部名字为 kelvin.这两个构造器都将唯一的参数值转换成摄氏温度值，并保存在属性temperatureInCelsius中</p>
+
+<h3>参数的内部名称和外部名称</h3>
+
+<p>跟函数和方法参数相同，构造参数也拥有一个在构造器内部使用的参数名字和一个在调用构造器时使用的外部参数名字。</p>
+
+<p>然而，构造器并不像函数和方法那样在括号前有一个可辨别的名字。因此在调用构造器时，主要工作构造器中的参数名和类型来确定应该被调用的构造器。正因为参数如此重要，如果你在定义构造器时没有提供参数的外部名字，Swift会为构造器的每个参数自动生成一个跟内部名字相同的外部名.</p>
+
+<p>以下例子中定义了一个结构体Color,它包含了三个常量:<code>red</code>,<code>green</code>和<code>blue</code>.这些属性可以存储在0-1之间的值，用来表示红绿蓝成分的含量</p>
+
+<p><code>Color</code>提供了一个构造器，其中包含三个<code>Double</code>类型的构造函数，Color也可以提供第二个狗奥奇，它只包含名为white的double类型的参数，它被用于给上述三个构造参数赋予同样的值。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>struct Color {
+</span><span class='line'>    let red, green, blue: Double
+</span><span class='line'>    init(red: Double, green: Double, blue: Double) {
+</span><span class='line'>        self.red   = red
+</span><span class='line'>        self.green = green
+</span><span class='line'>        self.blue  = blue
+</span><span class='line'>    }
+</span><span class='line'>    init(white: Double) {
+</span><span class='line'>        red   = white
+</span><span class='line'>        green = white
+</span><span class='line'>        blue  = white
+</span><span class='line'>    }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>两种构造器都能用于创建一个新的color实例，你需要为构造器每个外部参数传入值:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>let magenta = Color(red: 1.0, green: 0.0, blue: 1.0)
+</span><span class='line'>let halfGray = Color(white: 0.5)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>注意,如果不通过外部参数名子传值，你是没法调用这个构造器的，只要构造器定义了某个外部参数名，你就必须使用它，忽略它将导致编译错误:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>let veryGreen = Color(0.0, 1.0, 0.0)
+</span><span class='line'>// 报编译时错误，需要外部名称</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>不带外部名的构造参数</h4>
+
+<p>如果你不希望为构造器的某个参数提供外部名字，你可以使用下划线(_)来显式描述它的外部名，以此重写上面所说的默认行为.</p>
+
+<p>下面是之前的Celsius例子的扩展，跟之前相比添加了一个带有double类型参数的构造器，其外部名用_代替:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>struct Celsius {
+</span><span class='line'>    var temperatureInCelsius: Double
+</span><span class='line'>    init(fromFahrenheit fahrenheit: Double) {
+</span><span class='line'>        temperatureInCelsius = (fahrenheit - 32.0) / 1.8
+</span><span class='line'>    }
+</span><span class='line'>    init(fromKelvin kelvin: Double) {
+</span><span class='line'>        temperatureInCelsius = kelvin - 273.15
+</span><span class='line'>    }
+</span><span class='line'>    init(_ celsius: Double){
+</span><span class='line'>        temperatureInCelsius = celsius
+</span><span class='line'>    }
+</span><span class='line'>}
+</span><span class='line'>let bodyTemperature = Celsius(37.0)
+</span><span class='line'>// bodyTemperature.temperatureInCelsius 为 37.0</span></code></pre></td></tr></table></div></figure>
+
+
+<p>调用Celsius(37.0)意图明确，不需要外部参数名称。以此适合使用
+<code>Celsius(37.0)</code>这样的构造器，从而可以通过提供Double类型的参数值调用构造器，而不需要加上外部名。</p>
+
+<h3>可选属性类型</h3>
+
+<p>如果你你定制的类型包含一个逻辑上允许取值为空的存储性属性 &ndash; 无论是因为它无法再初始化时赋值，还是因为它在之后某个时间点可以赋值为空&ndash;你都需要将它定为可选类型(optional type).可选类型的属性将自动初始化为nil,表示这个属性是有意在初始化时设置为空的。</p>
+
+<p>下面的例子中定义了类<code>SurveyQuestion</code>,它包含了一个可选字符串属性response:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>class SurveyQuestion {
+</span><span class='line'>    var text: String
+</span><span class='line'>    var response: String?
+</span><span class='line'>    init(text: String) {
+</span><span class='line'>        self.text = text
+</span><span class='line'>    }
+</span><span class='line'>    func ask() {
+</span><span class='line'>        print(text)
+</span><span class='line'>    }
+</span><span class='line'>}
+</span><span class='line'>let cheeseQuestion = SurveyQuestion(text: "Do you like cheese?")
+</span><span class='line'>cheeseQuestion.ask()
+</span><span class='line'>// 输出 "Do you like cheese?"
+</span><span class='line'>cheeseQuestion.response = "Yes, I do like cheese."</span></code></pre></td></tr></table></div></figure>
+
+
+<p>迪奥哈问题的答案在回答前是无法确定的，因此我们将属性response声明为string?类型，或者说是可选字符串类型，当<code>SurveyQuestion</code>实例化时，它将自动赋值为nil,表明此字符串暂时还没有值</p>
+
+<h3>构造过程中的属性修改</h3>
+
+<p>你可以在构造过程中的任意时间点给常量属性指定一个值，只要在构造过程结束时是一个确定的值。一旦常量尚需经被赋值，它将永远不可更改。</p>
+
+<blockquote><p><em>注意:</em>
+对于类的实例来说，它的常量属性只能在定义它的类的构造过程中修改；不能在子类中修改</p></blockquote>
+
+<p>你可以修改上面的SurveyQuestion实例，用常量属性替代变量属性text,表示问题内容text在SurveyQuestion的实例被创建之后不会再被修改。尽管text属性现在是常量，我们仍然可以在类的构造器中设置它的值</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>class SurveyQuestion {
+</span><span class='line'>    let text: String
+</span><span class='line'>    var response: String?
+</span><span class='line'>    init(text: String) {
+</span><span class='line'>        self.text = text
+</span><span class='line'>    }
+</span><span class='line'>    func ask() {
+</span><span class='line'>        print(text)
+</span><span class='line'>    }
+</span><span class='line'>}
+</span><span class='line'>let beetsQuestion = SurveyQuestion(text: "How about beets?")
+</span><span class='line'>beetsQuestion.ask()
+</span><span class='line'>// 输出 "How about beets?"
+</span><span class='line'>beetsQuestion.response = "I also like beets. (But not with cheese.)"</span></code></pre></td></tr></table></div></figure>
+
+
+<h2><a name="默认构造器">默认构造器</a></h2>
+
+<p>如果结构体或类的所有属性都有默认值，同事没有自定义的构造器，那么Swift会给这些结构体或类提供一个默认的构造器(default initalilizers)。这个默认构造器将简单地创建一个所有属性值都设置为默认值的实例。</p>
+
+<p>下面例子中创建了一个类ShoppingListItem,它封装了购物清单中的某一个物品的属性:名字，数量和购买状态</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>class ShoppingListItem {
+</span><span class='line'>    var name: String?
+</span><span class='line'>    var quantity = 1
+</span><span class='line'>    var purchased = false
+</span><span class='line'>}
+</span><span class='line'>var item = ShoppingListItem()</span></code></pre></td></tr></table></div></figure>
+
+
+<p>由于ShoppingListItem类中所有属性都有默认值，且它没有父类的基类，它将自动获得一个可以为所有属性设置默认值的默认构造器，上面例子中使用默认构造创造了一个ShoppingListItem类的实例，并将其赋值给变量 item</p>
+
+<h3>结构起的逐一成员的构造器</h3>
+
+<p>除了上面提到的默认构造器，如果结构起没有提供自定义的构造器，他们将自动获得一个逐一成员构造器，及时结构天气的存储型尚需经没有默认值。</p>
+
+<p>逐一成员构造器是用来初始化结构体新实例成员属性的快捷方法。我们在调用逐一成员构造器时，通过与成员属性名相同的参数名进行传值来完成对成员属性的初始赋值</p>
+
+<p>下面例子中定义了结构体size,包含两个属性width和height。swift可以根据这两个属性的初始赋值0自动推导出他们的类型为double</p>
+
+<p>结构体size自动获得了一个逐一成员构造器init(width:height:)。你可以用它来为size创建新的实例:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>struct Size {
+</span><span class='line'>    var width = 0.0, height = 0.0
+</span><span class='line'>}
+</span><span class='line'>let twoByTwo = Size(width: 2.0, height: 2.0)</span></code></pre></td></tr></table></div></figure>
+
+
+<h2><a name="值类型的构造器代理">值类型的构造器代理</a></h2>
+
+<h2><a name="类的集成和构造过程">类的集成和构造过程</a></h2>
+
+<h2><a name="可失败构造器">可失败构造器</a></h2>
+
+<h2><a name="必要构造器">必要构造器</a></h2>
+
+<h2><a name="通过闭包或函数设置属性的默认值">通过闭包或函数设置属性的默认值</a></h2>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[CATransform3D]]></title>
@@ -8933,353 +9289,6 @@ Swift有如下要求:只要在闭包内使用<code>self</code>的成员，就要
 
 
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[如何用cocoaPod发布框架]]></title>
-    <link href="http://andrew-anlu.github.io/blog/2016/03/15/ru-he-yong-cocoapodfa-bu-kuang-jia/"/>
-    <updated>2016-03-15T14:54:27+08:00</updated>
-    <id>http://andrew-anlu.github.io/blog/2016/03/15/ru-he-yong-cocoapodfa-bu-kuang-jia</id>
-    <content type="html"><![CDATA[<h2>前言</h2>
-
-<p><a href="https://cocoapods.org/">cocoapods</a>是一款强大的框架依赖构建的工具，类似于java中的maven,可以快速搭建你项目中需要的框架，并且它可以自动帮你关联好第三方库之间的依赖关系， 这个很像ubuntu下的apt安装软件，自动帮你下载需要的依赖。</p>
-
-<!--more-->
-
-
-<p>使用cocoapod可以轻松的创建框架，发布到github上，可以让全世界的开发者下载到你的框架，并且使用，如果能为全世界的开源社区做点贡献，也是一件非常兴奋的事情。</p>
-
-<p>开发静态库有两种方法:</p>
-
-<h2>手动创建框架</h2>
-
-<p>手动创建比较繁琐，而且容易出现问题，大致步骤如下:</p>
-
-<ol>
-<li>在xcode中创建一个 <code>Cocoa Touch Static Library</code></li>
-<li>创建 <code>Podfile</code>文件</li>
-<li>执行 <code>pod install</code>完成整个项目的构建</li>
-<li>如果需要demo,手动创建示例程序，使用pod添加对私有静态库的依赖，重复执行 <code>pod install</code>来完成框架的构建</li>
-</ol>
-
-
-<h2>使用Pod创建框架</h2>
-
-<p><code>要求你系统中安装的cocoapod的版本&gt;0.3</code>
-电脑环境:</p>
-
-<ol>
-<li>OS X ElCapitan 10.11.1</li>
-<li>cocoapod 0.39</li>
-<li>xcode 7.2</li>
-<li>ruby 2.0.0p645 (2015-04-13 revision 50299) [universal.x86_64-darwin15]</li>
-<li>Homebrew 0.9.5 (no git repository)</li>
-</ol>
-
-
-<p>可以通过pod官网提供的命令来创建，让我们快速开始:</p>
-
-<pre><code>pod lib create podLib-Andrew
-</code></pre>
-
-<p>这行命令会自动从pod官网的仓库中下载模板
-然后它会问你几个问题</p>
-
-<ol>
-<li>What language do you want to use?? [ ObjC / Swift ] =>看你需要</li>
-<li>Would you like to include a demo application with your library? [ Yes / No ]=>是否包含一个demo，我一般Yes</li>
-<li>Which testing frameworks will you use? [ Specta / Kiwi / None ] =>是否需要包含一个测试框架</li>
-<li>Would you like to do view based testing? [ Yes / No ]</li>
-<li>What is your class prefix? =>类的前缀是什么</li>
-</ol>
-
-
-<p>执行成功之后，会自动用xcode打开工程，如果你的pod版本太新，比如1.0beta版本，可能不会自动创建workspace工作目录，这是由于pod1.0有些语法变了，你要相应的更改Podfile文件中的语法，具体参考官方最新的语法。</p>
-
-<p>最终生成的目录结构如下:
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160315-0.png" alt="logo" /></p>
-
-<ol>
-<li>Example 你的实例代码文件夹</li>
-<li>.travis.yml -持续集成的配置文件 <a href="https://travis-ci.org/">travis-ci</a></li>
-<li>_Pods.xcproject 工程的一个连接，类似快捷方式</li>
-<li>LICENSE 默认是 <a href="http://en.wikipedia.org/wiki/MIT_License">MIT License</a></li>
-<li>README.md 描述文件</li>
-<li>pod 你存储源代码的地方</li>
-</ol>
-
-
-<h2>设置你的框架</h2>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/xcode.png" alt="logo" /></p>
-
-<p>让我们看打开后的工程目录</p>
-
-<ol>
-<li>你可以编辑Podspec metadata，包括里面的版本号和介绍等</li>
-</ol>
-
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>#
-</span><span class='line'># Be sure to run `pod lib lint podLib-Andrew.podspec' to ensure this is a
-</span><span class='line'># valid spec before submitting.
-</span><span class='line'>#
-</span><span class='line'># Any lines starting with a # are optional, but their use is encouraged
-</span><span class='line'># To learn more about a Podspec see http://guides.cocoapods.org/syntax/podspec.html
-</span><span class='line'>#
-</span><span class='line'>
-</span><span class='line'>Pod::Spec.new do |s|
-</span><span class='line'>  s.name             = "podLib-Andrew"
-</span><span class='line'>  s.version          = "0.0.1"
-</span><span class='line'>  s.summary          = "这是我的第一个框架，希望能够帮到你"
-</span><span class='line'>
-</span><span class='line'># This description is used to generate tags and improve search results.
-</span><span class='line'>#   * Think: What does it do? Why did you write it? What is the focus?
-</span><span class='line'>#   * Try to keep it short, snappy and to the point.
-</span><span class='line'>#   * Write the description between the DESC delimiters below.
-</span><span class='line'>#   * Finally, don't worry about the indent, CocoaPods strips it!  
-</span><span class='line'>  s.description      = &lt;&lt;-DESC
-</span><span class='line'>                        "这是我的第一个框架，希望能够帮到你"
-</span><span class='line'>                       DESC
-</span><span class='line'>
-</span><span class='line'>  s.homepage         = "https://github.com/andrew-anlu/podLib-Andrew"
-</span><span class='line'>  # s.screenshots     = "www.example.com/screenshots_1", "www.example.com/screenshots_2"
-</span><span class='line'>  s.license          = 'MIT'
-</span><span class='line'>  s.author           = { "Andrew" =&gt; "anluanlu123@163.com" }
-</span><span class='line'>  s.source           = { :git =&gt; "https://github.com/andrew-anlu/podLib-Andrew.git", :tag =&gt; s.version.to_s }
-</span><span class='line'>  # s.social_media_url = 'https://twitter.com/&lt;TWITTER_USERNAME&gt;'
-</span><span class='line'>
-</span><span class='line'>  s.platform     = :ios, '7.0'
-</span><span class='line'>  s.requires_arc = true
-</span><span class='line'>
-</span><span class='line'>  s.source_files = 'Pod/Classes/**/*'
-</span><span class='line'>  s.resource_bundles = {
-</span><span class='line'>    'podLib-Andrew' =&gt; ['Pod/Assets/*.png']
-</span><span class='line'>  }
-</span><span class='line'>
-</span><span class='line'>  # s.public_header_files = 'Pod/Classes/**/*.h'
-</span><span class='line'>  # s.frameworks = 'UIKit', 'MapKit'
-</span><span class='line'>  # s.dependency 'AFNetworking', '~&gt; 2.3'
-</span><span class='line'>end
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>s.name是我们库的名称</li>
-<li>s.version是库原代码版本号</li>
-<li>s.summary是对我们库的一个简单的介绍</li>
-<li>s.homepage声明库的主页</li>
-<li>s.license是所采用的授权版本</li>
-<li>s.author是库的作者</li>
-<li>s.platform是我们库所支持的软件平台，这在我们最后提交进行编译 时有用</li>
-<li>s.source声明原代码的地址.</li>
-</ul>
-
-
-<p>按照默认配置，类库的源文件将位于Pod/Classes文件夹下，资源文件位于Pod/Assets文件夹下，可以修改s.source_files和s.resource_bundles来更换存放目录。s.public_header_files用来指定头文件的搜索位置。
-s.frameworks和s.libraries指定依赖的SDK中的framework和类库，需要注意，依赖项不仅要包含你自己类库的依赖，还要包括所有第三方类库的依赖，只有这样当你的类库打包成.a或.framework时才能让其他项目正常使用.</p>
-
-<h2>建立远程版本库</h2>
-
-<p>现在让我们去github上建立一个仓库，名字和工程的名字保持一致<code>podLib-Andrew</code>
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160315-1.png" alt="pic" /></p>
-
-<p>切换到终端，进入刚才的工程的根目录</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>//添加到本地
-</span><span class='line'>git add . 
-</span><span class='line'>
-</span><span class='line'>//提交到本地仓库
-</span><span class='line'>git commit -m "initial commit"
-</span><span class='line'>
-</span><span class='line'>//和远程仓库建立关联关系
-</span><span class='line'>git remote add origin git@github.com:andrew-anlu/podLib-Andrew.git
-</span><span class='line'>
-</span><span class='line'>//执行更细远程仓库的数据
-</span><span class='line'>git pull origin master
-</span><span class='line'>
-</span><span class='line'>//重新执行添加
-</span><span class='line'>git add .
-</span><span class='line'>
-</span><span class='line'>git commit -m "commit"
-</span><span class='line'>
-</span><span class='line'>//提交代码到远程仓库
-</span><span class='line'>git push origin master
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>编写源代码</h2>
-
-<p>在Pod的classes文件夹中新建一个类 <code>StringUtils</code>
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160315-2.png" alt="logo" /></p>
-
-<p>StringUtils.h</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>#import &lt;Foundation/Foundation.h&gt;
-</span><span class='line'>
-</span><span class='line'>@interface StringUtils : NSObject
-</span><span class='line'>+(void)sayHello;
-</span><span class='line'>@end
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>StringUtils.m</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>#import "StringUtils.h"
-</span><span class='line'>
-</span><span class='line'>@implementation StringUtils
-</span><span class='line'>+(void)sayHello{
-</span><span class='line'>    NSLog(@"Hello world");
-</span><span class='line'>}
-</span><span class='line'>@end
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>注意源代码的存放位置一定要和 .podspec中的 s.source 路径要一致，不然不会起作用的。
-运行 <code>pod install</code>,也许你也注意到了，每次添加或者修改类，或者添加图片等操作，都要执行 <code>pod install</code>或者<code>pod update</code>来更新应用。</p>
-
-<blockquote><p><em>注意</em>
-如果是生成swift功能，在Podfile文件中一定要有 <code>use_frameworks!</code> ，这行命令是指定框框是动态框架，因为swift要求要么依赖全部是动态框架，要么全部不是，所以如果注释掉，会报编译报错；</p>
-
-<p>另外，swift工程中的源文件，如果想让外部调用的话，一定要声明成<strong><code>public</code></strong>,
-这一点很重要。</p></blockquote>
-
-<h3>Note</h3>
-
-<p>添加完源代码之后，如果要在demo工程中引用，发现是引用不到的，原因就是你必须要把类库加入到demo工程中才行，默认在Podfile文件中生成的类库是动态类库，即 .framework的。
-我尝试了好久，一直引用不了，于是就改成生成.a静态库的方式，完美引用。</p>
-
-<p>修改成.a类库的方法就是在 Podfile中，把<code>#use_frameworks!</code> 注释掉就行了，这行代码默认就是生成动态类库的。
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160317-0.png" alt="logo" /></p>
-
-<h3>加入持续集成(Travis CI)</h3>
-
-<p>这个模板包含了一个 <code>.travis.yml</code>文件，加入你在Github上开关了你的框架，打开 <a href="https://travis-ci.org/">travis-ci官网</a>，并且用github账号登录并且同步，打开你要开源的项目，设置 on</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/travi.png" alt="lgogo" /></p>
-
-<h3>提交本地代码库</h3>
-
-<p>修改podLib-Andrew.podspec 中的 <code>s.source</code>,</p>
-
-<pre><code>  s.source           = { :git =&gt; "https://github.com/andrew-anlu/podLib-Andrew.git", :tag =&gt; s.version.to_s }
-</code></pre>
-
-<p>提交代码，并要打上tag</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>git add .
-</span><span class='line'>git commit -m "commit v0.0.1"
-</span><span class='line'>git tag 0.0.1
-</span><span class='line'>git tag -a 0.0.1 -m "v0.0.1"</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>验证类库</h3>
-
-<p>开发完静态类库之后，需要运行 <code>pod lib lint</code>验证一下类库是否符合 pod的要求。<code>pod spec lint</code>也是用来验证是否有效，区别在于</p>
-
-<ol>
-<li>pod lib lint  不访问网络，只在本地验证</li>
-<li>pod spec lint 检查远程仓库和远程的tag</li>
-</ol>
-
-
-<p>pod官方推荐用<a href="https://guides.cocoapods.org/making/getting-setup-with-trunk">trunk</a>来发布框架，<a href="https://guides.cocoapods.org/making/getting-setup-with-trunk">trunk入门</a></p>
-
-<p>假如你只想发布一个私人的框架，请看这个教程 <a href="https://guides.cocoapods.org/making/private-cocoapods">Private Specs Repos</a>,如果你想发布一个已经存在的私有框架，可以用下面的命令</p>
-
-<pre><code>pod repo push SPEC_REPO *.podspec --verbose
-</code></pre>
-
-<h2>发布框架</h2>
-
-<pre><code>pod trunk push podLib-Andrew.podspec
-</code></pre>
-
-<p>如果发布成功，执行 <code>pod search podLib</code>
-就会搜到你的框架</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160315-4.png" alt="logo" /></p>
-
-<h1>Done</h1>
-
-<p>👍</p>
 ]]></content>
   </entry>
   

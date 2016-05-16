@@ -1,0 +1,659 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Swift-构造函数 - 安路的技术博客</title>
+  <meta name="author" content="安路">
+
+  
+  <meta name="description" content="本章包含的内容的如下: 存储属性的初始赋值
+自定义构造过程
+默认构造器
+值类型的构造器代理
+类的集成和构造过程
+可失败构造器
+必要构造器
+通过闭包或函数设置属性的默认值 构造过程是使用类，结构体或枚举型的实例之前的准备过程。在新实例可用钳必须执行这个过程， &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://andrew-anlu.github.io/blog/2016/05/16/swift-gou-zao-han-shu/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="安路的技术博客" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//libs.baidu.com/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">安路的技术博客</a></h1>
+  
+    <h2>Nothing in life is to be feared. It is only to be understood</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://andrew-anlu.github.io" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="andrew-anlu.github.io">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/blog/">About me</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Swift-构造函数</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-05-16T15:38:28+08:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>16</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>3:38 pm</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>本章包含的内容的如下:</p>
+
+<ul>
+<li><a href="#%E5%AD%98%E5%82%A8%E5%B1%9E%E6%80%A7%E7%9A%84%E5%88%9D%E5%A7%8B%E8%B5%8B%E5%80%BC">存储属性的初始赋值</a></li>
+<li><a href="#%E8%87%AA%E5%AE%9A%E4%B9%89%E6%9E%84%E9%80%A0%E8%BF%87%E7%A8%8B">自定义构造过程</a></li>
+<li><a href="#%E9%BB%98%E8%AE%A4%E6%9E%84%E9%80%A0%E5%99%A8">默认构造器</a></li>
+<li><a href="#%E5%80%BC%E7%B1%BB%E5%9E%8B%E7%9A%84%E6%9E%84%E9%80%A0%E5%99%A8%E4%BB%A3%E7%90%86">值类型的构造器代理</a></li>
+<li><a href="#%E7%B1%BB%E7%9A%84%E9%9B%86%E6%88%90%E5%92%8C%E6%9E%84%E9%80%A0%E8%BF%87%E7%A8%8B">类的集成和构造过程</a></li>
+<li><a href="#%E5%8F%AF%E5%A4%B1%E8%B4%A5%E6%9E%84%E9%80%A0%E5%99%A8">可失败构造器</a></li>
+<li><a href="#%E5%BF%85%E8%A6%81%E6%9E%84%E9%80%A0%E5%99%A8">必要构造器</a></li>
+<li><a href="#%E9%80%9A%E8%BF%87%E9%97%AD%E5%8C%85%E6%88%96%E5%87%BD%E6%95%B0%E8%AE%BE%E7%BD%AE%E5%B1%9E%E6%80%A7%E7%9A%84%E9%BB%98%E8%AE%A4%E5%80%BC">通过闭包或函数设置属性的默认值</a></li>
+</ul>
+
+
+<!--more-->
+
+
+<p>构造过程是使用类，结构体或枚举型的实例之前的准备过程。在新实例可用钳必须执行这个过程，具体操作包括设置实例中的每个存储属性的初始值和执行其他必须的设置或初始化工作</p>
+
+<p>通过定义构造器(Initializers)来实现构造过程，这些构造器可以看做是用来创建特定类型新实例的特殊方法。与Objc中的构造器不同，Swift的构造器无需返回值，它们的主要任务是保证新实例在第一次使用前完成正确的初始化。</p>
+
+<p>类的实例也可以通过定义析构器(deinitializer)在实例释放前执行特定的清除工作。</p>
+
+<h2><a name="存储属性的初始赋值">存储属性的初始赋值</a></h2>
+
+<p>类和结构体在创建实例时，必须为所有的存储属性设置合适的初始值。存储型属性的值不能处于一个未知的状态。</p>
+
+<p>你可以在构造器中为存储属性赋初值，也可以在定义属性时为其设置默认值。以下小节详细讨论这两个方法。</p>
+
+<blockquote><p><em>注意</em>
+当你为存储型属性设置默认值或者在构造器中为期赋值时，它们的值是被直接设置的，不会触发任何属性观察期(property observers)</p></blockquote>
+
+<h3>构造器</h3>
+
+<p>构造器在创建某个特定类型的新实例时被调用。它的最简单形式类似于一个不带任何参数的实例方法，以关键字init命名:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>init(){
+</span><span class='line'>  //在此执行构造过程
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>下面例子中定义了一个用来保存华氏温度的结构体Fahrenheit,它拥有一个<code>double</code>类型的存储型属性 temperature:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>struct Fahrenheit{
+</span><span class='line'>  var temperature:Double
+</span><span class='line'>  init(){
+</span><span class='line'>    temparture = 32.0
+</span><span class='line'>  }
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>var f = Fahrenheit()
+</span><span class='line'>print("The default temperature is \(f.temperature)° Fahrenheit")
+</span><span class='line'>// 输出 "The default temperature is 32.0° Fahrenheit”</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这个结构体定义了一个不带参数的构造器init,并在里面将存储属性temperature 的值初始化为32</p>
+
+<h3>默认初始值</h3>
+
+<p>如前所述，你可以在构造器中为存储型属性设置初始化，同样，你也可以在属性声明时为其设置默认值</p>
+
+<blockquote><p><em>注意</em>
+如果一个属性总是使用相同的初始值，那么为其设置一个默认值比每次都在构造器中赋值要好。两种方法的效果是一样的。只不过使用默认值让属性的初始化和声明结合的更紧密。使用默认值能让你的构造器更简洁，更清晰，且能通过默认值自动推导出属性的类型；同时，它也能让你充分利用默认构造器，构造器继承等特性</p></blockquote>
+
+<p>你可以使用更简单的方式在定义结构体Fahrenheit时为属性temperature设置默认值:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>struct Fahrenheit{
+</span><span class='line'>  var temperature = 32.0
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h2><a name="自定义构造过程">自定义构造过程</a></h2>
+
+<p>你可以通过输入参数可可选类型的属性来自定义构造过程，也可以在构造过程中修改常量属性。</p>
+
+<h3>构造参数</h3>
+
+<p>自定义构造过程时，可以在定义中提供构造函数，指定所需值的类型和名字。构造参数的功能和语法跟函数的方法的参数相同。</p>
+
+<p>下面例子中定义了一个包含摄氏温度的结构体<code>Celsius</code>.它定义了两个不同的构造器:init(fromFahrenheit:)和init(fromKelvin:),两者分别通过接受不同温标下的温度值来创建新的实例:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>struct Celsius {
+</span><span class='line'>    var temperatureInCelsius: Double
+</span><span class='line'>    init(fromFahrenheit fahrenheit: Double) {
+</span><span class='line'>        temperatureInCelsius = (fahrenheit - 32.0) / 1.8
+</span><span class='line'>    }
+</span><span class='line'>    init(fromKelvin kelvin: Double) {
+</span><span class='line'>        temperatureInCelsius = kelvin - 273.15
+</span><span class='line'>    }
+</span><span class='line'>}
+</span><span class='line'>let boilingPointOfWater = Celsius(fromFahrenheit: 212.0)
+</span><span class='line'>// boilingPointOfWater.temperatureInCelsius 是 100.0
+</span><span class='line'>let freezingPointOfWater = Celsius(fromKelvin: 273.15)
+</span><span class='line'>// freezingPointOfWater.temperatureInCelsius 是 0.0”</span></code></pre></td></tr></table></div></figure>
+
+
+<p>第一个构造器拥有一个构造参数，其外部名字为fromFahrenheit，内部名字为fahrenheit;第二个构造器也拥有一个构造函数，其外部名字为 fromKelvin,内部名字为 kelvin.这两个构造器都将唯一的参数值转换成摄氏温度值，并保存在属性temperatureInCelsius中</p>
+
+<h3>参数的内部名称和外部名称</h3>
+
+<p>跟函数和方法参数相同，构造参数也拥有一个在构造器内部使用的参数名字和一个在调用构造器时使用的外部参数名字。</p>
+
+<p>然而，构造器并不像函数和方法那样在括号前有一个可辨别的名字。因此在调用构造器时，主要工作构造器中的参数名和类型来确定应该被调用的构造器。正因为参数如此重要，如果你在定义构造器时没有提供参数的外部名字，Swift会为构造器的每个参数自动生成一个跟内部名字相同的外部名.</p>
+
+<p>以下例子中定义了一个结构体Color,它包含了三个常量:<code>red</code>,<code>green</code>和<code>blue</code>.这些属性可以存储在0-1之间的值，用来表示红绿蓝成分的含量</p>
+
+<p><code>Color</code>提供了一个构造器，其中包含三个<code>Double</code>类型的构造函数，Color也可以提供第二个狗奥奇，它只包含名为white的double类型的参数，它被用于给上述三个构造参数赋予同样的值。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>struct Color {
+</span><span class='line'>    let red, green, blue: Double
+</span><span class='line'>    init(red: Double, green: Double, blue: Double) {
+</span><span class='line'>        self.red   = red
+</span><span class='line'>        self.green = green
+</span><span class='line'>        self.blue  = blue
+</span><span class='line'>    }
+</span><span class='line'>    init(white: Double) {
+</span><span class='line'>        red   = white
+</span><span class='line'>        green = white
+</span><span class='line'>        blue  = white
+</span><span class='line'>    }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>两种构造器都能用于创建一个新的color实例，你需要为构造器每个外部参数传入值:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>let magenta = Color(red: 1.0, green: 0.0, blue: 1.0)
+</span><span class='line'>let halfGray = Color(white: 0.5)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>注意,如果不通过外部参数名子传值，你是没法调用这个构造器的，只要构造器定义了某个外部参数名，你就必须使用它，忽略它将导致编译错误:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>let veryGreen = Color(0.0, 1.0, 0.0)
+</span><span class='line'>// 报编译时错误，需要外部名称</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>不带外部名的构造参数</h4>
+
+<p>如果你不希望为构造器的某个参数提供外部名字，你可以使用下划线(_)来显式描述它的外部名，以此重写上面所说的默认行为.</p>
+
+<p>下面是之前的Celsius例子的扩展，跟之前相比添加了一个带有double类型参数的构造器，其外部名用_代替:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>struct Celsius {
+</span><span class='line'>    var temperatureInCelsius: Double
+</span><span class='line'>    init(fromFahrenheit fahrenheit: Double) {
+</span><span class='line'>        temperatureInCelsius = (fahrenheit - 32.0) / 1.8
+</span><span class='line'>    }
+</span><span class='line'>    init(fromKelvin kelvin: Double) {
+</span><span class='line'>        temperatureInCelsius = kelvin - 273.15
+</span><span class='line'>    }
+</span><span class='line'>    init(_ celsius: Double){
+</span><span class='line'>        temperatureInCelsius = celsius
+</span><span class='line'>    }
+</span><span class='line'>}
+</span><span class='line'>let bodyTemperature = Celsius(37.0)
+</span><span class='line'>// bodyTemperature.temperatureInCelsius 为 37.0</span></code></pre></td></tr></table></div></figure>
+
+
+<p>调用Celsius(37.0)意图明确，不需要外部参数名称。以此适合使用
+<code>Celsius(37.0)</code>这样的构造器，从而可以通过提供Double类型的参数值调用构造器，而不需要加上外部名。</p>
+
+<h3>可选属性类型</h3>
+
+<p>如果你你定制的类型包含一个逻辑上允许取值为空的存储性属性 &ndash; 无论是因为它无法再初始化时赋值，还是因为它在之后某个时间点可以赋值为空&ndash;你都需要将它定为可选类型(optional type).可选类型的属性将自动初始化为nil,表示这个属性是有意在初始化时设置为空的。</p>
+
+<p>下面的例子中定义了类<code>SurveyQuestion</code>,它包含了一个可选字符串属性response:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>class SurveyQuestion {
+</span><span class='line'>    var text: String
+</span><span class='line'>    var response: String?
+</span><span class='line'>    init(text: String) {
+</span><span class='line'>        self.text = text
+</span><span class='line'>    }
+</span><span class='line'>    func ask() {
+</span><span class='line'>        print(text)
+</span><span class='line'>    }
+</span><span class='line'>}
+</span><span class='line'>let cheeseQuestion = SurveyQuestion(text: "Do you like cheese?")
+</span><span class='line'>cheeseQuestion.ask()
+</span><span class='line'>// 输出 "Do you like cheese?"
+</span><span class='line'>cheeseQuestion.response = "Yes, I do like cheese."</span></code></pre></td></tr></table></div></figure>
+
+
+<p>迪奥哈问题的答案在回答前是无法确定的，因此我们将属性response声明为string?类型，或者说是可选字符串类型，当<code>SurveyQuestion</code>实例化时，它将自动赋值为nil,表明此字符串暂时还没有值</p>
+
+<h3>构造过程中的属性修改</h3>
+
+<p>你可以在构造过程中的任意时间点给常量属性指定一个值，只要在构造过程结束时是一个确定的值。一旦常量尚需经被赋值，它将永远不可更改。</p>
+
+<blockquote><p><em>注意:</em>
+对于类的实例来说，它的常量属性只能在定义它的类的构造过程中修改；不能在子类中修改</p></blockquote>
+
+<p>你可以修改上面的SurveyQuestion实例，用常量属性替代变量属性text,表示问题内容text在SurveyQuestion的实例被创建之后不会再被修改。尽管text属性现在是常量，我们仍然可以在类的构造器中设置它的值</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>class SurveyQuestion {
+</span><span class='line'>    let text: String
+</span><span class='line'>    var response: String?
+</span><span class='line'>    init(text: String) {
+</span><span class='line'>        self.text = text
+</span><span class='line'>    }
+</span><span class='line'>    func ask() {
+</span><span class='line'>        print(text)
+</span><span class='line'>    }
+</span><span class='line'>}
+</span><span class='line'>let beetsQuestion = SurveyQuestion(text: "How about beets?")
+</span><span class='line'>beetsQuestion.ask()
+</span><span class='line'>// 输出 "How about beets?"
+</span><span class='line'>beetsQuestion.response = "I also like beets. (But not with cheese.)"</span></code></pre></td></tr></table></div></figure>
+
+
+<h2><a name="默认构造器">默认构造器</a></h2>
+
+<p>如果结构体或类的所有属性都有默认值，同事没有自定义的构造器，那么Swift会给这些结构体或类提供一个默认的构造器(default initalilizers)。这个默认构造器将简单地创建一个所有属性值都设置为默认值的实例。</p>
+
+<p>下面例子中创建了一个类ShoppingListItem,它封装了购物清单中的某一个物品的属性:名字，数量和购买状态</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>class ShoppingListItem {
+</span><span class='line'>    var name: String?
+</span><span class='line'>    var quantity = 1
+</span><span class='line'>    var purchased = false
+</span><span class='line'>}
+</span><span class='line'>var item = ShoppingListItem()</span></code></pre></td></tr></table></div></figure>
+
+
+<p>由于ShoppingListItem类中所有属性都有默认值，且它没有父类的基类，它将自动获得一个可以为所有属性设置默认值的默认构造器，上面例子中使用默认构造创造了一个ShoppingListItem类的实例，并将其赋值给变量 item</p>
+
+<h3>结构起的逐一成员的构造器</h3>
+
+<p>除了上面提到的默认构造器，如果结构起没有提供自定义的构造器，他们将自动获得一个逐一成员构造器，及时结构天气的存储型尚需经没有默认值。</p>
+
+<p>逐一成员构造器是用来初始化结构体新实例成员属性的快捷方法。我们在调用逐一成员构造器时，通过与成员属性名相同的参数名进行传值来完成对成员属性的初始赋值</p>
+
+<p>下面例子中定义了结构体size,包含两个属性width和height。swift可以根据这两个属性的初始赋值0自动推导出他们的类型为double</p>
+
+<p>结构体size自动获得了一个逐一成员构造器init(width:height:)。你可以用它来为size创建新的实例:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>struct Size {
+</span><span class='line'>    var width = 0.0, height = 0.0
+</span><span class='line'>}
+</span><span class='line'>let twoByTwo = Size(width: 2.0, height: 2.0)</span></code></pre></td></tr></table></div></figure>
+
+
+<h2><a name="值类型的构造器代理">值类型的构造器代理</a></h2>
+
+<h2><a name="类的集成和构造过程">类的集成和构造过程</a></h2>
+
+<h2><a name="可失败构造器">可失败构造器</a></h2>
+
+<h2><a name="必要构造器">必要构造器</a></h2>
+
+<h2><a name="通过闭包或函数设置属性的默认值">通过闭包或函数设置属性的默认值</a></h2>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">安路</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2016-05-16T15:38:28+08:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>16</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>3:38 pm</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/swift/'>swift</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+
+<!-- JiaThis Button BEGIN -->
+<div class="jiathis_style_32x32">
+	<a class="jiathis_button_qzone"></a>
+	<a class="jiathis_button_tsina"></a>
+	<a class="jiathis_button_tqq"></a>
+	<a class="jiathis_button_weixin"></a>
+	<a class="jiathis_button_renren"></a>
+	<a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank"></a>
+	<a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+<br><br>
+<!-- UY BEGIN -->
+<div id="uyan_frame"></div>
+<script type="text/javascript" src="http://v2.uyan.cc/code/uyan.js?uid=2052593"></script>
+<!-- UY END -->
+
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2016/05/04/catransform3d/" title="Previous Post: CATransform3D">&laquo; CATransform3D</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+<h1>
+	QQ群
+</h1>
+   <br/>
+	<p>欢迎加入swift学习交流群:252710124</p>
+</section>
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/05/16/swift-gou-zao-han-shu/">Swift-构造函数</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/05/04/catransform3d/">CATransform3D</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/05/04/runtimeyun-xing-shi-ru-men/">Runtime运行时入门</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/04/29/macshang-ru-he-ba-shi-pin-zhuan-cheng-dot-gif/">Mac上如何把视频转成.Gif</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/04/28/viewcontrollerzhuan-chang-dong-hua/">ViewController转场动画</a>
+      </li>
+    
+  </ul>
+</section>
+<section>
+	<h1>文章分类</h1>
+	<ul id="categories">
+		<li class='category'><a href='/blog/categories/cocoapods/'>cocoapods (1)</a></li>
+<li class='category'><a href='/blog/categories/git/'>git (3)</a></li>
+<li class='category'><a href='/blog/categories/ios/'>ios (19)</a></li>
+<li class='category'><a href='/blog/categories/life/'>life (1)</a></li>
+<li class='category'><a href='/blog/categories/mac/'>mac (2)</a></li>
+<li class='category'><a href='/blog/categories/octopress/'>octopress (2)</a></li>
+<li class='category'><a href='/blog/categories/swift/'>swift (11)</a></li>
+<li class='category'><a href='/blog/categories/xcode/'>xcode (1)</a></li>
+
+	</ul>
+</section>
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/andrew-anlu">@andrew-anlu</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'andrew-anlu',
+            count: 3,
+            skip_forks: false,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+<section>
+  <h1>On Delicious</h1>
+  <div id="delicious"></div>
+  <script type="text/javascript" src="http://feeds.delicious.com/v2/json/Andrewswift1987?count=3&amp;sort=date&amp;callback=renderDeliciousLinks"></script>
+  <p><a href="http://delicious.com/Andrewswift1987">My Delicious Bookmarks &raquo;</a></p>
+</section>
+
+ <section>
+      <h1>访客统计</h1>
+      <br/>
+    <a href="http://info.flagcounter.com/Bkif"><img src="http://s01.flagcounter.com/count2/Bkif/bg_ffffff/txt_000000/border_CCCCCC/columns_3/maxflags_10/viewers_0/labels_1/pageviews_1/flags_1/percent_0/" alt="Free counters!" border="0"></a>
+    </section>
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><!--返回顶部开始-->
+<div id="full" style="width:0px; height:0px; position:fixed; right:180px; bottom:150px; z-index:100; text-align:center; background-color:transparent; cursor:pointer;">
+  <a href="#" onclick="goTop();return false;"><img src="http://7xsn4e.com2.z0.glb.clouddn.com/top.png" border=0 alt="返回顶部" width="50" height="50"></a>
+</div>
+<script src="/javascripts/top.js" type="text/javascript"></script>
+<!--返回顶部结束-->
+
+
+<p>
+  Copyright &copy; 2016 - 安路 -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'Andrewswift1987';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://andrew-anlu.github.io/blog/2016/05/16/swift-gou-zao-han-shu/';
+        var disqus_url = 'http://andrew-anlu.github.io/blog/2016/05/16/swift-gou-zao-han-shu/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
