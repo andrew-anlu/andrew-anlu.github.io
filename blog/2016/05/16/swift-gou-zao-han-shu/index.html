@@ -436,7 +436,184 @@
 
 <h2><a name="值类型的构造器代理">值类型的构造器代理</a></h2>
 
+<p>构造器可以通过调用其它构造器来完成实例的部分构造过程。这一过程成为构造器代理，它能减少多个构造器间的代码重用。</p>
+
+<p>构造器代理的实现规则和形式在值类型和类类型中有所不同。值类型（结构体和枚举类型）不支持继承，所以构造器代理的过程相对简单，因为它们只能代理给自己的其它构造器。类则不同，它可以继承自其它类，这意味着类有责任保证其所有继承的存储型属性在构造时也能正确的初始化。</p>
+
+<p>对于值类型，你可以使用self.init在自定义的构造器中引用相同类型中的其它构造器。并且你只能在构造器内部调用self.init</p>
+
+<p>如果你为某个值类型定义了一个自定义的构造器，你将无法访问到默认构造器（如果是结构体，还将无法访问逐一成员的构造器）。这种限制可以防止你为值类型增加了一个额外的且十分负载的构造器之后，仍然有人错误的使用自动生成的构造器</p>
+
+<blockquote><p><em>注意</em>
+如果你希望默认构造器，逐一成员构造器以及你自己的自定义的构造器都能用来创建实例，可以将自定义的构造器写到扩展中，而不是写在值类型的原始定义中。</p></blockquote>
+
+<p>下面的例子将定义一个结构体 rect,用来代表几何矩形。这个例子需要两个辅助的结构体Size和point,它们各自为其所有的属性提供了默认值0</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>struct Size {
+</span><span class='line'>    var width = 0.0, height = 0.0
+</span><span class='line'>}
+</span><span class='line'>struct Point {
+</span><span class='line'>    var x = 0.0, y = 0.0
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>你可以通过以下三种方式为Rect创建实例&ndash;使用被初始化为默认值的origin和Size属性来初始化；提供指定的origin和size实例来初始化；提供指定的center和size来初始化。在下面Rect结构体定义中，我们为这三种方式提供了三个自定义的构造器:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>struct Rect {
+</span><span class='line'>    var origin = Point()
+</span><span class='line'>    var size = Size()
+</span><span class='line'>    
+</span><span class='line'>    init(){
+</span><span class='line'>    
+</span><span class='line'>    }
+</span><span class='line'>    
+</span><span class='line'>    init(origin:Point,size:Size){
+</span><span class='line'>        self.origin = origin
+</span><span class='line'>        self.size = size
+</span><span class='line'>    }
+</span><span class='line'>    
+</span><span class='line'>    init(center:Point,size:Size){
+</span><span class='line'>        let originX = center.x - (size.width/2)
+</span><span class='line'>        let originY = center.y - (size.height/2)
+</span><span class='line'>        self.init(origin: Point(x: originX, y: originY), size: size)
+</span><span class='line'>        
+</span><span class='line'>    }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>第一个Rect构造器init(),在功能上跟没有自定义构造器自动获得的默认构造器是一样的。这个构造器是一个空函数，使用一对大括号{}来表示，它没有指定任何构造过程。调用这个构造器将返回一个Rect实例，它的origin和size属性都是用定义时的默认值Point(x: 0.0, y: 0.0)和Size(width: 0.0, height: 0.0)：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>let basicRect = Rect()
+</span><span class='line'>// basicRect 的 origin 是 (0.0, 0.0)，size 是 (0.0, 0.0)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>第二个Rect构造器init(origin:size:)，在功能上跟结构体在没有自定义构造器时获得的逐一成员构造器是一样的。这个构造器只是简单的将origin和size的参数值赋给对应的存储性属性:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>let originRect = Rect(origin: Point(x: 2.0, y: 2.0),
+</span><span class='line'>    size: Size(width: 5.0, height: 5.0))
+</span><span class='line'>// originRect 的 origin 是 (2.0, 2.0)，size 是 (5.0, 5.0)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>第三个Rect构造器init(center:size:)稍微复杂一点。它先通过center和size的值计算出origin的坐标，然后再调用init(origin:size:)构造器来将新的origin和size值赋值到对应的属性中:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>let centerRect = Rect(center: Point(x: 4.0, y: 4.0),
+</span><span class='line'>    size: Size(width: 3.0, height: 3.0))
+</span><span class='line'>// centerRect 的 origin 是 (2.5, 2.5)，size 是 (3.0, 3.0)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>构造器init(center:size:)可以直接将origin和size 的新值赋值到对应的属性中。然而，利用恰好提供了相关功能的现有构造器会更为方便，构造器init(center:size:)的意图也会更加清晰</p>
+
 <h2><a name="类的集成和构造过程">类的集成和构造过程</a></h2>
+
+<p>类里面的所有存储性属性&ndash;包括所有继承自父类的属性&ndash;都必须在构造过程中设置初始值</p>
+
+<p>Swift为类类型提供了两种构造器来确保实例中所有存储性属性都能获得初始值，它们分别是指定构造器和便利构造器</p>
+
+<h3>指定构造器和便利构造器</h3>
+
+<p>指定构造器是类中最主要的构造器。一个指定构造器将初始化类中提供的所有属性，并根据父类链上调用父类的构造器来实现父类的初始化</p>
+
+<p>每一个类都必须拥有至少一个指定构造器。在某些情况下，许多类通过继承了父类中的指定构造器而满足了这个条件。</p>
+
+<p>便利构造器(convenience initializers)是类中比较次要的，辅助性的构造器。你可以定义便利构造器来调用同一个类中的指定构造器，并为其参数提供默认值。你也可以定义便利构造器来创建一个特殊用途或者特定输入值的实例</p>
+
+<p>你应当只在必要的时候为类提供便利构造器，比方或某种情况下通过使用便利构造器来快捷调用某个指定构造器，能够节省更多开发时间并让类的构造郭恒更清晰明了</p>
+
+<h3>指定构造器和便利构造器的语法</h3>
+
+<p>类的指定构造器的写法跟值类型简单构造器一样:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>init(parameters) {
+</span><span class='line'>    statements
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>便利构造器也采用相同样式的写法，但需要在init关键字之前放置convenience关键字，并使用空格将它们俩分开：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>convenience init(parameters) {
+</span><span class='line'>    statements
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>类的构造器代理规则</h3>
+
+<p>为了简化指定构造器和便利构造器之间的调用关系，Swift采用以下三条规则来限制构造器之间的代理调用:</p>
+
+<ul>
+<li>规则1 指定构造器必须调用其直接父类的指定构造器</li>
+<li>规则2 便利构造器必须调用同一类中定义的其它构造器</li>
+<li>规则3 便利构造器必须最终导致一个指定构造器被调用</li>
+</ul>
+
+
+<p>一个更方便记忆的方式是:</p>
+
+<ul>
+<li>指定构造器必须总是向上代理</li>
+<li>便利构造器必须总是横向代理</li>
+</ul>
+
+
+<p>这些规则可以通过下面的图例来说明:
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/initializerDelegation01_2x.png" alt="init" /></p>
+
+<p>如图所示，父类中包含一个指定构造器和两个便利构造器。其中一个便利构造器调用了另外一个便利构造器，而后者又调用了唯一的指定构造器。这满足了上面提到 规则2和3.而两个指定构造器必须调用父类中唯一的指定构造器，这满足了规则1</p>
+
+<blockquote><p><em>注意</em>
+这些规则不会影响类的实例如何创建。任何上图中展示的构造器都可以用来创建完全初始化的实例。这些规则只影响类定义如何实现。</p></blockquote>
+
+<p>下图中展示了一种涉及四个类的更复杂的类层次结构。它演示了指定构造器是如何在类层次中充当“管道”的作用，在类的构造器链上简化了类之间的相互关系。</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/initializerDelegation02_2x.png" alt="te" /></p>
+
+<h3>两段式构造过程</h3>
+
+<p>Swift中类的构造过程包含两个阶段。第一个阶段，每个存储属性被引入它们的类指定一个初始值。当每个存储性属性的初始值被确定后，第二个阶段开始，它给每个类一次机会，在新实例准备使用之前进一步定制它们的存储性属性。</p>
+
+<p>两段式构造过程的使用让构造过程更安全，同时在整个类层级结构中给予了每个类完全的灵活性。两段式构造过程可以防止属性值在初始化之前被访问，也可以防止属性被另外一个构造器意外地赋予不同的值。</p>
+
+<blockquote><p><em>注意</em>
+Swift的两段时构造过程跟Objective-C中的构造过程类似。最主要的区别在于阶段1，Objective-C给每一个属性赋值0或空值(比如说0或nil)。Swift的构造流程则更加灵活，它允许你设置定制的初始值，并自如应对某些属性不能以0或nil作为合法默认值的情况。</p></blockquote>
 
 <h2><a name="可失败构造器">可失败构造器</a></h2>
 
