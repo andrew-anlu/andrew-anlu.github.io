@@ -615,6 +615,177 @@
 <blockquote><p><em>注意</em>
 Swift的两段时构造过程跟Objective-C中的构造过程类似。最主要的区别在于阶段1，Objective-C给每一个属性赋值0或空值(比如说0或nil)。Swift的构造流程则更加灵活，它允许你设置定制的初始值，并自如应对某些属性不能以0或nil作为合法默认值的情况。</p></blockquote>
 
+<p>Swift编译器将执行4种有效的安全检查，已确保两段式构造过程能不出错地完成：</p>
+
+<p><em>安全检查1</em></p>
+
+<p>指定构造器必须保证它所在类引入的所有属性都必须先初始化完成，之后才能将其它构造任务向上代理给父类的构造器</p>
+
+<p>如上所述，一个对象的内存只有在其所有存储性苏醒确定之后次啊能完全初始化。为了满足这一规则，指定构造器必须保证它所在类引入的属性在它往上代理之前先完成初始化。</p>
+
+<p><em>安全检查2</em></p>
+
+<p>指定构造器必须先向上代理调用父类构造器，然后再为继承的属性设置新值。如果没这么做，指定构造器赋予的新值将被父类中的构造器所覆盖。</p>
+
+<p><em>安全检查3</em></p>
+
+<p>便利构造器必须先代理调用同一类中的其它构造器，然后再为任意属性赋新值。如果没这么做，便利构造器赋予的新值将被同一类中的其它指定构造器所覆盖</p>
+
+<p><em>安全检查4</em></p>
+
+<p>构造器在第一阶段构造完成之前，不能调用任何实例方法，不能读取任何实例属性的值，不能引用self作为一个值。</p>
+
+<p>类实例在第一阶段结束以前并不是完全有效的。只有第一阶段完成后，该实例会成为有效实例，才能访问属性和调用方法。</p>
+
+<p>以下是两段式构造过程中基于上述安全检查的构造流程展示:</p>
+
+<p><em>阶段1</em></p>
+
+<ul>
+<li>某个指定构造器或便利构造器被调用</li>
+<li>完成新实例内存的分配，但此时内存还没有被初始化</li>
+<li>指定构造器确保其所在类引入的所有存储型属性都已赋初值。存储型属性所属的内存完成初始化</li>
+<li>指定构造器将调用父类的构造器，完成父类属性的初始化</li>
+<li>这个调用父类的构造器的过程沿着构造器链一直往上执行，知道到达构造器链的最顶层</li>
+<li>当到达了构造器链的最顶部，且已确保所有势力包含的存储型属性都已经赋值，这个实例的内存被认为已经完成初始化。此时阶段1完成</li>
+</ul>
+
+
+<p><em>阶段2</em></p>
+
+<ul>
+<li>从顶部构造器链一直往下，每个构造器链中类的指定构造器都有机会进一步定制实例。构造器此时可以访问self.修改它的属性并调用实例方法等</li>
+<li>最终，任意构造器链中的便利构造器可以有机会定制实例和使用self</li>
+</ul>
+
+
+<p>下图展示了在假定的子类和父类之间的构造阶段1</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/twoPhaseInitialization01_2x.png" alt="1" /></p>
+
+<p>在这个例子中，构造过程从对子类中一个便利构造器的调用开始。这个便利构造器此时没法修改任何属性，它把构造任务代理给同一类中的指定构造器。</p>
+
+<p>如安全检查1所示，指定构造器将确保所有子类的属性都有值。然后它将调用父类的指定构造器，并沿着构造器链一直往上完成父类的构造过程</p>
+
+<p>父类中的指定构造器确保所有父类的属性都有值。由于没有更多的父类需要初始化，也就无需继续向上代理。</p>
+
+<p>一旦父类中所有属性都有了初始值，实例的内存被认为是完成初始化，阶段1完成。</p>
+
+<p>以下展示了相同构造过程的阶段2：</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/twoPhaseInitialization02_2x.png" alt="2" /></p>
+
+<p>父类中的指定构造器现在有机会进一步来定制实例。</p>
+
+<p>一旦父类中的指定构造器完成调用，子类中的指定构造器可以执行更多的定制操作。
+最终，一旦子类的指定构造器完成调用，最开始被调用的便利构造器可以执行更多的定制操作</p>
+
+<h3>构造器的继承和重写</h3>
+
+<p>跟Objc中的子类不同，Swift中的子类默认情况下不会继承父类的构造器。Swift的这种机制可以防止一个父类的简单构造器被一个更精细的子类继承，并被错误地用来创建子类的实例。</p>
+
+<blockquote><p><em>注意</em></p>
+
+<p>父类的构造器仅会在安全和适当的情况下被继承</p></blockquote>
+
+<p>假如你希望自定义的子类中能提供一个或多个父类相同的构造器，你可以在子类中提供这些构造器的自定义实现。</p>
+
+<p>当你编写与一个和父类中指定构造器相匹配的子类构造器时，你实际上是在重写父类的这个指定构造器。因此，你必须在定义子类构造器时带上 <code>override</code>修饰符。即使你重写的是系统自动提供的默认构造器，也需要带上<code>override</code>修饰符。</p>
+
+<p>正如重写属性，方法或者是下标，override修饰符会让编译器去检查父类中是否有相匹配的指定构造器，并验证构造器参数是否正确。</p>
+
+<blockquote><p><em>注意</em>
+当你重写了父类的指定构造器时，你总是需要写override修饰符，即使你的子类的指定构造器重写为了便利构造器</p></blockquote>
+
+<p>相反，如果你编写了一个和父类便利构造器相匹配的子类构造器，由于子类不能直接调用父类的便利构造器，因此，严格意义上来讲，你的子类并未对一个父类构造器提供重写。最后的结果就是，你在子类中“重写”一个父类便利构造器时，不需要加override前缀。</p>
+
+<p>在下面的例子中定义了一个叫做<code>Vehicle</code>的基类。基类中声明了一个存储型属性<code>numberOfWheels</code>,它是值为0的Int类型的存储型属性。numberOfWheel属性用于创建名为descrpiption的<code>String</code>类型的计算型属性:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>class Vehicle {
+</span><span class='line'>    var numberOfWheels = 0
+</span><span class='line'>    var description: String {
+</span><span class='line'>        return "\(numberOfWheels) wheel(s)"
+</span><span class='line'>    }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>Vehicle</code>类只为存储型属性提供默认值，而不自定义构造器。因此，它会自动获得一个默认构造器，自动获得的默认构造器总会是类中的指定构造器，它可以用于创建numberOfWheels为0的Vehicle实例:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>let vehicle = Vehicle()
+</span><span class='line'>print("Vehicle: \(vehicle.description)")
+</span><span class='line'>// Vehicle: 0 wheel(s)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>下面例子中，定义了Vehicle的子类Bicycle:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>class Bicycle: Vehicle {
+</span><span class='line'>    override init() {
+</span><span class='line'>        super.init()
+</span><span class='line'>        numberOfWheels = 2
+</span><span class='line'>    }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>子类<code>Bicycle</code>定义了一个自定义的指定构造器init(),这个指定构造器和父类的指定构造器匹配，所以<code>Bicycle</code>中的指定构造器需要带上override修饰符</p>
+
+<p><code>Bicycle</code>的构造器init()以调用super.init()方法开始，这个方法的作用是调用Bicycle的父类<code>Vechicle</code>的默认构造器，这样可以确保Bicycle在修改属性之前，它所继承的属性numberOfWheels能被<code>Vehicle</code>类初始化。在调用super.init()之后，属性<code>numberOfWheels</code>的原值被新值2替换。</p>
+
+<p>如果你创建了<code>Bicycle</code>实例，你可以调用继承的<code>description</code>计算型属性去查看属性<code>numberOfWheels</code>是否有改变:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>let bicycle = Bicycle()
+</span><span class='line'>print("Bicycle: \(bicycle.description)")
+</span><span class='line'>// Bicycle: 2 wheel(s)</span></code></pre></td></tr></table></div></figure>
+
+
+<blockquote><p><em>注意</em></p>
+
+<p>子类可以在初始化时修改继承来的变量属性，但是不能修改继承来的常量属性</p></blockquote>
+
+<h3>构造器的自动继承</h3>
+
+<p>如上所述，子类在默认情况下不会继承父类的构造器。但是如果满足特定条件，父类构造器是可以被自动继承的。在实践中，这意味着对于许多常见场景你不必重写父类的构造器，并且可以在安全的情况下以最小的代价继承父类的构造器。</p>
+
+<p>假如你为子类中引入的所有新属性都提供了默认值，以下2个规则适用：</p>
+
+<p><em>规则1</em></p>
+
+<p>如果子类没有定义任何指定构造器，它将自动继承所有父类的指定构造器</p>
+
+<p><em>规则2</em></p>
+
+<p>如果子类提供了所有父类指定构造器的实现&ndash;无论是通过规则1继承过来的，还是提供了自定义实现&ndash;它将自动继承所有父类的便利构造器。</p>
+
+<p>即使你在子类中添加了更多的便利构造器，这两条规则仍然适用</p>
+
+<blockquote><p><em>注意</em>
+对于规则2，子类可以将父类的指定构造器实现为便利构造器</p>
+
+<p><em>总结:</em></p>
+
+<p>如果子类继承父类，在子类的构造器中，如果是继承的属性，则先调用<code>super.init(...)</code>方法，先让父类完成属性初始化，然后再对继承的属性赋值;</p>
+
+<p>如果子类中独有的属性，则先完成子类属性的初始化，再调用父类的<code>super.init(...)</code>方法</p></blockquote>
+
+<h3>指定构造器和便利构造器实践</h3>
+
 <h2><a name="可失败构造器">可失败构造器</a></h2>
 
 <h2><a name="必要构造器">必要构造器</a></h2>
