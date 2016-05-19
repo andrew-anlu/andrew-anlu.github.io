@@ -4,7 +4,7 @@
   <title><![CDATA[安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-05-19T20:23:05+08:00</updated>
+  <updated>2016-05-19T20:28:23+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -881,7 +881,7 @@ Swift的两段时构造过程跟Objective-C中的构造过程类似。最主要�
 
 <blockquote><p><em>注意:</em></p>
 
-<p><b> 可失败构造器的参数名和参数类型，不能为其它非可失败构造器的参数名，及其参数类型相同 </b></p></blockquote>
+<p><b > 可失败构造器的参数名和参数类型，不能为其它非可失败构造器的参数名，及其参数类型相同 </b></p></blockquote>
 
 <p>可失败构造器会创建一个类型为自身类型的可选类型的对象。你通过<code>return nil</code>语句来表明可失败构造器在何种情况下应该<code>失败</code>。</p>
 
@@ -943,8 +943,9 @@ Swift的两段时构造过程跟Objective-C中的构造过程类似。最主要�
 </span><span class='line'>// 打印 "The anonymous creature could not be initialized"</span></code></pre></td></tr></table></div></figure>
 
 
-<blockquote><p><strong>注意</strong>
-空字符串（如"&ldquo;,而不是"Giraffe"）和一个值为nil的可选类型的字符串是两个完全不同的概念。上例中的空字符串(&rdquo;&ldquo;)其实是一个幼小的，非可选类型的字符串。这里我们只所以让Animal的可失败构造器失败，只是因为对于<code>Animal</code>这个类的<code>species</code>属性来说，它更适合有一个具体的值，而不是空字符串。</p></blockquote>
+<blockquote><p><strong>注意</strong></p>
+
+<p><p style="color:red;text-align:left"> 空字符串（如"&ldquo;,而不是"Giraffe"）和一个值为nil的可选类型的字符串是两个完全不同的概念。上例中的空字符串(&rdquo;&ldquo;)其实是一个幼小的，非可选类型的字符串。这里我们只所以让Animal的可失败构造器失败，只是因为对于<code>Animal</code>这个类的<code>species</code>属性来说，它更适合有一个具体的值，而不是空字符串。</p></p></blockquote>
 
 <h3>枚举类型的可失败构造器</h3>
 
