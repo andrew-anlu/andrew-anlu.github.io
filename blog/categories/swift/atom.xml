@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Swift | 安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/blog/categories/swift/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-05-19T20:20:18+08:00</updated>
+  <updated>2016-05-19T20:23:05+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -674,8 +674,9 @@ for item in breakfastList {
 
 <p>为了妥善处理这种构造过程中可能会失败的情况，你可以在一个类，结构体或是枚举类型的定义中，添加一个或多个可失败构造器。其语法为在init关键字后面添加问号(init?).</p>
 
-<blockquote><p><em>注意:</em>
-可失败构造器的参数名和参数类型，不能为其它非可失败构造器的参数名，及其参数类型相同</p></blockquote>
+<blockquote><p><em>注意:</em></p>
+
+<p><b> 可失败构造器的参数名和参数类型，不能为其它非可失败构造器的参数名，及其参数类型相同 </b></p></blockquote>
 
 <p>可失败构造器会创建一个类型为自身类型的可选类型的对象。你通过<code>return nil</code>语句来表明可失败构造器在何种情况下应该<code>失败</code>。</p>
 
