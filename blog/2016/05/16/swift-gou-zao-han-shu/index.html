@@ -961,8 +961,9 @@ Swift的两段时构造过程跟Objective-C中的构造过程类似。最主要�
 
 <p>可失败构造器会创建一个类型为自身类型的可选类型的对象。你通过<code>return nil</code>语句来表明可失败构造器在何种情况下应该<code>失败</code>。</p>
 
-<blockquote><blockquote><p><strong>注意</strong>
-严格来说，构造器都不支持返回值。以为构造器本身的租用，只是为了确保对象能被正确构造。因此你只是用<code>return nil</code>表明可失败构造器构造失败，而不要用关键字return来表明构造成功</p></blockquote></blockquote>
+<blockquote><blockquote><p><strong>注意</strong></p>
+
+<p><a >严格来说，构造器都不支持返回值。以为构造器本身的租用，只是为了确保对象能被正确构造。因此你只是用<code>return nil</code>表明可失败构造器构造失败，而不要用关键字return来表明构造成功 </a></p></blockquote></blockquote>
 
 <p>下例中，定义了一个名为<code>Animal</code>的结构体，其中有一个名为<code>species</code>的String类型的常量属性。同时该结构体还定义了一个接受一个名为<code>species</code>的String类型参数的可失败构造器。这个可失败构造器检查传入的参数是否为一个空字符串。如果为空字符串，则构造失败。否则，<code>species</code>属性被赋值，构造成功。</p>
 
