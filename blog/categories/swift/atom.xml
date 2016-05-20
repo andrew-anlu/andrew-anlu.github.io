@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Swift | 安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/blog/categories/swift/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-05-19T20:31:56+08:00</updated>
+  <updated>2016-05-20T10:44:26+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -722,6 +722,190 @@ if anonymousCreature == nil {
 <p><p style="color:red;text-align:left;font-family:Arial;font-style:normal;"> 空字符串（如"&ldquo;,而不是"Giraffe"）和一个值为nil的可选类型的字符串是两个完全不同的概念。上例中的空字符串(&rdquo;&ldquo;)其实是一个幼小的，非可选类型的字符串。这里我们只所以让Animal的可失败构造器失败，只是因为对于<code>Animal</code>这个类的<code>species</code>属性来说，它更适合有一个具体的值，而不是空字符串。</p></p></blockquote>
 
 <h3>枚举类型的可失败构造器</h3>
+
+<p>你可以通过一个带一个或多个参数的可失败构造器来获取枚举类型中特定的枚举成员。如果提供的参数无法匹配任何枚举成员，则构造失败。</p>
+
+<p>下例中，定义了一个名为<code>TemperatureUnit</code>的枚举类型。其中包含了三个可能的枚举成员(Kelvin，Celsius，和Fahrenheit)，以及一个根据<code>Character</code>值找出所对应的枚举成员的可失败构造器:</p>
+
+<pre><code>enum TemperatureUnit {
+    case Kelvin, Celsius, Fahrenheit
+    init?(symbol: Character) {
+        switch symbol {
+        case "K":
+            self = .Kelvin
+        case "C":
+            self = .Celsius
+        case "F":
+            self = .Fahrenheit
+        default:
+            return nil
+        }
+    }
+}
+</code></pre>
+
+<p>你可以利用该可失败构造器在三个枚举成员中获取一个相匹配的枚举成员，当参数的值不能与任何枚举成员匹配时，则构造失败:</p>
+
+<pre><code>let fahrenheitUnit = TemperatureUnit(symbol: "F")
+if fahrenheitUnit != nil {
+    print("This is a defined temperature unit, so initialization succeeded.")
+}
+// 打印 "This is a defined temperature unit, so initialization succeeded."
+
+let unknownUnit = TemperatureUnit(symbol: "X")
+if unknownUnit == nil {
+    print("This is not a defined temperature unit, so initialization failed.")
+}
+// 打印 "This is not a defined temperature unit, so initialization failed."
+</code></pre>
+
+<h3>带原始值的枚举类型的可失败构造器</h3>
+
+<p>带原始值的枚举类型会自带一个可失败构造器<code>init?(rawValue:)</code>，该可失败构造器有一个名为<code>rawvalue</code>的参数，其类型和枚举类型的原始值类型一致，如果该参数的值能够和某个枚举成员的原始值匹配，则该构造器会构造相应的枚举成员，否则构造失败.</p>
+
+<p>因此上面的<code>TemperatureUnit</code>的例子可以重写为:</p>
+
+<pre><code>enum TemperatureUnit: Character {
+    case Kelvin = "K", Celsius = "C", Fahrenheit = "F"
+}
+
+let fahrenheitUnit = TemperatureUnit(rawValue: "F")
+if fahrenheitUnit != nil {
+    print("This is a defined temperature unit, so initialization succeeded.")
+}
+// 打印 "This is a defined temperature unit, so initialization succeeded."
+
+let unknownUnit = TemperatureUnit(rawValue: "X")
+if unknownUnit == nil {
+    print("This is not a defined temperature unit, so initialization failed.")
+}
+// 打印 "This is not a defined temperature unit, so initialization failed."
+</code></pre>
+
+<h3>构造失败的传递</h3>
+
+<p>类，结构体，枚举的可失败构造器可以横向代理到类型中的其它可失败构造器。类似的，子类的可失败构造器也能向上代理到父类的可失败构造器。</p>
+
+<p>无论是向上代理还是横向代理，如果你代理的其它可失败构造器触发构造失败，整个构造过程将立即停止，接下来的任何构造代码不会再被执行。</p>
+
+<blockquote><p><em>注意:</em></p>
+
+<p><b style="font-style:normal">
+可失败构造器也可以代理到其它的非可失败构造器，通过这种方式，你可以增加一个可能的失败状态到现有的构造过程中
+</b></p></blockquote>
+
+<p>下面的例子中，定义了一个名为<code>CartItem</code>的<code>Product</code>类的子类，这个类建立了一个在线购物车中的物品的模型，它有一个名为<code>quantity</code>的常量存储型属性，并确保该属性的值至少为1:</p>
+
+<pre><code>class Product {
+    let name: String
+    init?(name: String) {   
+        if name.isEmpty { return nil }
+        self.name = name
+    }
+}
+
+class CartItem: Product {
+    let quantity: Int
+    init?(name: String, quantity: Int) {
+        if quantity &lt; 1 { return nil }
+        self.quantity = quantity
+        super.init(name: name)
+    }
+}
+</code></pre>
+
+<p><code>CartItem</code>可失败构造器首先验证接收的<code>quantity</code>值是否大于等于1.倘若<code>quantity</code>值无效，则立即终止整个构造过程，返回失败结果，且不再执行余下代码。同样滴，<code>Product</code>的可失败构造器首先检查name值，假如<code>name</code>值为空字符串，则构造器立即执行失败。</p>
+
+<p>如果你通过传入一个非空字符串name以及一个值大于等于1的<code>quantity</code>来创建一个<code>CartItem</code>实例，那么构造方法能够成功被执行：</p>
+
+<pre><code>if let twoSocks = CartItem(name: "sock", quantity: 2) {
+    print("Item: \(twoSocks.name), quantity: \(twoSocks.quantity)")
+}
+// 打印 "Item: sock, quantity: 2”
+</code></pre>
+
+<p>倘若你以一个值为0的<code>quantity</code>来创建一个<code>CartItem</code>实例，那么将导致<code>CartItem</code>构造器失败:</p>
+
+<pre><code>if let zeroShirts = CartItem(name: "shirt", quantity: 0) {
+    print("Item: \(zeroShirts.name), quantity: \(zeroShirts.quantity)")
+} else {
+    print("Unable to initialize zero shirts")
+}
+// 打印 "Unable to initialize zero shirts”
+</code></pre>
+
+<p>同样滴，如果你尝试传入一个值为空字符串的name来创建一个<code>CartItem</code>实例，那么将导致父类<code>Product</code>的构造过程失败:</p>
+
+<pre><code>if let oneUnnamed = CartItem(name: "", quantity: 1) {
+    print("Item: \(oneUnnamed.name), quantity: \(oneUnnamed.quantity)")
+} else {
+    print("Unable to initialize one unnamed product")
+}
+// 打印 "Unable to initialize one unnamed product”
+</code></pre>
+
+<h3>重写一个可失败构造器</h3>
+
+<p>如同其他的构造器，你可以在子类中重写父类的可失败构造器，或者你也可以用子类的非可失败构造器重写一个父类的可失败构造器。这使你可以定义一个不会构造失败的子类，即使父类的构造器允许构造失败。</p>
+
+<p>注意，当你用子类的非可失败构造器重写父类的可失败构造器时，向上代理到父类的可失败构造器的唯一方式是对父类的可失败构造器的返回值进行强制解包</p>
+
+<blockquote><p><em>注意</em></p>
+
+<p><b style="font-style:normal">
+你可以用非可失败构造器重写可失败构造器，但反过来却不行
+</b></p></blockquote>
+
+<p>下例中定义了一个名为<code>Document</code>的类，name属性的值必须为一个非空字符串或nil,但不能是一个空字符串:</p>
+
+<pre><code>class Document {
+    var name: String?
+    // 该构造器创建了一个 name 属性的值为 nil 的 document 实例
+    init() {}
+    // 该构造器创建了一个 name 属性的值为非空字符串的 document 实例
+    init?(name: String) {
+        self.name = name
+        if name.isEmpty { return nil }
+    }
+}
+</code></pre>
+
+<p>下面的这个例子，定义了一个<code>Document</code>类的子类<code>AutomaticallyNamedDocument</code>。这个子类重写了父类的两个指定构造器，确保了无论使用init()构造器，还是使用init(name:)构造器并为参数传递空字符串。生成的实例中的name属性总有初始"Untitled"；</p>
+
+<pre><code>class AutomaticallyNamedDocument: Document {
+    override init() {
+        super.init()
+        self.name = "[Untitled]"
+    }
+    override init(name: String) {
+        super.init()
+        if name.isEmpty {
+            self.name = "[Untitled]"
+        } else {
+            self.name = name
+        }
+    }
+}
+</code></pre>
+
+<p><code>AutomaticallyNamedDocument</code>用一个非可失败构造器<code>init(name:)</code>重写父类的课失败构造器(init?(name:))。因为子类用另一种方式处理了空字符串的情况，所以不再需要一个可失败构造器，因此子类用一个非可失败构造器代替了父类的可失败构造器。</p>
+
+<p>你可以在子类的非可失败构造器中使用强制解包来调用父类的可失败构造器。比如：下面的<code>UntitledDocument</code>子类的name属性的值总是"untitled"，它在构造过程中使用了父类的可失败构造器init?(name:)</p>
+
+<pre><code>class UntitledDocument: Document {
+    override init() {
+        super.init(name: "[Untitled]")!
+    }
+}
+</code></pre>
+
+<p>在这个例子中，如果在调用父类的可失败构造器init?(name:)时传入的是空字符串，那么强制解包操作会引发运行时错误。不过，因为这里是通过非空的字符串常量来调用它，所以并不会发生运行时错误</p>
+
+<h3>可失败构造器 init!</h3>
+
+<p>通常来说我们通过在init关键字后添加问号的方式(init?)来定义一个可失败构造器，但你也可以通过在init后面添加感叹号的方式来定义一个可失败构造器(init!)，该可失败构造器将会构建一个对应类型的隐式解包可选类型的对象。</p>
+
+<p>你可以在init?中代理到init!,反之亦然。你也可以用init?重写init!,反之亦然。你还可以用init代理到init!,不过一旦init!构造失效，则会触发一个断言。</p>
 
 <h2><a name="必要构造器">必要构造器</a></h2>
 
