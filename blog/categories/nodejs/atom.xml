@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Nodejs | 安路的技术博客]]></title>
+  <link href="http://andrew-anlu.github.io/blog/categories/nodejs/atom.xml" rel="self"/>
+  <link href="http://andrew-anlu.github.io/"/>
+  <updated>2016-05-21T12:55:09+08:00</updated>
+  <id>http://andrew-anlu.github.io/</id>
+  <author>
+    <name><![CDATA[安路]]></name>
+    <email><![CDATA[andrewswift1987@gamil.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Nodejs基础]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/05/21/nodejsji-chu/"/>
+    <updated>2016-05-21T12:45:39+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/05/21/nodejsji-chu</id>
+    <content type="html"><![CDATA[<ul>
+<li><a href="#%E4%BB%80%E4%B9%88%E6%98%AFNodeJS">什么是NodeJS</a></li>
+</ul>
+
+
+<!--more-->
+
+
+<h1><a name="什么是NodeJS">什么是NodeJS</a></h1>
+
+<p>JS是脚本语言，脚本语言都需要一个解析器才能运行。对于写在HTML页面中的JS,浏览器充当了解析器的角色，而对于需要独立运行的JS，NodeJs就是一个解析器。</p>
+
+<p>每一种解析器都是一个运行环境，不但允许JS定义各种数据结构，进行各种计算，还允许JS使用运行环境提供的内置对象和方法做一些事情。例如运行在浏览器中的J的用途是操作DOM，浏览器就提供了document之类的内置对象。而运行在NodeJs中的js的用途是操作磁盘文件或搭建HTTP服务器，NOdeJs就相应提供了fs,http等内置对象</p>
+]]></content>
+  </entry>
+  
+</feed>
