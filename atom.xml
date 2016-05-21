@@ -4,7 +4,7 @@
   <title><![CDATA[安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-05-20T10:44:26+08:00</updated>
+  <updated>2016-05-21T12:42:20+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -1237,7 +1237,127 @@ Swift的两段时构造过程跟Objective-C中的构造过程类似。最主要�
 
 <h2><a name="必要构造器">必要构造器</a></h2>
 
+<p>在类的构造器前添加<code>required</code>修饰符表明所有该类的子类都必须实现该构造器:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>class SomeClass {
+</span><span class='line'>    required init() {
+</span><span class='line'>        // 构造器的实现代码
+</span><span class='line'>    }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在子类重写父类的必要构造器时，必须在子类的构造前也添加<code>required</code>修饰符，表明该构造器要求也应用于继承链后面的子类。在重写父类中必要的指定构造器时，不需要添加override修饰符:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>class SomeSubclass: SomeClass {
+</span><span class='line'>    required init() {
+</span><span class='line'>        // 构造器的实现代码
+</span><span class='line'>    }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<blockquote><p><em>注意</em></p>
+
+<p><a style="font-style:normal">
+如果子类继承的构造器能满足必要构造器的要求，则无需在子类中显式提供必必要构造器的实现。
+</a></p></blockquote>
+
 <h2><a name="通过闭包或函数设置属性的默认值">通过闭包或函数设置属性的默认值</a></h2>
+
+<p>如果某个存储型属性的默认值需要一些定制或设置，你可以使用必要或全局函数为其提供定制的默认值。每当某个属性所在类型的新实例被创建时，对应的必要或函数会被调用，而它们的返回值会当做默认值赋值给这个属性，</p>
+
+<p>这种类型的闭包或函数通常会创建一个跟属性类型相同的临时变量，然后修改它的值以满足预期的初始状态，最后返回这个临时变量，作为属性的默认值。</p>
+
+<p>下面介绍了如何用闭包为属性提供默认值:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>class SomeClass {
+</span><span class='line'>    let someProperty: SomeType = {
+</span><span class='line'>        // 在这个闭包中给 someProperty 创建一个默认值
+</span><span class='line'>        // someValue 必须和 SomeType 类型相同
+</span><span class='line'>        return someValue
+</span><span class='line'>    }()
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>注意闭包结尾的大括号后面接了一对空的小括号。这用来告诉Swift立即执行此比好。如果你忽略了这对括号，相当于将闭包本省作为值赋值给了属性，而不是将闭包的返回值赋值给属性。</p>
+
+<blockquote><p><em>注意:</em></p>
+
+<p><a style="font-style:normal"></p>
+
+<p>如果你使用闭包来初始化属性，请记住在闭包执行时，实例的其它部分都还没有初始化，这意味着你不能在闭包里访问其它属性，即使这些属性都有默认值。同样，你也不能使用隐式的<code>self</code>属性，或者调用任何实例方法
+</a></p></blockquote>
+
+<p>下面例子中定义了一个结构体<code>Checkerboard</code>，它构建了西洋跳棋游戏的棋盘:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>struct Checkerboard {
+</span><span class='line'>    let boardColors: [Bool] = {
+</span><span class='line'>        var temporaryBoard = [Bool]()
+</span><span class='line'>        var isBlack = false
+</span><span class='line'>        for i in 1...8 {
+</span><span class='line'>            for j in 1...8 {
+</span><span class='line'>                temporaryBoard.append(isBlack)
+</span><span class='line'>                isBlack = !isBlack
+</span><span class='line'>            }
+</span><span class='line'>            isBlack = !isBlack
+</span><span class='line'>        }
+</span><span class='line'>        return temporaryBoard
+</span><span class='line'>    }()
+</span><span class='line'>    func squareIsBlackAtRow(row: Int, column: Int) -&gt; Bool {
+</span><span class='line'>        return boardColors[(row * 8) + column]
+</span><span class='line'>    }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>没当一个新的<code>Checkerboard</code>实例被创建时，赋值闭包会被执行，<code>boardColors</code>的默认值会被计算出来并返回。上面例子中描述的闭包将计算出棋盘中每个格子对应的颜色，并将这些值保存到一个临时数组<code>temporaryBoard</code>中，最后在构建完成时将此数组作为闭包返回值返回。这个返回的数组会保存到<code>boardColors</code>中，并可以通过工具函数
+<code>squareIsBlackAtRow</code>来查询:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>let board = Checkerboard()
+</span><span class='line'>print(board.squareIsBlackAtRow(0, column: 1))
+</span><span class='line'>// 打印 "true"
+</span><span class='line'>print(board.squareIsBlackAtRow(7, column: 7))
+</span><span class='line'>// 打印 "false"</span></code></pre></td></tr></table></div></figure>
+
+
+
 ]]></content>
   </entry>
   
