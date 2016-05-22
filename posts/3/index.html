@@ -9,8 +9,7 @@
   <meta name="author" content="安路">
 
   
-  <meta name="description" content="swift使用自动引用计数(ARC)机制来跟踪和管理你的应用程序的内存。通常情况，Swift内存管理机制会一直起作用，你无需自己来考虑内存的管理。ARC会在类的实例不再需要时，自动释放其占用的内存。
-然后在少数的情况下，为了能帮助你管理内存，ARC需要更多的代码之间关系的信息。 ">
+  <meta name="description" content="可选链式调用(Optional Chaining)是一种可以在当前值可能为nil的可选值上请求和调用属性，方法及下标的方法。如果可选值有值，那么调用就会成功；如果可选值为nil,那么调用将返回nil.多个调用可以连接在一起形成一个链，如果其中任何一个点为nil,整个调用链就会失败，即返回nil. ">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -67,6 +66,43 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/03/22/swift-ke-xuan-lian/">Swift-可选链</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-03-22T09:35:29+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>22</span><span class='date-suffix'>nd</span>, <span class='date-year'>2016</span></span> <span class='time'>9:35 am</span></time>
+        
+           | <a href="/blog/2016/03/22/swift-ke-xuan-lian/#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/03/22/swift-ke-xuan-lian/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>可选链式调用(Optional Chaining)是一种可以在当前值可能为<code>nil</code>的可选值上请求和调用属性，方法及下标的方法。如果可选值有值，那么调用就会成功；如果可选值为nil,那么调用将返回<code>nil</code>.多个调用可以连接在一起形成一个链，如果其中任何一个点为<code>nil</code>,整个调用链就会失败，即返回nil.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/03/22/swift-ke-xuan-lian/">阅读全文 &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -427,47 +463,6 @@ swift会为您管理在捕获过程中涉及到所有内存操作。</p>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/02/26/li-yong-afnetworkingshang-chuan-tu-pian-he-shi-pin/">利用AFNetworking上传图片和视频</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-02-26T09:15:43+08:00'><span class='date'><span class='date-month'>Feb</span> <span class='date-day'>26</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>9:15 am</span></time>
-        
-           | <a href="/blog/2016/02/26/li-yong-afnetworkingshang-chuan-tu-pian-he-shi-pin/#disqus_thread"
-             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/02/26/li-yong-afnetworkingshang-chuan-tu-pian-he-shi-pin/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>前言</h2>
-
-<p>之前尝试过用原生的上传代码，但是比较麻烦，利用afnetworking进行上传还是很方便的。</p>
-
-<p>文件上传后台服务器必须要有相应的代码支持，我们后台使用java做的，首先ios客户端要把上传的图片或者视频转换成标准的文件流，然后传给后台，才能顺利实现上传功能。</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/02/26/li-yong-afnetworkingshang-chuan-tu-pian-he-shi-pin/">阅读全文 &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/4">&larr; Older</a>
@@ -492,6 +487,10 @@ swift会为您管理在捕获过程中涉及到所有内存操作。</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/05/22/nodejs-dai-ma-de-zu-zhi-he-bu-shu/">Nodejs-代码的组织和部署</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/05/21/nodejsji-chu/">Nodejs基础</a>
       </li>
     
@@ -507,10 +506,6 @@ swift会为您管理在捕获过程中涉及到所有内存操作。</p>
         <a href="/blog/2016/05/04/runtimeyun-xing-shi-ru-men/">Runtime运行时入门</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2016/04/29/macshang-ru-he-ba-shi-pin-zhuan-cheng-dot-gif/">Mac上如何把视频转成.Gif</a>
-      </li>
-    
   </ul>
 </section>
 <section>
@@ -521,7 +516,7 @@ swift会为您管理在捕获过程中涉及到所有内存操作。</p>
 <li class='category'><a href='/blog/categories/ios/'>ios (19)</a></li>
 <li class='category'><a href='/blog/categories/life/'>life (1)</a></li>
 <li class='category'><a href='/blog/categories/mac/'>mac (2)</a></li>
-<li class='category'><a href='/blog/categories/nodejs/'>nodejs (1)</a></li>
+<li class='category'><a href='/blog/categories/nodejs/'>nodejs (2)</a></li>
 <li class='category'><a href='/blog/categories/octopress/'>octopress (2)</a></li>
 <li class='category'><a href='/blog/categories/swift/'>swift (11)</a></li>
 <li class='category'><a href='/blog/categories/xcode/'>xcode (1)</a></li>

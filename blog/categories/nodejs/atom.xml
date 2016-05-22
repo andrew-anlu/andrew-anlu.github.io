@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Nodejs | 安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/blog/categories/nodejs/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-05-22T09:37:17+08:00</updated>
+  <updated>2016-05-22T10:36:05+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -12,6 +12,128 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Nodejs-代码的组织和部署]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/05/22/nodejs-dai-ma-de-zu-zhi-he-bu-shu/"/>
+    <updated>2016-05-22T09:45:22+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/05/22/nodejs-dai-ma-de-zu-zhi-he-bu-shu</id>
+    <content type="html"><![CDATA[<p>有经验的C程序员在编写一个新程序时首先从make文件写起，同样的，使用nodejs编写程序前，为了有个良好的开端，首先需要准备好代码的目录结构和部署方式，就如同修防止要先搭建脚手架。本章将介绍与之相关的各种知识</p>
+
+<!--more-->
+
+
+<ul>
+<li><a href="#%E6%A8%A1%E5%9D%97%E8%B7%AF%E5%BE%84%E7%9A%84%E8%A7%A3%E6%9E%90%E8%A7%84%E5%88%99">模块路径的解析规则</a></li>
+<li><a href="#%E5%8C%85">包</a></li>
+<li><a href="#%E5%91%BD%E4%BB%A4%E8%A1%8C%E7%A8%8B%E5%BA%8F">命令行程序</a></li>
+<li><a href="#%E5%B7%A5%E7%A8%8B%E7%9B%AE%E5%BD%95">工程目录</a></li>
+<li><a href="#NPM">NPM</a></li>
+<li><a href="#%E5%B0%8F%E7%BB%93">小结</a></li>
+</ul>
+
+
+<h2><a name="模块路径的解析规则">模块路径的解析规则</a></h2>
+
+<p>我们已经知道，require函数支持斜杠(/)或者盘符(C:)开头的绝对路径，也支持./开头的相对路径。但这两种路径在模块之间建立了强耦合关系，一旦某个模块文件的存放位置需要变更，使用该模块的其它模块的代码也需要跟着调整，变得牵一发而动全身。因此，require函数支持第三种形式的路径，写法类似foo/bar,并依次按照以上规则解析路径，知道找到模块位置。</p>
+
+<h3>内置模块</h3>
+
+<p>如果传递给require函数的是nodejs内置模块名称，不做路径解析，直接返回内部模块的导出对象，例如require(&lsquo;fs&rsquo;)</p>
+
+<h3>node_modules目录</h3>
+
+<p>nodejs定义了一个特殊的node_modules目录用于存放模块。例如某个模块的绝对路径是 /home/user/hello.js,在该模块中使用require(&lsquo;foo/bar&rsquo;)方式加载模块时，则Nodejs依次尝试使用以下路径.</p>
+
+<pre><code> /home/user/node_modules/foo/bar
+ /home/node_modules/foo/bar
+ /node_modules/foo/bar
+</code></pre>
+
+<h3>NODE_PATH环境变量</h3>
+
+<p>与PATH 环境变量类似，nodejs允许通过NODE_PATH环境变量来指定额外的模块搜索路径。NODE_PATH环境变量中包含一到多个目录路径，路径之间在LInux下使用<code>:</code>分隔，在windows下使用;分隔。例如定义了以下NODE_PATH环境变量:</p>
+
+<pre><code> NODE_PATH=/home/user/lib:/home/lib
+</code></pre>
+
+<p>当使用require(&lsquo;foo/bar&rsquo;)的方式加载模块时，则nodejs依次尝试以下路径:</p>
+
+<pre><code>/home/user/lib/foo/bar
+/home/lib/foo/bar
+</code></pre>
+
+<h2><a name="包">包</a></h2>
+
+<p>我们已经知道了JS模块的基本单位是单个JS文件，但复杂些的模块往往由多个子模块组成，为了便于管理和使用，我们可以把由多个子模块组成的大模块称做包，并把所有子模块放在同一个目录里。</p>
+
+<p>在组成一个包的所有子模块中，需要有个入口模块，入口模块的导出对象被作为包的导出对象。例如有以下目录结构。</p>
+
+<pre><code>- /home/user/lib/
+    - cat/
+        head.js
+        body.js
+        main.js
+</code></pre>
+
+<p>其中cat目录定义了一个包，其中包含了3个子模块。main.js作为入口模块，其内容如下：</p>
+
+<pre><code>var head = require('./head');
+var body = require('./body');
+
+exports.create = function (name) {
+    return {
+        name: name,
+        head: head.create(),
+        body: body.create()
+    };
+};
+</code></pre>
+
+<p>在其它模块里使用包的时候，需要加载包的入口模块。接着上例，使用<code>require('/home/user/lib/cat/main')</code>能达到目的，但是入口模块名称出现在路径里看上去不是个好主意，因此我们需要做点额外的工作，让包使用起来更像是单个模块。</p>
+
+<h3>index.js</h3>
+
+<p>当模块的文件件是index.js，加载模块时可以使用模块所在目录的路径代替模块文件路径，因此接着上例，以下两条语句等价:</p>
+
+<pre><code>var cat = require('/home/user/lib/cat');
+var cat = require('/home/user/lib/cat/index');
+</code></pre>
+
+<p>这样处理后，就只需要把包目录路径传递给require函数，感觉上整个目录被当做单个模块使用，更有整体感。</p>
+
+<h3>package.json</h3>
+
+<p>如果想自定义入口模块的文件名和存放位置，就需要在包目录下包含一个package.json文件，并在其中指定入口模块的路径，上例中的cat模块可以重构如下。</p>
+
+<pre><code>- /home/user/lib/
+    - cat/
+        + doc/
+        - lib/
+            head.js
+            body.js
+            main.js
+        + tests/
+        package.json
+其中package.json内容如下。
+
+{
+    "name": "cat",
+    "main": "./lib/main.js"
+}
+</code></pre>
+
+<p>如此一来，就同样可以使用require(&lsquo;/home/user/lib/cat&rsquo;)的方式加载模块。nodejs会根据包目录下的package.json找到入口模块所在位置。</p>
+
+<h2><a name="命令行程序">命令行程序</a></h2>
+
+<h2><a name="工程目录">工程目录</a></h2>
+
+<h2><a name="NPM">NPM</a></h2>
+
+<h2><a name="小结">小结</a></h2>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Nodejs基础]]></title>

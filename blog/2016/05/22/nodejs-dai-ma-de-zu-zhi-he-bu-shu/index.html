@@ -5,11 +5,16 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>学习CAShapeLayer - 安路的技术博客</title>
+  <title>Nodejs-代码的组织和部署 - 安路的技术博客</title>
   <meta name="author" content="安路">
 
   
-  <meta name="description" content="前言 CAShapeLayer继承自CALayer,因此，可以使用CaLayer的所有属性。但是，CAShapeLayer需要和贝塞尔曲线配合使用才有意义. CAShapeLayer是在其坐标系统内绘制贝塞尔曲线的。因此使用CAShapeLayer需要与 UIbezierPath一起使用。 &hellip;">
+  <meta name="description" content="有经验的C程序员在编写一个新程序时首先从make文件写起，同样的，使用nodejs编写程序前，为了有个良好的开端，首先需要准备好代码的目录结构和部署方式，就如同修防止要先搭建脚手架。本章将介绍与之相关的各种知识 模块路径的解析规则
+包
+命令行程序
+工程目录
+NPM
+小结 模块路径的解析规则 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +23,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://andrew-anlu.github.io/blog/2016/03/04/xue-xi-cashapelayer/">
+  <link rel="canonical" href="http://andrew-anlu.github.io/blog/2016/05/22/nodejs-dai-ma-de-zu-zhi-he-bu-shu/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="安路的技术博客" type="application/atom+xml">
@@ -69,7 +74,7 @@
   
   <header>
     
-      <h1 class="entry-title">学习CAShapeLayer</h1>
+      <h1 class="entry-title">Nodejs-代码的组织和部署</h1>
     
     
       <p class="meta">
@@ -78,7 +83,7 @@
 
 
 
-<time class='entry-date' datetime='2016-03-04T14:20:24+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>4</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>2:20 pm</span></time>
+<time class='entry-date' datetime='2016-05-22T09:45:22+08:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>22</span><span class='date-suffix'>nd</span>, <span class='date-year'>2016</span></span> <span class='time'>9:45 am</span></time>
         
            | <a href="#disqus_thread"
              data-disqus-identifier="http://andrew-anlu.github.io">Comments</a>
@@ -88,42 +93,116 @@
   </header>
 
 
-<div class="entry-content"><h2>前言</h2>
-
-<p>CAShapeLayer继承自CALayer,因此，可以使用CaLayer的所有属性。但是，CAShapeLayer需要和贝塞尔曲线配合使用才有意义.</p>
-
-<p>CAShapeLayer是在其坐标系统内绘制贝塞尔曲线的。因此使用CAShapeLayer需要与 <code>UIbezierPath</code>一起使用。</p>
-
-<p>它有一个 <code>path</code>属性，而<code>UIBezierPath</code>就是对 <code>CGPathRef</code>类型的封装，因此这两者是绝配</p>
+<div class="entry-content"><p>有经验的C程序员在编写一个新程序时首先从make文件写起，同样的，使用nodejs编写程序前，为了有个良好的开端，首先需要准备好代码的目录结构和部署方式，就如同修防止要先搭建脚手架。本章将介绍与之相关的各种知识</p>
 
 <!--more-->
 
 
-<h2>CASHapeLayer和drawRect的比较</h2>
-
-<ol>
-<li>drawRect : 属于CoreGraphics框架，占用cpu,性能消耗大</li>
-<li>CAShapeLayer:属于CoreAnimation框架，通过GPU来渲染图形，节省性能。动画渲染直接提交给手机的GPU,不消耗内存。</li>
-</ol>
-
-
-<p>这两者各有各的用途，而不是说有个CAShapeLayer就不需要drawRect了。</p>
-
-<h2>CAShapeLayer月UIBezierPath的关系</h2>
-
-<ol>
-<li>CAShapeLayer中的shape代表形状的意思，所以需要形状才能生效</li>
-<li>贝塞尔曲线可以创建矢量的路径，而<code>UIBezierPath</code>类是对 <code>CGPathRef</code>的封装</li>
-<li>贝塞尔曲线给 <code>CAShapeLayer</code>提供路径，CAShapelayer在提供的路径中进行渲染。路径会闭环，所以绘制出了 <code>Shape</code></li>
-<li>用于<code>CAShapeLayer</code>的贝塞尔曲线作为path,其path是一个首尾相接的闭环的曲线，即使该贝塞尔曲线不是一个闭环的曲线。</li>
-</ol>
+<ul>
+<li><a href="#%E6%A8%A1%E5%9D%97%E8%B7%AF%E5%BE%84%E7%9A%84%E8%A7%A3%E6%9E%90%E8%A7%84%E5%88%99">模块路径的解析规则</a></li>
+<li><a href="#%E5%8C%85">包</a></li>
+<li><a href="#%E5%91%BD%E4%BB%A4%E8%A1%8C%E7%A8%8B%E5%BA%8F">命令行程序</a></li>
+<li><a href="#%E5%B7%A5%E7%A8%8B%E7%9B%AE%E5%BD%95">工程目录</a></li>
+<li><a href="#NPM">NPM</a></li>
+<li><a href="#%E5%B0%8F%E7%BB%93">小结</a></li>
+</ul>
 
 
-<h2>CAShapeLayer与UIBezierPath画圆</h2>
+<h2><a name="模块路径的解析规则">模块路径的解析规则</a></h2>
 
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160304-2.png" alt="logo" /></p>
+<p>我们已经知道，require函数支持斜杠(/)或者盘符(C:)开头的绝对路径，也支持./开头的相对路径。但这两种路径在模块之间建立了强耦合关系，一旦某个模块文件的存放位置需要变更，使用该模块的其它模块的代码也需要跟着调整，变得牵一发而动全身。因此，require函数支持第三种形式的路径，写法类似foo/bar,并依次按照以上规则解析路径，知道找到模块位置。</p>
 
-<p>代码:</p>
+<h3>内置模块</h3>
+
+<p>如果传递给require函数的是nodejs内置模块名称，不做路径解析，直接返回内部模块的导出对象，例如require(&lsquo;fs&rsquo;)</p>
+
+<h3>node_modules目录</h3>
+
+<p>nodejs定义了一个特殊的node_modules目录用于存放模块。例如某个模块的绝对路径是 /home/user/hello.js,在该模块中使用require(&lsquo;foo/bar&rsquo;)方式加载模块时，则Nodejs依次尝试使用以下路径.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'> /home/user/node_modules/foo/bar
+</span><span class='line'> /home/node_modules/foo/bar
+</span><span class='line'> /node_modules/foo/bar</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>NODE_PATH环境变量</h3>
+
+<p>与PATH 环境变量类似，nodejs允许通过NODE_PATH环境变量来指定额外的模块搜索路径。NODE_PATH环境变量中包含一到多个目录路径，路径之间在LInux下使用<code>:</code>分隔，在windows下使用;分隔。例如定义了以下NODE_PATH环境变量:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'> NODE_PATH=/home/user/lib:/home/lib</span></code></pre></td></tr></table></div></figure>
+
+
+<p>当使用require(&lsquo;foo/bar&rsquo;)的方式加载模块时，则nodejs依次尝试以下路径:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>/home/user/lib/foo/bar
+</span><span class='line'>/home/lib/foo/bar</span></code></pre></td></tr></table></div></figure>
+
+
+<h2><a name="包">包</a></h2>
+
+<p>我们已经知道了JS模块的基本单位是单个JS文件，但复杂些的模块往往由多个子模块组成，为了便于管理和使用，我们可以把由多个子模块组成的大模块称做包，并把所有子模块放在同一个目录里。</p>
+
+<p>在组成一个包的所有子模块中，需要有个入口模块，入口模块的导出对象被作为包的导出对象。例如有以下目录结构。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- /home/user/lib/
+</span><span class='line'>    - cat/
+</span><span class='line'>        head.js
+</span><span class='line'>        body.js
+</span><span class='line'>        main.js</span></code></pre></td></tr></table></div></figure>
+
+
+<p>其中cat目录定义了一个包，其中包含了3个子模块。main.js作为入口模块，其内容如下：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>var head = require('./head');
+</span><span class='line'>var body = require('./body');
+</span><span class='line'>
+</span><span class='line'>exports.create = function (name) {
+</span><span class='line'>    return {
+</span><span class='line'>        name: name,
+</span><span class='line'>        head: head.create(),
+</span><span class='line'>        body: body.create()
+</span><span class='line'>    };
+</span><span class='line'>};</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在其它模块里使用包的时候，需要加载包的入口模块。接着上例，使用<code>require('/home/user/lib/cat/main')</code>能达到目的，但是入口模块名称出现在路径里看上去不是个好主意，因此我们需要做点额外的工作，让包使用起来更像是单个模块。</p>
+
+<h3>index.js</h3>
+
+<p>当模块的文件件是index.js，加载模块时可以使用模块所在目录的路径代替模块文件路径，因此接着上例，以下两条语句等价:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>var cat = require('/home/user/lib/cat');
+</span><span class='line'>var cat = require('/home/user/lib/cat/index');</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样处理后，就只需要把包目录路径传递给require函数，感觉上整个目录被当做单个模块使用，更有整体感。</p>
+
+<h3>package.json</h3>
+
+<p>如果想自定义入口模块的文件名和存放位置，就需要在包目录下包含一个package.json文件，并在其中指定入口模块的路径，上例中的cat模块可以重构如下。</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -140,115 +219,32 @@
 <span class='line-number'>13</span>
 <span class='line-number'>14</span>
 <span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>-(CAShapeLayer*)drawCircle{
-</span><span class='line'>    CAShapeLayer *circleLayer=[CAShapeLayer layer];
-</span><span class='line'>    
-</span><span class='line'>    circleLayer.frame=CGRectMake(100, 10, 200, 200);
-</span><span class='line'>    //设置居中显示
-</span><span class='line'>   // circleLayer.position=self.view.center;
-</span><span class='line'>    //设置填充颜色
-</span><span class='line'>    circleLayer.fillColor=[UIColor clearColor].CGColor;
-</span><span class='line'>    //设置线宽
-</span><span class='line'>    circleLayer.lineWidth=2;
-</span><span class='line'>    //设置线的颜色
-</span><span class='line'>    circleLayer.strokeColor=[UIColor redColor].CGColor;
-</span><span class='line'>    
-</span><span class='line'>    //使用UIBezierPath创建路径
-</span><span class='line'>    CGRect frame=CGRectMake(0, 0, 200, 200);
-</span><span class='line'>    UIBezierPath *circlePath=[UIBezierPath bezierPathWithOvalInRect:frame];
-</span><span class='line'>    //设置CAShapeLayer与UIBezierPath关联
-</span><span class='line'>    circleLayer.path=circlePath.CGPath;
-</span><span class='line'>    
-</span><span class='line'>    [self.view.layer addSublayer:circleLayer];
-</span><span class='line'>    
-</span><span class='line'>    return circleLayer;
-</span><span class='line'>    
+</pre></td><td class='code'><pre><code class=''><span class='line'>- /home/user/lib/
+</span><span class='line'>    - cat/
+</span><span class='line'>        + doc/
+</span><span class='line'>        - lib/
+</span><span class='line'>            head.js
+</span><span class='line'>            body.js
+</span><span class='line'>            main.js
+</span><span class='line'>        + tests/
+</span><span class='line'>        package.json
+</span><span class='line'>其中package.json内容如下。
+</span><span class='line'>
+</span><span class='line'>{
+</span><span class='line'>    "name": "cat",
+</span><span class='line'>    "main": "./lib/main.js"
 </span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
 
 
-<p>注意，我们这里不是放在-drawRect:方法中调用的。我们直接将这个CAShapeLayer放到self.view.layer上，直接呈现出来。</p>
+<p>如此一来，就同样可以使用require(&lsquo;/home/user/lib/cat&rsquo;)的方式加载模块。nodejs会根据包目录下的package.json找到入口模块所在位置。</p>
 
-<p>我们创建一个<code>CAShapeLayer</code>，然后配置相关属性，然后再通过 <code>UIBezierPath</code>的类方法创建一个内切圆路径，然后将路径指定给<code>CAShapeLayer.path</code>,这就将两者关联起来了，最后，将这个层放到了self.view.layer上呈现出来。</p>
+<h2><a name="命令行程序">命令行程序</a></h2>
 
-<h2>CAShapeLayer与UIBezierPath的简单Loading效果</h2>
+<h2><a name="工程目录">工程目录</a></h2>
 
-<p>代码:</p>
+<h2><a name="NPM">NPM</a></h2>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>- (void)drawHalfCircle {
-</span><span class='line'>  self.loadingLayer = [self drawCircle];
-</span><span class='line'>
-</span><span class='line'>  // 这个是用于指定画笔的开始与结束点
-</span><span class='line'>  self.loadingLayer.strokeStart = 0.0;
-</span><span class='line'>  self.loadingLayer.strokeEnd = 0.75;
-</span><span class='line'>
-</span><span class='line'>  self.timer = [NSTimer scheduledTimerWithTimeInterval:0.1
-</span><span class='line'>                                                target:self
-</span><span class='line'>                                              selector:@selector(updateCircle)
-</span><span class='line'>                                              userInfo:nil
-</span><span class='line'>                                               repeats:YES];
-</span><span class='line'>}
-</span><span class='line'>
-</span><span class='line'>- (void)updateCircle {
-</span><span class='line'>  if (self.loadingLayer.strokeEnd &gt; 1 && self.loadingLayer.strokeStart &lt; 1) {
-</span><span class='line'>    self.loadingLayer.strokeStart += 0.1;
-</span><span class='line'>  } else if (self.loadingLayer.strokeStart == 0) {
-</span><span class='line'>    self.loadingLayer.strokeEnd += 0.1;
-</span><span class='line'>  }
-</span><span class='line'>
-</span><span class='line'>  if (self.loadingLayer.strokeEnd == 0) {
-</span><span class='line'>    self.loadingLayer.strokeStart = 0;
-</span><span class='line'>  }
-</span><span class='line'>
-</span><span class='line'>  if (self.loadingLayer.strokeStart &gt;= 1 && self.loadingLayer.strokeEnd &gt;= 1) {
-</span><span class='line'>    self.loadingLayer.strokeStart = 0;
-</span><span class='line'>    [self.timer invalidate];
-</span><span class='line'>    self.timer = nil;
-</span><span class='line'>  }
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>
-我们要实现这个效果，是通过 <code>stokeStart</code>和<code>stokeEnd</code>这两个属性好实现的，这两个的取值范围是[0-1],当stokeStart的值慢慢变成1时，我们看到路径是慢慢消失的。这里实现的效果并不好，因为不能一直循环。</p>
+<h2><a name="小结">小结</a></h2>
 </div>
 
 
@@ -264,12 +260,12 @@
 
 
 
-<time class='entry-date' datetime='2016-03-04T14:20:24+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>4</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>2:20 pm</span></time>
+<time class='entry-date' datetime='2016-05-22T09:45:22+08:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>22</span><span class='date-suffix'>nd</span>, <span class='date-year'>2016</span></span> <span class='time'>9:45 am</span></time>
       
 
 <span class="categories">
   
-    <a class='category' href='/blog/categories/ios/'>ios</a>
+    <a class='category' href='/blog/categories/nodejs/'>nodejs</a>
   
 </span>
 
@@ -304,10 +300,8 @@
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2016/03/04/iosde-blockxun-huan-yin-yong/" title="Previous Post: ios的Block循环引用">&laquo; ios的Block循环引用</a>
+        <a class="basic-alignment left" href="/blog/2016/05/21/nodejsji-chu/" title="Previous Post: Nodejs基础">&laquo; Nodejs基础</a>
       
-      
-        <a class="basic-alignment right" href="/blog/2016/03/11/bi-bao-swift/" title="Next Post: 闭包-swift">闭包-swift &raquo;</a>
       
     </p>
   </footer>
@@ -443,8 +437,8 @@
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://andrew-anlu.github.io/blog/2016/03/04/xue-xi-cashapelayer/';
-        var disqus_url = 'http://andrew-anlu.github.io/blog/2016/03/04/xue-xi-cashapelayer/';
+        var disqus_identifier = 'http://andrew-anlu.github.io/blog/2016/05/22/nodejs-dai-ma-de-zu-zhi-he-bu-shu/';
+        var disqus_url = 'http://andrew-anlu.github.io/blog/2016/05/22/nodejs-dai-ma-de-zu-zhi-he-bu-shu/';
         var disqus_script = 'embed.js';
       
     (function () {

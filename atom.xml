@@ -4,7 +4,7 @@
   <title><![CDATA[安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-05-22T09:37:17+08:00</updated>
+  <updated>2016-05-22T10:36:05+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -12,6 +12,166 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Nodejs-代码的组织和部署]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/05/22/nodejs-dai-ma-de-zu-zhi-he-bu-shu/"/>
+    <updated>2016-05-22T09:45:22+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/05/22/nodejs-dai-ma-de-zu-zhi-he-bu-shu</id>
+    <content type="html"><![CDATA[<p>有经验的C程序员在编写一个新程序时首先从make文件写起，同样的，使用nodejs编写程序前，为了有个良好的开端，首先需要准备好代码的目录结构和部署方式，就如同修防止要先搭建脚手架。本章将介绍与之相关的各种知识</p>
+
+<!--more-->
+
+
+<ul>
+<li><a href="#%E6%A8%A1%E5%9D%97%E8%B7%AF%E5%BE%84%E7%9A%84%E8%A7%A3%E6%9E%90%E8%A7%84%E5%88%99">模块路径的解析规则</a></li>
+<li><a href="#%E5%8C%85">包</a></li>
+<li><a href="#%E5%91%BD%E4%BB%A4%E8%A1%8C%E7%A8%8B%E5%BA%8F">命令行程序</a></li>
+<li><a href="#%E5%B7%A5%E7%A8%8B%E7%9B%AE%E5%BD%95">工程目录</a></li>
+<li><a href="#NPM">NPM</a></li>
+<li><a href="#%E5%B0%8F%E7%BB%93">小结</a></li>
+</ul>
+
+
+<h2><a name="模块路径的解析规则">模块路径的解析规则</a></h2>
+
+<p>我们已经知道，require函数支持斜杠(/)或者盘符(C:)开头的绝对路径，也支持./开头的相对路径。但这两种路径在模块之间建立了强耦合关系，一旦某个模块文件的存放位置需要变更，使用该模块的其它模块的代码也需要跟着调整，变得牵一发而动全身。因此，require函数支持第三种形式的路径，写法类似foo/bar,并依次按照以上规则解析路径，知道找到模块位置。</p>
+
+<h3>内置模块</h3>
+
+<p>如果传递给require函数的是nodejs内置模块名称，不做路径解析，直接返回内部模块的导出对象，例如require(&lsquo;fs&rsquo;)</p>
+
+<h3>node_modules目录</h3>
+
+<p>nodejs定义了一个特殊的node_modules目录用于存放模块。例如某个模块的绝对路径是 /home/user/hello.js,在该模块中使用require(&lsquo;foo/bar&rsquo;)方式加载模块时，则Nodejs依次尝试使用以下路径.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'> /home/user/node_modules/foo/bar
+</span><span class='line'> /home/node_modules/foo/bar
+</span><span class='line'> /node_modules/foo/bar</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>NODE_PATH环境变量</h3>
+
+<p>与PATH 环境变量类似，nodejs允许通过NODE_PATH环境变量来指定额外的模块搜索路径。NODE_PATH环境变量中包含一到多个目录路径，路径之间在LInux下使用<code>:</code>分隔，在windows下使用;分隔。例如定义了以下NODE_PATH环境变量:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'> NODE_PATH=/home/user/lib:/home/lib</span></code></pre></td></tr></table></div></figure>
+
+
+<p>当使用require(&lsquo;foo/bar&rsquo;)的方式加载模块时，则nodejs依次尝试以下路径:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>/home/user/lib/foo/bar
+</span><span class='line'>/home/lib/foo/bar</span></code></pre></td></tr></table></div></figure>
+
+
+<h2><a name="包">包</a></h2>
+
+<p>我们已经知道了JS模块的基本单位是单个JS文件，但复杂些的模块往往由多个子模块组成，为了便于管理和使用，我们可以把由多个子模块组成的大模块称做包，并把所有子模块放在同一个目录里。</p>
+
+<p>在组成一个包的所有子模块中，需要有个入口模块，入口模块的导出对象被作为包的导出对象。例如有以下目录结构。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- /home/user/lib/
+</span><span class='line'>    - cat/
+</span><span class='line'>        head.js
+</span><span class='line'>        body.js
+</span><span class='line'>        main.js</span></code></pre></td></tr></table></div></figure>
+
+
+<p>其中cat目录定义了一个包，其中包含了3个子模块。main.js作为入口模块，其内容如下：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>var head = require('./head');
+</span><span class='line'>var body = require('./body');
+</span><span class='line'>
+</span><span class='line'>exports.create = function (name) {
+</span><span class='line'>    return {
+</span><span class='line'>        name: name,
+</span><span class='line'>        head: head.create(),
+</span><span class='line'>        body: body.create()
+</span><span class='line'>    };
+</span><span class='line'>};</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在其它模块里使用包的时候，需要加载包的入口模块。接着上例，使用<code>require('/home/user/lib/cat/main')</code>能达到目的，但是入口模块名称出现在路径里看上去不是个好主意，因此我们需要做点额外的工作，让包使用起来更像是单个模块。</p>
+
+<h3>index.js</h3>
+
+<p>当模块的文件件是index.js，加载模块时可以使用模块所在目录的路径代替模块文件路径，因此接着上例，以下两条语句等价:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>var cat = require('/home/user/lib/cat');
+</span><span class='line'>var cat = require('/home/user/lib/cat/index');</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样处理后，就只需要把包目录路径传递给require函数，感觉上整个目录被当做单个模块使用，更有整体感。</p>
+
+<h3>package.json</h3>
+
+<p>如果想自定义入口模块的文件名和存放位置，就需要在包目录下包含一个package.json文件，并在其中指定入口模块的路径，上例中的cat模块可以重构如下。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- /home/user/lib/
+</span><span class='line'>    - cat/
+</span><span class='line'>        + doc/
+</span><span class='line'>        - lib/
+</span><span class='line'>            head.js
+</span><span class='line'>            body.js
+</span><span class='line'>            main.js
+</span><span class='line'>        + tests/
+</span><span class='line'>        package.json
+</span><span class='line'>其中package.json内容如下。
+</span><span class='line'>
+</span><span class='line'>{
+</span><span class='line'>    "name": "cat",
+</span><span class='line'>    "main": "./lib/main.js"
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如此一来，就同样可以使用require(&lsquo;/home/user/lib/cat&rsquo;)的方式加载模块。nodejs会根据包目录下的package.json找到入口模块所在位置。</p>
+
+<h2><a name="命令行程序">命令行程序</a></h2>
+
+<h2><a name="工程目录">工程目录</a></h2>
+
+<h2><a name="NPM">NPM</a></h2>
+
+<h2><a name="小结">小结</a></h2>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Nodejs基础]]></title>
@@ -9337,510 +9497,6 @@ UI线程中一旦出现繁重的任务就会导致界面卡顿，这类任务通
 
 
 <p>如何上面的泛型<code>Stack</code>结构一样，array的<code>append(_:)</code>方法和下标确保了Swift可以推断出<code>ItemType</code>的类型，定义了这个扩展后，你可以将任意<code>Array</code>当做<code>Container</code>来使用</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Swift-可选链]]></title>
-    <link href="http://andrew-anlu.github.io/blog/2016/03/22/swift-ke-xuan-lian/"/>
-    <updated>2016-03-22T09:35:29+08:00</updated>
-    <id>http://andrew-anlu.github.io/blog/2016/03/22/swift-ke-xuan-lian</id>
-    <content type="html"><![CDATA[<p>可选链式调用(Optional Chaining)是一种可以在当前值可能为<code>nil</code>的可选值上请求和调用属性，方法及下标的方法。如果可选值有值，那么调用就会成功；如果可选值为nil,那么调用将返回<code>nil</code>.多个调用可以连接在一起形成一个链，如果其中任何一个点为<code>nil</code>,整个调用链就会失败，即返回nil.</p>
-
-<!--more-->
-
-
-<h2>使用可选链式调用代替强制展开</h2>
-
-<p>通过在想调用的属性，方法，下标的可选值后面放一个问号(?),可以定义一个可选链，这一点很像在可选值后面加一个(!)来强制展开它的值。它们的主要区别在于当可选值为空时，可选链式就会调用失败，然而强制展开就会触发运行时错误。</p>
-
-<p>为了反映可选链时调用可以在空值(nil)上调用的事实，不论这个调用的属性，方法及下标返回的值是不是可选值，它的返回结果都是一个可选值。你可以利用这个返回值来判断你的可选链时调用是否成功，如果调用有返回值则说明调用成功，返回 <code>nil</code>则说明调用失败。</p>
-
-<p>特别地，可选链式调用的返回结果与原本的返回结果具有相同的类型，但是被包装成一个可选值。例如，使用可选链式调用访问属性，当可选链式调用成功时，如果属性原本的返回结果是<code>Int</code>类型，则会变成<code>Int?</code>类型。</p>
-
-<p>下面几段代码将解释可选链式调用和强制展开的不同。</p>
-
-<p>首先定义两个类<code>Person</code>和<code>Residence</code></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>class Person {
-</span><span class='line'>    var residence:Residence?
-</span><span class='line'>}
-</span><span class='line'>
-</span><span class='line'>class Residence {
-</span><span class='line'>    var numberOfRooms=1
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p><code>Residence</code>有一个<code>Int</code>类型的属性<code>numberOfRooms</code>,其默认是值是1，<code>Person</code>具有一个可选的<code>residence</code>属性，其类型为<code>Residence?</code></p>
-
-<p>如果创建一个新的<code>Person</code>实例，因为它的<code>residence</code>属性是可选的，<code>john</code>属性将初始化为<code>nil</code>:</p>
-
-<pre><code>let john=Person()
-</code></pre>
-
-<p>如果使用叹号(!)强制展开获得这个<code>john</code>的<code>Residence</code>属性中的<code>numberofRooms</code>值，会触发运行时错误，因为这时<code>residence</code>没有可以展开的值:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>let roomCount = john.residence!.numberOfRooms
-</span><span class='line'>// 这会引发运行时错误</span></code></pre></td></tr></table></div></figure>
-
-
-<p><code>john.residence</code>为非nil值的时候，上面的调用会成功，并且把<code>roomCount</code>设置为<code>Int</code>类型的房间数量，正如上面所提到的，当<code>residence</code>为<code>nil</code>的时候上面这段代码会触发运行时错误。</p>
-
-<p>可选链时调用提供了另一种访问<code>numberOfRooms</code>的方式，使用问号(?)来代替原来的叹号(!)</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>if let roomCount = john.residence?.numberOfRooms {
-</span><span class='line'>    print("John's residence has \(roomCount) room(s).")
-</span><span class='line'>} else {
-</span><span class='line'>    print("Unable to retrieve the number of rooms.")
-</span><span class='line'>}
-</span><span class='line'>// 打印 “Unable to retrieve the number of rooms.”</span></code></pre></td></tr></table></div></figure>
-
-
-<p>在<code>residence</code>后面添加问号之后，Swift就会在<code>residence</code>不为nil的情况下访问<code>numberOfRooms</code>.</p>
-
-<p>因为访问<code>numberOfRooms</code>又看呢过失败，可选链式调用会返回<code>Int?</code>类型，或称为'可选的Int'。如上例所示，当<code>residence</code>为<code>nil</code>的时候，可选的<code>Int</code>将会为<code>nil</code>,表明无法访问<code>numberOfRooms</code>。访问成功时，可选的<code>Int</code>值会通过可选绑定展开，并复制给非可选类型的<code>roomCount</code>常量。</p>
-
-<p>要注意的是，及时<code>numberOfRooms</code>是非可选的<code>Int</code>时，这一点也成立。只要使用可选链式调用就意味着<code>numberOfRooms</code>会返回一个<code>Int?</code>而不是<code>Int</code>.</p>
-
-<p>可以将一个<code>Residence</code>的实例赋值给<code>john.residence</code>，这样它就不在是<code>nil</code>了:</p>
-
-<pre><code>john.residence=Residenc();
-</code></pre>
-
-<p>john.residence现在包含一个实际的<code>Residence</code>实例，而不再是<code>nil</code>.如果你试图使用先前的可选链式调用访问<code>numberOfRooms</code>，它现在将返回值为1的<code>Int?</code>类型的值:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>if let roomCount = john.residence?.numberOfRooms {
-</span><span class='line'>    print("John's residence has \(roomCount) room(s).")
-</span><span class='line'>} else {
-</span><span class='line'>    print("Unable to retrieve the number of rooms.")
-</span><span class='line'>}
-</span><span class='line'>// 打印 “John's residence has 1 room(s).”</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>可选链式调用定义模型类</h2>
-
-<p>通过使用可选链式调用可以调用多层属性，方法和下标。这样可以在复杂的模型中向下访问各种子属性，并且判断能否访问子属性的属性，方法和下标。</p>
-
-<p>下面这段代码定义了四个模型类，这些例子包括多层可选链式调用。为了方便说明，在<code>person</code>和<code>Residence</code>的基础上增加了<code>Room</code>类和<code>Address</code>类，一级相关的属性，方法和下标.</p>
-
-<p><code>Person</code>类的定义基本保持不变:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>class Person {
-</span><span class='line'>    var residence: Residence?
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Residence类比之前复杂些。增加了一个名为<code>Rooms</code>的变量属性，该属性被初始化为<code>[Room]</code>类型的空数组:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>class Residence {
-</span><span class='line'>    var rooms = [Room]()
-</span><span class='line'>    var numberOfRooms: Int {
-</span><span class='line'>        return rooms.count
-</span><span class='line'>    }
-</span><span class='line'>    subscript(i: Int) -&gt; Room {
-</span><span class='line'>        get {
-</span><span class='line'>            return rooms[i]
-</span><span class='line'>        }
-</span><span class='line'>        set {
-</span><span class='line'>            rooms[i] = newValue
-</span><span class='line'>        }
-</span><span class='line'>    }
-</span><span class='line'>    func printNumberOfRooms() {
-</span><span class='line'>        print("The number of rooms is \(numberOfRooms)")
-</span><span class='line'>    }
-</span><span class='line'>    var address: Address?
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>现在<code>Residence</code>有了一个存储<code>Room</code>实例的数组，<code>numberOfRooms</code>属性被实现为计算型属性，而不是存储型属性。<code>numberOfRooms</code>属性简单地返回<code>Rooms</code>数组的count属性的值。。</p>
-
-<p>residence还提供了rooms数组的快捷方式，即提供可读写的下标来访问<code>rooms</code>数组中指定位置的元素。</p>
-
-<p>此外，<code>Residence</code>还提供了<code>printNUmberOfRooms()</code>方法，这个方法的作用是打印<code>numberOfRooms</code>的值。</p>
-
-<p>最后，<code>Residence</code>还定义了一个可选属性<code>address</code>,其类型为<code>Address?</code>.Address类的定义在下面会说明。</p>
-
-<p><code>Room</code>类是一个简单类，其实例被存储在<code>rooms</code>数组中。该类只包含一个属性<code>name</code>,以及一个用于将该属性设置为适当的房间名的初始化函数:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>class Room {
-</span><span class='line'>    let name: String
-</span><span class='line'>    init(name: String) { self.name = name }
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>最后一个类是<code>Address</code>,这个类有三个<code>String?</code>类型的可选属性，<code>buildingName</code>以及<code>buildingNuber</code>属性分别表示某个大厦的名称和号码，第三个属性<code>street</code>表示大厦所在街道的名称:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>class Address {
-</span><span class='line'>    var buildingName: String?
-</span><span class='line'>    var buildingNumber: String?
-</span><span class='line'>    var street: String?
-</span><span class='line'>    func buildingIdentifier() -&gt; String? {
-</span><span class='line'>        if buildingName != nil {
-</span><span class='line'>            return buildingName
-</span><span class='line'>        } else if buildingNumber != nil && street != nil {
-</span><span class='line'>            return "\(buildingNumber) \(street)"
-</span><span class='line'>        } else {
-</span><span class='line'>            return nil
-</span><span class='line'>        }
-</span><span class='line'>    }
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p><code>Address</code>类提供了<code>buildingIdentifier ()</code>方法，返回值为<code>String?</code>,如果<code>buildingName</code>有值则返回<code>buildingName</code>.或者，如果<code>buildingName</code>和<code>street</code>均有值则返回<code>buildingNumber</code>.否则，返回<code>nil</code>.</p>
-
-<h2>通过可选链式访问属性</h2>
-
-<p>下面的代码创建了一个<code>Person</code>实例，然后像志强一样，尝试访问<code>nubmerOfRooms</code>属性:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>let john = Person()
-</span><span class='line'>if let roomCount = john.residence?.numberOfRooms {
-</span><span class='line'>    print("John's residence has \(roomCount) room(s).")
-</span><span class='line'>} else {
-</span><span class='line'>    print("Unable to retrieve the number of rooms.")
-</span><span class='line'>}
-</span><span class='line'>// 打印 “Unable to retrieve the number of rooms.”</span></code></pre></td></tr></table></div></figure>
-
-
-<p>因为<code>john.residence</code>为<code>nil</code>,所以这个可选链式调用依旧会像先前一样失败.</p>
-
-<p>还可以通过可选链式调用来设置属性的值:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>let someAddress = Address()
-</span><span class='line'>someAddress.buildingNumber = "29"
-</span><span class='line'>someAddress.street = "Acacia Road"
-</span><span class='line'>john.residence?.address = someAddress</span></code></pre></td></tr></table></div></figure>
-
-
-<p>在这个例子中，通过<code>john.residence</code>来设定<code>address</code>属性也会失败，因为<code>john.residence</code>当前为<code>nil</code>.</p>
-
-<p>上面代码中的赋值过程是可选链式调用的一部分，这意味着可选链式调用失败时，等号右侧的代码不会被执行。对于上面的代码来说，很难验证这一点，因为像这样赋值一个常量没有任何副作用。下面的代码完成了同样的适应，但是它使用一个函数来创建<code>Address</code>实例，然后将该实例返回用于赋值。该函数会在返回前答应<code>Funcation was called</code>，这使你能验证等号右侧的代码是否被执行.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>func createAddress() -&gt; Address {
-</span><span class='line'>    print("Function was called.")
-</span><span class='line'>
-</span><span class='line'>    let someAddress = Address()
-</span><span class='line'>    someAddress.buildingNumber = "29"
-</span><span class='line'>    someAddress.street = "Acacia Road"
-</span><span class='line'>
-</span><span class='line'>    return someAddress
-</span><span class='line'>}
-</span><span class='line'>john.residence?.address = createAddress()</span></code></pre></td></tr></table></div></figure>
-
-
-<p>没有答应任何消息，可以看出<code>createAddress()</code>函数并未被执行。</p>
-
-<h2>通过可选链式调用方法</h2>
-
-<p>可以通过可选链式调用来调用方法，并判断是否调用成功，即使这个方法没有返回值.</p>
-
-<p><code>Residence</code>类中的<code>printNumberOfRooms()</code>方法打印当前的<code>numberOfRooms</code>值，如下所示:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>func printNumberOfRooms() {
-</span><span class='line'>    print("The number of rooms is \(numberOfRooms)")
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这个方法没有返回值，然而，没有返回值的方法具有隐式的返回类型<code>Void</code>,这意味着没有返回值的方法也会返回<code>()</code>,或者或空的数组.</p>
-
-<p>通过可选链式调用得到的返回值都是可选的。这样我们就可以使用<code>if</code>语句来判断是否成功调用<code>printNumberOfRooms()</code>方法，就是方法本身没有定义返回值，通过判断返回值是否为<code>nil</code>可以判断调用是否成功:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>if john.residence?.printNumberOfRooms() != nil {
-</span><span class='line'>    print("It was possible to print the number of rooms.")
-</span><span class='line'>} else {
-</span><span class='line'>    print("It was not possible to print the number of rooms.")
-</span><span class='line'>}
-</span><span class='line'>// 打印 “It was not possible to print the number of rooms.”</span></code></pre></td></tr></table></div></figure>
-
-
-<p>同样滴，可以据此判断通过可选链式调用为属性赋值是否成功，我们尝试给<code>john.residence</code>中的 address 属性赋值，即使<code>residence</code>为nil,通过可选链式调用给属性赋值会返回<code>Void?</code>,通过判断返回值是否为nil就可以知道赋值是否成功:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>if (john.residence?.address = someAddress) != nil {
-</span><span class='line'>    print("It was possible to set the address.")
-</span><span class='line'>} else {
-</span><span class='line'>    print("It was not possible to set the address.")
-</span><span class='line'>}
-</span><span class='line'>// 打印 “It was not possible to set the address.”</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>通过可选链式调用访问下标</h2>
-
-<p>通过可选链式的调用，我们可以在一个可选值上访问下标，并且判断下标调用是否成功。</p>
-
-<blockquote><p><strong>注意</strong>
-通过可选链式调用访问可选值的下标时，应该将问号放在下标方括号的前面而不是后面，可选链式调用的问号一般直接跟在可选表达式的后面。</p></blockquote>
-
-<p>下面这个例子用下标访问<code>john.residence</code>属性存储的<code>Residences</code>实例的<code>Rooms</code>数组中的第一个房间的名称，因为<code>john.residence</code>为<code>nil</code>,所以下标调用失败了.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>if let firstRoomName = john.residence?[0].name {
-</span><span class='line'>    print("The first room name is \(firstRoomName).")
-</span><span class='line'>} else {
-</span><span class='line'>    print("Unable to retrieve the first room name.")
-</span><span class='line'>}
-</span><span class='line'>// 打印 “Unable to retrieve the first room name.”</span></code></pre></td></tr></table></div></figure>
-
-
-<p></p>
-
-<p>在这个例子中，问号直接放在<code>john.residence</code>的后面，并且在方括号的前面，因为<code>john.residence</code>是可选值.</p>
-
-<p>类似的，可以通过下标，用可选链式调用来赋值:</p>
-
-<pre><code>john.residence?[0] = Room(name: "Bathroom")
-</code></pre>
-
-<p> 这样赋值同样会失败，因为<code>residence</code>目前是<code>nil</code>.</p>
-
-<p> 如果你创建一个<code>Residence</code>实例，并未其<code>rooms</code>数组添加一些<code>Room</code>实例，然后将<code>Residence</code>实例赋值给<code>john.residence</code>，那就可以通过可选链和下标来访问数组中的元素:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>let johnsHouse = Residence()
-</span><span class='line'>johnsHouse.rooms.append(Room(name: "Living Room"))
-</span><span class='line'>johnsHouse.rooms.append(Room(name: "Kitchen"))
-</span><span class='line'>john.residence = johnsHouse
-</span><span class='line'>
-</span><span class='line'>if let firstRoomName = john.residence?[0].name {
-</span><span class='line'>    print("The first room name is \(firstRoomName).")
-</span><span class='line'>} else {
-</span><span class='line'>    print("Unable to retrieve the first room name.")
-</span><span class='line'>}
-</span><span class='line'>// 打印 “The first room name is Living Room.”</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>访问可选类型的下标</h2>
-
-<p>如果下标返回可选类型的值，比如Swift中<code>Dictionary</code>类型的键下标，可以在下标的结尾处放一个问号来在其可选值上进行可选链式调用:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>var testScores = ["Dave": [86, 82, 84], "Bev": [79, 94, 81]]
-</span><span class='line'>testScores["Dave"]?[0] = 91
-</span><span class='line'>testScores["Bev"]?[0]++
-</span><span class='line'>testScores["Brian"]?[0] = 72
-</span><span class='line'>// "Dave" 数组现在是 [91, 82, 84]，"Bev" 数组现在是 [80, 94, 81]</span></code></pre></td></tr></table></div></figure>
-
-
-<p>上面的例子中定义了一个<code>testScores</code>数组，包含了两个键值对，把String类型的键映射到一个<code>Int</code>值的数组。第三个键值不存在，故调用失败。</p>
-
-<h2>连接多层可选链式的调用</h2>
-
-<p>可以通过连接多个可选链式调用在更深的模型层级中访问属性，方法及下标，然而，多层可选链式调用不会增加返回值的可选层级。</p>
-
-<p>也就是说：</p>
-
-<ul>
-<li>如果你访问的值不是可选的，可选链式调用将会返回可选值</li>
-<li>如果你返回的值就是可选的，可选链式调用不会让可选返回值变得'更可选'</li>
-</ul>
-
-
-<p>因此:</p>
-
-<ul>
-<li>通过可选链式调用访问一个<code>Int</code>值，将会返回<code>Int?</code>,无论使用了多少层可选链式调用</li>
-<li>类似的，通过可选链式调用访问<code>Int?</code>值，依旧会返回<code>Int?</code>值，并不会返回<code>Int??</code></li>
-</ul>
-
-
-<p>下面的例子尝试访问<code>john</code>中的<code>residence</code>属性中的<code>address</code>属性中的street   属性，这里使用了两层可选链式调用，<code>residence</code>以及adress都是可选值:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>if let johnsStreet = john.residence?.address?.street {
-</span><span class='line'>    print("John's street name is \(johnsStreet).")
-</span><span class='line'>} else {
-</span><span class='line'>    print("Unable to retrieve the address.")
-</span><span class='line'>}
-</span><span class='line'>// 打印 “Unable to retrieve the address.”</span></code></pre></td></tr></table></div></figure>
-
-
-<p>john.residence现在包含一个有效的<code>Residence</code>实例。然而，<code>john.residence.address</code>的值当前为nil.因此调用<code>john.residence?.adress?.street</code>会失败。</p>
-
-<p>需要注意的是，上面的例子中,<code>street</code>的属性为<code>String?</code>.<code>john.residence?.address?.street</code>的返回值也依然是<code>String?</code>,即使已经使用了两层可选链式调用.</p>
-
-<p>如果<code>john.residence.address</code>赋值一个<code>Address</code>实例，并且为<code>address</code>中的<code>street</code>属性设置一个有效值，我们就能通过可选链式调用来访问<code>street</code>属性:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>let johnsAddress = Address()
-</span><span class='line'>johnsAddress.buildingName = "The Larches"
-</span><span class='line'>johnsAddress.street = "Laurel Street"
-</span><span class='line'>john.residence?.address = johnsAddress
-</span><span class='line'>
-</span><span class='line'>if let johnsStreet = john.residence?.address?.street {
-</span><span class='line'>    print("John's street name is \(johnsStreet).")
-</span><span class='line'>} else {
-</span><span class='line'>    print("Unable to retrieve the address.")
-</span><span class='line'>}
-</span><span class='line'>// 打印 “John's street name is Laurel Street.”</span></code></pre></td></tr></table></div></figure>
-
-
-<p>在上面的例子中，因为<code>john.residence</code>包含了一个有效的<code>Residence</code>实例，所以对<code>john.residence</code>的Address属性赋值将会成功。</p>
-
-<h2>在方法的可选返回值上进行可选链式调用</h2>
-
-<p>上面的例子展示了如何在一个可选值上通过可选链式调用来获取它的属性值，我们还可以在一个可选值上通过可选链式调用来调用方法，并且根据需要继续在方法的可选返回值上进行可选链式调用</p>
-
-<p>在下面的例子中，通过可选链式调用<code>Address</code>的<code>buildingIdeneity()</code>方法，这个方法返回<code>String?</code>类型的值，如上所述，通过可选链式调用来调用该方法，最终的返回值依旧是 String?类型:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>if let buildingIdentifier = john.residence?.address?.buildingIdentifier() {
-</span><span class='line'>    print("John's building identifier is \(buildingIdentifier).")
-</span><span class='line'>}
-</span><span class='line'>// 打印 “John's building identifier is The Larches.”</span></code></pre></td></tr></table></div></figure>
-
-
-<p>如果要在该方法的返回值上进行可选链式调用，在方法的圆括号后面加上问号即可:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>if let beginsWithThe =
-</span><span class='line'>    john.residence?.address?.buildingIdentifier()?.hasPrefix("The") {
-</span><span class='line'>        if beginsWithThe {
-</span><span class='line'>            print("John's building identifier begins with \"The\".")
-</span><span class='line'>        } else {
-</span><span class='line'>            print("John's building identifier does not begin with \"The\".")
-</span><span class='line'>        }
-</span><span class='line'>}
-</span><span class='line'>// 打印 “John's building identifier begins with "The".”</span></code></pre></td></tr></table></div></figure>
-
 ]]></content>
   </entry>
   
