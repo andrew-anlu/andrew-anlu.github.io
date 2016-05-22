@@ -126,11 +126,211 @@
 
 <h2><a name="安装">安装</a></h2>
 
+<p>NodeJs提供了一些安装程序，都可以在nodejs.org这里下载并安装</p>
+
+<p>在MacOs系统下，选择.pkg后缀的安装文件.</p>
+
+<h3>编译安装</h3>
+
+<p>Linux系统下没有现成的安装程序可用，虽然一些发行版可以使用 apt-get之类的方式安装，但不一定能安装到最新版。因此Linux系统下一班使用以下方式编译方式安装NodeJs。</p>
+
+<ol>
+<li>确保系统下 g++版本在4.6以上，python版本在2.6以上</li>
+<li>从nodejs.org下载tar.gz后缀的NodeJS最新版源代码包并解压到某个位置</li>
+<li>进入解压到的目录，使用以下命令编译和安装</li>
+</ol>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ./configure
+</span><span class='line'>
+</span><span class='line'>$ make
+</span><span class='line'>
+</span><span class='line'>$ sudo make install</span></code></pre></td></tr></table></div></figure>
+
+
 <h2><a name="运行">运行</a></h2>
+
+<p>打开终端，键入node进入命令交互模式，可以输入一条语句后立即执行并显示效果，例如:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ node
+</span><span class='line'>&gt; console.log('Hello World!');
+</span><span class='line'>Hello World!</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果要运行一大段代码的话，可以先写一个JS文件再运行，例如有以下hello.js</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>function hello() {
+</span><span class='line'>    console.log('Hello World!');
+</span><span class='line'>}
+</span><span class='line'>hello();</span></code></pre></td></tr></table></div></figure>
+
+
+<p>写好后，在终端键入 node hello.js运行，结果如下:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ node hello.js
+</span><span class='line'>Hello World!</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>权限问题</h3>
+
+<p>在Linux系统下，使用NodeJs监听80或者443端口提供HTTP(s)服务时需要root权限，有两种方式可以做到.</p>
+
+<p>一种方式是使用sudo命令运行NodeJs,例如通过以下命令运行的server.js中有权限使用80和443端口，一般推荐这种方式，可以保证仅为有需要的js脚本提供root权限。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo node server.js</span></code></pre></td></tr></table></div></figure>
+
+
+<p>另一种方式是使用chmod + s 命令让NodeJs总是以root权限运行，具体做法如下，因为这种方式让任何JS脚本都有了root权限，不太安全，因此在需要很考虑安全下不推荐使用：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo chown root /usr/local/bin/node
+</span><span class='line'>$ sudo chmod +s /usr/local/bin/node</span></code></pre></td></tr></table></div></figure>
+
 
 <h2><a name="模块">模块</a></h2>
 
+<p>编写稍大一点的程序时一般都会讲代码模块化，在NOdeJs中，一般将代码合理拆分到不同的JS文件中，每一个文件就是一个模块，而文件路径就是模块名.</p>
+
+<p>在编写每一个模块时，都有 <code>require</code>,<code>exports</code>,<code>module</code>三个预先定义好的变量可供使用。</p>
+
+<h3>3 Require</h3>
+
+<p>require函数用于在当前模块中加载和使用别的模块，传入一个模块名，返回一个模块导出对象。模块名可使用相对路径(以./开头)，或者是绝对路径(以/或C:之类的盘符开头).另外，模块名中的.js扩展名可以省略。以下是一个例子:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>var foo1 = require('./foo');
+</span><span class='line'>var foo2 = require('./foo.js')
+</span><span class='line'>var foo3 = require('/home/user/foo')
+</span><span class='line'>var foo4 = require('/home/user/foo.js')</span></code></pre></td></tr></table></div></figure>
+
+
+<p>//foo1至foo4中保存的是统一模块的导出对象。另外可以使用以下方式加载和使用一个JSON文件。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>var data = require('./data.json')</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>exports</h3>
+
+<p>exports对象是当前模块的导出对象，用于导出模块共有方法和属性。别的模块通过require函数使用当前模块时得到的就是当前模块的exports对象。以下例子中导出了一个共有方法.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>exports.hello = function () {
+</span><span class='line'>    console.log('Hello World!');
+</span><span class='line'>};</span></code></pre></td></tr></table></div></figure>
+
+
+<p>以上代码中，模块默认导出对象被替换为一个函数。</p>
+
+<h3>模块初始化</h3>
+
+<p>一个模块中的JS代码仅在模块第一次被使用时执行一次，并在执行过程中初始化模块的导出对象。之后，缓存起来的导出对象被重复利用。</p>
+
+<h3>主模块</h3>
+
+<p>通过命令行参数传递给NodeJS以启动程序的模块被称为主模块。住模块负责调度祖成整个程序的其它模块完成工作，例如通过以下命令启动程序时，main.js就是主模块.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ node main.js</span></code></pre></td></tr></table></div></figure>
+
+
+<p>完整示例:</p>
+
+<p>例如有以下目录:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- /home/user/hello/
+</span><span class='line'>    - util/
+</span><span class='line'>        counter.js
+</span><span class='line'>    main.js</span></code></pre></td></tr></table></div></figure>
+
+
+<p>其中counter.js内容如下:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>var i = 0;
+</span><span class='line'>
+</span><span class='line'>function count() {
+</span><span class='line'>    return ++i;
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>exports.count = count;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>该模块内部定义了一个私有变量i,并在exports对象导出了一个共有方法count.</p>
+
+<p>主模块main.js内容如下：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>var counter1 = require('./util/counter');
+</span><span class='line'>var    counter2 = require('./util/counter');
+</span><span class='line'>
+</span><span class='line'>console.log(counter1.count());
+</span><span class='line'>console.log(counter2.count());
+</span><span class='line'>console.log(counter2.count());</span></code></pre></td></tr></table></div></figure>
+
+
+<p>运行该程序的结果如下:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ node main.js
+</span><span class='line'>1
+</span><span class='line'>2
+</span><span class='line'>3</span></code></pre></td></tr></table></div></figure>
+
+
+<p>可以看到，counter.js并没有因为被require了两次而初始化两次</p>
+
 <h2><a name="小结">小结</a></h2>
+
+<p>本章介绍了有关NodeJs的基本概念和使用方法，总结起来有以下知识点:</p>
+
+<ul>
+<li>NodeJs是一个js脚本解析器，任何操作系统下安装NodeJS本质上做的事情都是把nodejs执行程序复制到一个目录，然后保证这个目录在系统PATH环境变量下，以便终端下可以使用node命令</li>
+<li>终端下直接输入node命令可进入命令交互模式，很适合用来测试一些JS代码片段，比如正则表达式</li>
+<li>nodejs使用CMD模块系统，主模块作为程序入口点，所有模块在执行剁成中只初始化一次。</li>
+<li>除非JS模块不能满足需求，否则不要轻易使用二进制模块，否则你的用户会叫苦连天</li>
+<li></li>
+</ul>
+
 </div>
 
 
