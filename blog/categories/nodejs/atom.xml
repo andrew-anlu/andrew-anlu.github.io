@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Nodejs | 安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/blog/categories/nodejs/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-05-22T10:36:05+08:00</updated>
+  <updated>2016-05-22T20:04:32+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -127,7 +127,77 @@ var cat = require('/home/user/lib/cat/index');
 
 <h2><a name="命令行程序">命令行程序</a></h2>
 
+<p>使用Nodejs编写的东西，要么是一个包，要么是一个命令行程序，而前者最终也会用于开发后者。因此我们在部署代码时需要一些技巧，让用户觉得自己是在使用一个命令行程序。</p>
+
+<p>例如我们用nodejs写了个程序，可以把命令行参数原样打印出来。该程序很简单，在主模块内实现了所有功能。并且写好后，我们把该程序部署在<code>/home/user/bin/node-echo.js</code>这个位置。为了在任何目录下都能运行该程序，我们需要用以下终端命令。</p>
+
+<pre><code>$ node /home/user/bin/node-echo.js Hello World
+Hello World
+</code></pre>
+
+<p>这种使用方式看起来不怎么像是一个命令行程序，下边的才是我们期望的方式：</p>
+
+<pre><code>$ node-echo Hello World
+</code></pre>
+
+<h3>Linux</h3>
+
+<p>在linux系统下，我们可以把JS文件当做shell脚本来运行，从而达到上述目的，具体步骤如下：</p>
+
+<p>在shell脚本中，可以通过 #! 注释来指定当前脚本使用的解析器。所以我们首先在 node-echo.js文件顶部增加以下一行注释，表明当前脚本使用nodejs解析。</p>
+
+<pre><code> #! /usr/bin/env node
+</code></pre>
+
+<p>NodeJs会忽略掉位于JS模块首行的 <code>#!</code>注释，不必担心这行注释是非法语句。</p>
+
+<p>然后，我们使用以下命令赋予node-echo.js文件执行权限。</p>
+
+<pre><code> $ chmod +x /home/user/bin/node-echo.js
+</code></pre>
+
+<p>最后，我们在PATH环境变量中指定的某个目录下，例如在 /usr/local/bin下创建了一个软连接文件，文件名与我们希望使用的终端命令同名，命令如下：</p>
+
+<pre><code> $ sudo ln -s /home/user/bin/node-echo.js /usr/local/bin/node-echo
+</code></pre>
+
+<p>这样处理后，我们就可以在任何目录下使用 node-echo 命令了。</p>
+
 <h2><a name="工程目录">工程目录</a></h2>
+
+<p>了解了以上知识后，现在我们可以来完整地规划一个工程目录了。以编写一个命令行程序为例，一般我们会同时提供命令行模式和API模式两种使用方式，并且我们会借助三方包来编写代码。除了代码外，一个完整的程序也应该有自己的文档和测试用例。因此，一个标准的工程目录都看起来像下边这样。</p>
+
+<pre><code>- /home/user/workspace/node-echo/   # 工程目录
+    - bin/                          # 存放命令行相关代码
+        node-echo
+    + doc/                          # 存放文档
+    - lib/                          # 存放API相关代码
+        echo.js
+    - node_modules/                 # 存放三方包
+        + argv/
+    + tests/                        # 存放测试用例
+    package.json                    # 元数据文件
+    README.md                       # 说明文件
+</code></pre>
+
+<p>其中部分文件内容如下:</p>
+
+<pre><code>/* bin/node-echo */
+var argv = require('argv'),
+    echo = require('../lib/echo');
+console.log(echo(argv.join(' ')));
+
+/* lib/echo.js */
+module.exports = function (message) {
+    return message;
+};
+
+/* package.json */
+{
+    "name": "node-echo",
+    "main": "./lib/echo.js"
+}
+</code></pre>
 
 <h2><a name="NPM">NPM</a></h2>
 
