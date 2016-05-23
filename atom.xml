@@ -4,7 +4,7 @@
   <title><![CDATA[安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-05-23T10:08:37+08:00</updated>
+  <updated>2016-05-23T14:51:33+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -12,6 +12,56 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[为iOS建立Travis CI]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/05/23/wei-iosjian-li-travis-ci/"/>
+    <updated>2016-05-23T14:30:30+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/05/23/wei-iosjian-li-travis-ci</id>
+    <content type="html"><![CDATA[<p>你是否曾经试着为ios项目搭建一台支持<a href="http://baike.baidu.com/link?url=9m9zB2m909wrZ82wdNWMhtPBTt14PduTPIyi78YL0sS7ccrE-DN22S55wCuEhuobFZ0dL5T4MhKmQzFLx1q4-K">持续集成</a>的服务器，从我的个人经验而言，这可不是一个轻松的活。首先需要准备一台MAc电脑，并安装好全部所需的软件和插件。你要负责管理所有的用户账户，并提供安全保护。你需要授予访问仓库的权限，并配置所有的编译步骤和证书，在项目的运行时期，你需要保持服务器稳健和最新。</p>
+
+<!--more-->
+
+
+<p>最后，原本你想节省时间，会发现你花费了大量的时间去维护这台服务器，不过如果你的项目托管在github上，现在有了新的希望：<a href="https://travis-ci.org/">Travis CI</a>.该服务可以为你的项目提供持续集成的支持，也就意味着它会负责好托管一个项目的所有细节。在ruby的世界中，Travis CI以久负盛名。从2013年4月起，Travs也开始支持ios和mac平台</p>
+
+<p>在这篇文章中，我将向你展示如何一步步的在项目中集成Travis.不仅包括项目的编译的单元测试运行，还包括将应用部署到你所有的测试设备上。</p>
+
+<h2>GITHub集成</h2>
+
+<p>我最喜欢Travis的一点就是它与GitHub的webUI集成的非常好，例如pull请求，Travis会为每次请求都执行编译操作。如果一切正常，pull请求在Github上看起来这样:
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/github_ready_to_merge.jpg" alt="e" /></p>
+
+<p>万一编译不成功，Github页面会修改相应的颜色。给予提醒:
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/github_merge_with_caution.jpg" alt="1" /></p>
+
+<h2>链接 Travis 和 GitHub</h2>
+
+<p>让我们看一下如何将Github项目与Travis链接上，使用Github账号登录 <a href="https://travis-ci.org/">Travis 站点</a>。对于私有仓库，需要注册一个Travis 专业版账号</p>
+
+<p>登录成功后，需要为项目开启Travis支持，导航到<a href="https://travis-ci.org/profile">属性页面</a>,该页面列出了所有的github项目，不过要注意，如果此后创建了一个新的仓库，要使用 sync now 按钮进行同步。Travis只会偶尔更新的项目列表.</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/objc_travis_flick.jpg" alt="test" /></p>
+
+<p>现在只需要打开这个开关就可以在你的项目添加Travis服务，之后你会看到Travis会和Github项目设置关联。下一步就是告诉Travis，当它收到项目改动通知之后该做什么。</p>
+
+<h2>最简单的项目配置</h2>
+
+<p>Tranvis CI 需要项目的一些基本信息。在项目的根目录创建一个名为 .travis.yml的文件，文件中内容如下：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>language: objective-c</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Travis 编译器运行在虚拟机环境下，该编译器已经利用 <code>Ruby</code>,<code>homebrew</code>,<code>CocoaPods</code>和一些默认的编译脚本进行过<a href="http://about.travis-ci.org/docs/user/osx-ci-environment/">预配置</a>.上述的配置项已经足够编译你的项目了。</p>
+
+<p>预装的编译脚本会分析你的Xcode项目，并对每个target进行编译。如果所有文件都没有编译错误，并且测试也没有被打断，那么项目就编译成功了。现在可以将改动push到GitHub上看看能否成功编译。</p>
+
+<p>虽然上述配置过程真的很简单，不过对你的项目不一定适用。这里几乎没有什么文档来指导用户如何配置默认的编译行为。例如：有一次我没有用 iphonesimulator SDK 导致代码签名错误。如果刚刚那个最简单的配置对你的项目不适用的话，让我们来看一下如何对Travis使用自定义的编译命令</p>
+
+<h3>自定义编译命令</h3>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Nodejs-代码的组织和部署]]></title>
@@ -9204,519 +9254,6 @@ UI线程中一旦出现繁重的任务就会导致界面卡顿，这类任务通
 
 <blockquote><p><strong>提示</strong>
 队列的取出时有顺序的，与打印结果并不矛盾，这就好比赛跑，起跑的顺序是A,B,C，但是到达终点的顺序就不一样是 A B  C了。</p></blockquote>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Swift-泛型]]></title>
-    <link href="http://andrew-anlu.github.io/blog/2016/03/24/swift-fan-xing/"/>
-    <updated>2016-03-24T10:11:56+08:00</updated>
-    <id>http://andrew-anlu.github.io/blog/2016/03/24/swift-fan-xing</id>
-    <content type="html"><![CDATA[<p>泛型代码可以让你编写使用自定义需求以及任意类型的灵活可冲中的函数和类型，它可以让你避免重复的代码，用一种清晰和抽象的方式来表达代码的意图。</p>
-
-<!--more-->
-
-
-<p>泛型是swift的强大特性之一，许多swift标准库是通过泛型代码构建的。事实上，泛型的使用贯穿饿了正本语言手册，只是你可能没有发现而已。例如,swift的<code>Array</code>和<code>Dictionary</code>都是泛型集合。你可以创建一个<code>Int</code>数组，也可以创建一个<code>String</code>数组，甚至可以是任意其它Swift类型的数组。同样的，你也可以创建存储任意指定类型的字典。</p>
-
-<h2>泛型所解决的问题</h2>
-
-<p>下面是一个标准的非泛型函数 <code>swapTwoInts(_:_:)</code>，用来交换两个<code>Int</code>值:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>func swapTwoInts(inout a: Int, inout _ b: Int) {
-</span><span class='line'>    let temporaryA = a
-</span><span class='line'>    a = b
-</span><span class='line'>    b = temporaryA
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这个函数使用输入输出函数(<code>inout</code>)来交换<code>a</code>和<code>b</code>的值。</p>
-
-<p><code>swapTwoInts(_:_:)</code>函数交换<code>b</code>的原始值到<code>a</code>,并交换<code>a</code>的原始值到<code>b</code>,你可以调用这个函数交换两个<code>Int</code>变量的值:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>var someInt = 3
-</span><span class='line'>var anotherInt = 107
-</span><span class='line'>swapTwoInts(&someInt, &anotherInt)
-</span><span class='line'>print("someInt is now \(someInt), and anotherInt is now \(anotherInt)")
-</span><span class='line'>// 打印 “someInt is now 107, and anotherInt is now 3”</span></code></pre></td></tr></table></div></figure>
-
-
-<p>诚然，<code>swapTwoInts(_:_:)</code>函数挺有用，但是它只能交换<code>Int</code>值，如果你想要交换两个<code>String</code>值或者<code>Double</code>值，就不能不写更多的函数，例如<code>swapTwoStrings(_:_:)</code>和<code>swapTwoDoubles(_:_:)</code>,如下所示:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>func swapTwoStrings(inout a: String, inout _ b: String) {
-</span><span class='line'>    let temporaryA = a
-</span><span class='line'>    a = b
-</span><span class='line'>    b = temporaryA
-</span><span class='line'>}
-</span><span class='line'>
-</span><span class='line'>func swapTwoDoubles(inout a: Double, inout _ b: Double) {
-</span><span class='line'>    let temporaryA = a
-</span><span class='line'>    a = b
-</span><span class='line'>    b = temporaryA
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>你可能注意到<code>swapTwoInts(_:_:) 和 swapTwoDoubles(_:_:)</code>,的函数功能都是相同的，唯一不同之处就在于传入的变量类型不同，分别是 int,String,Double.</p>
-
-<p>在实际的应用中，通常需要一个更实用更灵活的函数来交换两个任意类型的值，幸运的是，泛型代码帮你解决了这种问题。</p>
-
-<blockquote><p><em>注意</em>
-在上面的三个函数中，<code>a</code>和<code>b</code>类型相同，如果<code>a</code>和<code>b</code>类型不同，那他们俩就不能交换值。Swift是类型安全的语言，所以不会允许一个<code>String</code>类型的变量和一个<code>Double</code>类型的变量互换值。视图这样做将导致编译错误。</p></blockquote>
-
-<h2>泛型函数</h2>
-
-<p>泛型函数可以适用于任何类型，下面的<code>swapTwoValues(_:_:)</code>函数是上面三个函数的泛型版本:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>func swapTwoValues&lt;T&gt;(inout a:T,inout _ b:T){
-</span><span class='line'> let temporaryA=a;
-</span><span class='line'> a=b;
-</span><span class='line'> b= temporaryA;
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p><code>swapTwoValues(_:_:)</code>的函数主体和<code>swapTwoInts(_:_:)</code>函数是一样的。他们只在第一行有所不同，如下所示:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>func swapTwoInts(inout a: Int, inout _ b: Int)
-</span><span class='line'>func swapTwoValues&lt;T&gt;(inout a: T, inout _ b: T)</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这个函数的泛型版本使用了占位类型名(在这里用字母<code>T</code>来表示)来代替实际的类型名(例如<code>Int</code>,<code>String</code>或者<code>Double</code>).占位类型名没有指明<code>T</code>必须是什么类型，但是它指明了<code>a</code>和<code>b</code>必须是同一类型<code>T</code>,而不论<code>T</code>代表什么类型，只有<code>swapTwoValues(_:_:)</code>函数在调用时，才能根据所传入的实际类型决定<code>T</code>所代表的类型。</p>
-
-<p>另外一个不同之处在于这个泛型函数名后面跟着占位类型名(T),而且使用尖括号括起来的(<code>&lt;T&gt;</code>).这个尖括号告诉Swift那个<code>T</code>是<code>swapTwoValues(_:_:)</code>函数定义的一个占位类型名，因此swift不会去查找名为<code>T</code>的实际类型。</p>
-
-<p>swapTwoValues(<em>:</em>:) 函数现在可以像 swapTwoInts(<em>:</em>:) 那样调用，可以传入任意类型的值，只要两个值的类型相同。<code>swapTwoValues(_:_:)</code>函数调用时，<code>T</code>所代表的类型都会由传入的值的类型判断出来.</p>
-
-<p>在下面的两个例子中，<code>T</code>分别代表<code>Int</code>和<code>String</code></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>var someInt = 3
-</span><span class='line'>var anotherInt = 107
-</span><span class='line'>swapTwoValues(&someInt, &anotherInt)
-</span><span class='line'>// someInt is now 107, and anotherInt is now 3
-</span><span class='line'>
-</span><span class='line'>var someString = "hello"
-</span><span class='line'>var anotherString = "world"
-</span><span class='line'>swapTwoValues(&someString, &anotherString)
-</span><span class='line'>// someString is now "world", and anotherString is now "hello"</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>类型参数</h2>
-
-<p>在上面的<code>swapTwoValues(_:_:)</code>例子中，占位类型<code>T</code>是类型参数的一个例子。类型参数指定并命名一个占位类型，并且紧随在函数名后面，使用一对尖括号括起来(<T>).</p>
-
-<p>一旦一个类型参数被指定，你可以用它来定义一个函数的参数类型，或者作为函数的返回类型，还可以用作函数主题中的注释类型。在这些情况下，类型参数在函数调用时被实际类型所代替。</p>
-
-<h2>命名类型参数</h2>
-
-<p>在大多数情况下，类型参数具有一个描述性名字，例如<code>Dictionary&lt;Key,Value&gt;</code>中的key和value,以及<code>Array&lt;Element&gt;</code>中的<code>Element</code>，这可以告诉阅读代码的人这些类型参数和泛型函数之间的关系。然而，当他们之间的关系没有意义时，通常使用单一的字母来命名，例如<code>T</code>,<code>U</code>,<code>V</code>，正如上面演示的<code>swapTwoValues(_:_:)</code>函数中的<code>T</code>一样.</p>
-
-<h2>泛型类型</h2>
-
-<p>除了泛型函数，Swift还允许你定义泛型类型。这些自定义类，结构体和枚举可以适用于任何类型，如同<code>Array</code>和<code>Dictionary</code>的用法。</p>
-
-<p>这部分内容将向你展示如何编写一个名为<code>stack</code>（栈）的泛型集合类型。栈是一系列值的有序集合，如<code>Array</code>类型，但它比Swift的array类型有更多的操作限制。数组允许对其中任意位置的元素执行插入或删除操作。而栈，只允许在集合的末端添加新的元素，称为入栈。同样滴，栈也只能从末端移除元素。</p>
-
-<p>下面展示了一个如何编写一个非泛型版本的栈，在这种情况下是<code>Int</code>型的栈.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>struct IntStack {
-</span><span class='line'>    var items=[Int]()
-</span><span class='line'>    
-</span><span class='line'>    mutating func push(item:Int){
-</span><span class='line'>        items.append(item);
-</span><span class='line'>    }
-</span><span class='line'>    
-</span><span class='line'>    mutating func pop()-&gt;Int{
-</span><span class='line'>        return items.removeLast();
-</span><span class='line'>    }
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这个结构体在栈中使用一个名为<code>items</code>的<code>array</code>属性来存储值。<code>Stack</code>提供了两个方法:<code>push(_:)</code>和<code>pop()</code>，用来向栈中压入值以及从栈中移除值。这些方法被标记为<code>mutating</code>，因为他们需要修改结构体的<code>items</code>数组。</p>
-
-<p>上面的<code>IntStack</code>结构体只能用于Int类型，不过可以定义一个泛型的<code>Stack</code>结构体，从而能够处理任意类型的值。</p>
-
-<p>下面是相同代码的泛型版本:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>struct Stack&lt;Element&gt; {
-</span><span class='line'>    var items=[Element]();
-</span><span class='line'>    
-</span><span class='line'>    mutating func push(item:Element){
-</span><span class='line'>        items.append(item);
-</span><span class='line'>    }
-</span><span class='line'>    
-</span><span class='line'>    mutating func pop()-&gt;Element{
-</span><span class='line'>        return items.removeLast();
-</span><span class='line'>    }
-</span><span class='line'>    
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>注意，<code>Stack</code>基本上和<code>IntStack</code>相同，只是占位类型参数<code>Element</code>代替了实际的<code>Int</code>类型。这种类型参数包裹在一对尖括号里(<code>&lt;Element&gt;</code>)，紧跟在结构体名后面、</p>
-
-<p><code>Element</code>为尚未提供的类型定义了一个占位名。这种尚未提供的类型可以在结构体定义中通过<code>Element</code>来引用。在这种情况下，<code>Element</code>在如下三个地方被用作占位符:</p>
-
-<ul>
-<li>创建 items 属性，使用<code>Element</code>类型的空数组进行初始化</li>
-<li>执行<code>psh(_:)</code>方法的单一参数<code>item</code>的类型必须是<code>Element</code>类型</li>
-<li>指定<code>pop()</code>方法的返回值类型必须是<code>Element</code>类型.</li>
-</ul>
-
-
-<p>由于<code>stack</code>是泛型类型，因此可以用来创建Swift中任意有效类型的栈，如同<code>Array</code>和<code>Dictionary</code>.</p>
-
-<p>你可以通过在尖括号中写出栈中需要存储的数据类型来创建并初始化一个<code>Stack</code>实例。例如，要创建一个<code>String</code>类型的栈，可以写成<code>Stack&lt;String&gt;</code>：</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>var stackOfStrings = Stack&lt;String&gt;()
-</span><span class='line'>stackOfStrings.push("uno")
-</span><span class='line'>stackOfStrings.push("dos")
-</span><span class='line'>stackOfStrings.push("tres")
-</span><span class='line'>stackOfStrings.push("cuatro")
-</span><span class='line'>// 栈中现在有 4 个字符串</span></code></pre></td></tr></table></div></figure>
-
-
-<p>移除并返回栈顶部的值</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>let fromTheTop = stackOfStrings.pop()
-</span><span class='line'>// fromTheTop 的值为 "cuatro"，现在栈中还有 3 个字符串</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>扩展一个泛型类型</h2>
-
-<p>当你扩展一个泛型类型的时候，你并不需要在扩展的定义中提供类型的参数列表。更加方便的是，原始类型定义中声明的类型参数列表在扩展中可以直接使用，并且这些来自原始类型中的参数名称会被用作原始定义中类型参数的引用。</p>
-
-<p>下面的例子扩展了泛型类型<code>Stack</code>，为其添加了一个名为<code>topItem</code>的只读计算型属性，它将会返回当前栈顶端的元素而不会将其从栈中移除:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>extension Stack{
-</span><span class='line'>    var topItem:Element?{
-</span><span class='line'>        return items.isEmpty ? nil:items[items.count];
-</span><span class='line'>    }
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p><code>topItem</code>属性会返回一个<code>Element</code>类型的可选值。当栈为空的时候，<code>topItem</code>会返回<code>nil</code>;当栈不为空的时候，<code>topItem</code>会返回<code>nil</code>;当栈不为空的时候，<code>topItem</code>会返回<code>items</code>数组中的最后一个元素.</p>
-
-<p>注意，这个扩展并没有定义一个类型参数列表。相反地，<code>Stack</code>类型已有的类型参数名<code>Element</code>，被用在扩展中表示计算型属性<code>topItem</code>的可选类型，<code>topItem</code>现在可以用来访问任意<code>Stack</code>实例的顶端元素而不是移除它</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>if let topItem = stackOfStrings.topItem {
-</span><span class='line'>    print("The top item on the stack is \(topItem).")
-</span><span class='line'>}
-</span><span class='line'>// 打印 “The top item on the stack is tres.”</span></code></pre></td></tr></table></div></figure>
-
-
-<p></p>
-
-<h2>类型约束</h2>
-
-<p><code>swapTwoValues(_:_:)</code>函数和<code>Stack</code>类型可以作用于任何类型。不过，有的时候如果能将使用在泛型函数和泛型类型中的类型，强制约束为某种特定类型，将会是非常有用的。类型约束可以指定一个类型参数必须集成自特定类，或者符合一个特定的协议或者协议组合。</p>
-
-<p>例如,Swift的<code>Dictionary</code>类型对字典的键的类型做了限制，在字典的描述中，字典的键必须是可哈希的。也就是说，必须有一种方法能作为其唯一的表示。<code>Dictionary</code>之所以需要其键是可哈希的，是为了便于检查字典是否已经包含了某个特定键的值。如无此要求，Dictionary将无法判断是否可以插入或者替换某个指定键的值，也不能查找到已经存储在字典中指定键的值。</p>
-
-<p>这个要求强制加上了一个类型约束作用域<code>Dictionary</code>的键类型上，其键类型必须符合<code>Hashable</code>协议，这是swift标准库中定义的一个特定协议。所有的swfit基本类型(String,Int,Double)默认都是可哈希的。</p>
-
-<p>当你创建自定义反省类型时，你可以定义你自己的类型约束，这些约束将提供更为强大的泛型编程能力。抽象概念，例如可哈希的。</p>
-
-<h2>类型约束语法</h2>
-
-<p>你可以在一个类型参数名后面放置一个类名或者协议名，通过冒号分割，从而定义类型约束，它们将作为类型参数列表的一部分。这种基本的类型约束作用于泛型函数时的语法如下：</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>func someFunction&lt;T: SomeClass, U: SomeProtocol&gt;(someT: T, someU: U) {
-</span><span class='line'>    // 这里是泛型函数的函数体部分
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>上面的这个函数有两个类型参数。第一个类型是参数<code>T</code>,有一个要求<code>T</code>必须是<code>SomeClass</code>自雷的类型约束；第二个类型参数<code>U</code>,有一个要求<code>U</code>必须符合<code>someProtocol</code>协议的类型约束.</p>
-
-<h2>类型约束实践</h2>
-
-<p>这里有个名为<code>findStringIndex</code>的非泛型函数，该函数的功能在<code>String</code>值的数组中查找指定<code>String</code>值的索引。弱查找到匹配的字符串，<code>findStringIndex(_:_:)</code>函数返回该字符串在数组中的索引值，反之则返回<code>nil</code>:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>func findStringIndex(array: [String], _ valueToFind: String) -&gt; Int? {
-</span><span class='line'>    for (index, value) in array.enumerate() {
-</span><span class='line'>        if value == valueToFind {
-</span><span class='line'>            return index
-</span><span class='line'>        }
-</span><span class='line'>    }
-</span><span class='line'>    return nil
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>该函数可以用于查找字符串数组中的某个字符串:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>let strings = ["cat", "dog", "llama", "parakeet", "terrapin"]
-</span><span class='line'>if let foundIndex = findStringIndex(strings, "llama") {
-</span><span class='line'>    print("The index of llama is \(foundIndex)")
-</span><span class='line'>}
-</span><span class='line'>// 打印 “The index of llama is 2”</span></code></pre></td></tr></table></div></figure>
-
-
-<p>如果只能查找字符串在数组中的索引，用处不是很大，不过，你可以写出相同功能的泛型函数<code>findIndex(_:_:)</code>,用占位类型<code>T</code>代替<code>String</code>类型。</p>
-
-<p>下面展示了<code>findStringIndex(_:_:)</code>函数的泛型版本<code>findIndex(_:_:)</code>.请注意这个函数仍然返回<code>Int?</code>，那是因为函数返回的是一个可选的索引数，而不是从数组中得到一个可选值。需要提醒的是，这个函数无法通过编译，原因例子后面说明:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>
-</span><span class='line'>func findIndex&lt;T&gt;(array:[T], valueToField:T)-&gt;Int?{
-</span><span class='line'>    for (index, value)in array.enumerate(){
-</span><span class='line'>        if value == valueToField{
-</span><span class='line'>            return index;
-</span><span class='line'>        }
-</span><span class='line'>    }
-</span><span class='line'>    
-</span><span class='line'>    return nil;
-</span><span class='line'>}
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>上面所写的函数无法通过编译。这个问题出在相等性检查上，即<code>if vlaue == valueToField</code>。不是所有的Swift类型都可以用等号(==)进行比较。例如，如果你创建一个你自己的类活结构体表示一个复杂的数据模型，那么Swift无法猜到对于这个类或者结构体而言 “相等”意味着什么。正因为如此，这部分代码无法保证适用于每个可能的类型<code>T</code>,当你试图编译这部分代码的时候会出现相应的错误。</p>
-
-<p>不过所有的这些并不会让我们无从下手。Swift标准库中定义了一个<code>Equatable</code>协议，该协议要求任何符合该协议的类型必须实现等式符号(==),从而对符合该协议的类型的任意两个值进行比较。所有的Swift标准类型自动支持Equatable协议。</p>
-
-<p>任何<code>Equatable</code>类型都可以安全地使用在<code>findIndex(_:_:)</code>函数中，因为其保证支持等式操作符。为了说明事实，当你定义一个函数时，你可以定义一个<code>Equatable</code>类型约束作为类型参数定义的一部分:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>func findIndex&lt;T: Equatable&gt;(array: [T], _ valueToFind: T) -&gt; Int? {
-</span><span class='line'>    for (index, value) in array.enumerate() {
-</span><span class='line'>        if value == valueToFind {
-</span><span class='line'>            return index
-</span><span class='line'>        }
-</span><span class='line'>    }
-</span><span class='line'>    return nil
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p><code>findIndex(_:_:)</code>中的这个单一类型参数协作<code>T:Equatable</code>，也就意味着<code>任何符合Equatable</code>协议的<code>T</code>类型。</p>
-
-<p>findIndex函数现在可以成功编译了。并且可以作用于任何符合<code>Equatable</code>的类型，如<code>Double</code>或<code>String</code>:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>let doubleIndex = findIndex([3.14159, 0.1, 0.25], 9.3)
-</span><span class='line'>// doubleIndex 类型为 Int?，其值为 nil，因为 9.3 不在数组中
-</span><span class='line'>let stringIndex = findIndex(["Mike", "Malcolm", "Andrea"], "Andrea")
-</span><span class='line'>// stringIndex 类型为 Int?，其值为 2</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>关联类型</h2>
-
-<p>下面例子定义了一个<code>Container</code>协议，该协议定义了关联类型<code>ItemType</code>:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>protocol Container{
-</span><span class='line'>   typealias ItemType
-</span><span class='line'>    mutating func append(item:ItemType)
-</span><span class='line'>    
-</span><span class='line'>    var count:Int{get}
-</span><span class='line'>    
-</span><span class='line'>    subscript(i:Int)-&gt;ItemType{get}
-</span><span class='line'>}
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p><code>Container</code>协议定义了三个任何采纳协议的类型必须提供的功能：</p>
-
-<ul>
-<li>必须可以通过<code>append</code>方法添加一个新元素到容器里。</li>
-<li>必须可以通过<code>count</code>属性获取容易中元素的数量，并返回一个Int</li>
-<li>必须可以通过接受<code>Int</code>索引值的下标检索到每一个元素</li>
-</ul>
-
-
-<p>这个协议没有指定容易中元素该如何存储，以及元素必须是何种类型。这个协议只指定了三个任何采纳<code>Container</code>协议的类型必须是提供的功能。采纳协议的类型在满足这三个条件的情况下也可以提供其他额外的功能。</p>
-
-<p>任何采纳<code>Container</code>协议的类型必须能够指定其存储的元素的类型，必须保证只有正确类型的元素可以加进容器中，必须明确通过其下标返回的元素类型。</p>
-
-<p>为了定义这三个条件，<code>Container</code>协议需要在不知道容易中元素具体类型的情况下引用这种类型。</p>
-
-<p><code>Container</code>协议声明了一个关联类型<code>ItemType</code>，协作<code>typealias Itemtype</code>.这个协议无法定义<code>ItemType</code>是什么类型的别名，这个信息将留给采纳协议的类型来提供。尽管如此，<code>ItemType</code>别名提供了一种方式来引用<code>Container</code>中元素的类型，并将之用于<code>append</code>方法和下标，从而保证任何<code>Container</code>的预期行为都能够被执行。</p>
-
-<p>下面采用复合<code>Container</code>协议:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>struct IntStackContainer:Container {
-</span><span class='line'>    var items:[Int]
-</span><span class='line'>    
-</span><span class='line'>    mutating func push(item:Int){
-</span><span class='line'>     items.append(item)
-</span><span class='line'>    }
-</span><span class='line'>    
-</span><span class='line'>    mutating func pop()-&gt;Int{
-</span><span class='line'>        return items.removeLast();
-</span><span class='line'>    }
-</span><span class='line'>    
-</span><span class='line'>    //Container协议的实现部分
-</span><span class='line'>    typealias ItemType=Int
-</span><span class='line'>    
-</span><span class='line'>    mutating func append(item: ItemType) {
-</span><span class='line'>        self.push(item)
-</span><span class='line'>    }
-</span><span class='line'>    
-</span><span class='line'>    var count:Int{
-</span><span class='line'>      return items.count
-</span><span class='line'>    }
-</span><span class='line'>    
-</span><span class='line'>    subscript(i:Int)-&gt;Int{
-</span><span class='line'>        return items[i];
-</span><span class='line'>    }
-</span><span class='line'>    
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p><code>IntStackContainer</code>结构体实现了<code>Container</code>协议的三个要求，其原有功能也不会和这些要求冲突。</p>
-
-<p>此外，<code>IntStackContainer</code>指定 ItemType为Int类型，即<code>typealias ItemType = Int</code>，从而将<code>Container</code>协议中抽象的<code>ItemType</code>类型转为具体的<code>Int</code>类型。</p>
-
-<h2>通过扩展一个存在的类型来指定关联类型</h2>
-
-<p>Swift的<code>Array</code>已经提供了<code>append(_:_:)</code>方法，一个<code>count</code>属性，以及一个接受<code>Int</code>型索引值的可用来检索数组元素的下标。这三个功能都符合<code>Container</code>协议的要求，也就意味着你可以扩展<code>Array</code>去符合<code>Container</code>协议，只需简单滴声明<code>Array</code>采纳该协议即可。你可以通过一个空扩展来实现这点</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>extension Array:Container{}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>如何上面的泛型<code>Stack</code>结构一样，array的<code>append(_:)</code>方法和下标确保了Swift可以推断出<code>ItemType</code>的类型，定义了这个扩展后，你可以将任意<code>Array</code>当做<code>Container</code>来使用</p>
 ]]></content>
   </entry>
   

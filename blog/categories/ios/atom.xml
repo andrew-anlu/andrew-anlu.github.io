@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Ios | 安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/blog/categories/ios/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-05-23T10:08:37+08:00</updated>
+  <updated>2016-05-23T14:51:33+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -12,6 +12,55 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[为iOS建立Travis CI]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/05/23/wei-iosjian-li-travis-ci/"/>
+    <updated>2016-05-23T14:30:30+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/05/23/wei-iosjian-li-travis-ci</id>
+    <content type="html"><![CDATA[<p>你是否曾经试着为ios项目搭建一台支持<a href="http://baike.baidu.com/link?url=9m9zB2m909wrZ82wdNWMhtPBTt14PduTPIyi78YL0sS7ccrE-DN22S55wCuEhuobFZ0dL5T4MhKmQzFLx1q4-K">持续集成</a>的服务器，从我的个人经验而言，这可不是一个轻松的活。首先需要准备一台MAc电脑，并安装好全部所需的软件和插件。你要负责管理所有的用户账户，并提供安全保护。你需要授予访问仓库的权限，并配置所有的编译步骤和证书，在项目的运行时期，你需要保持服务器稳健和最新。</p>
+
+<!--more-->
+
+
+<p>最后，原本你想节省时间，会发现你花费了大量的时间去维护这台服务器，不过如果你的项目托管在github上，现在有了新的希望：<a href="https://travis-ci.org/">Travis CI</a>.该服务可以为你的项目提供持续集成的支持，也就意味着它会负责好托管一个项目的所有细节。在ruby的世界中，Travis CI以久负盛名。从2013年4月起，Travs也开始支持ios和mac平台</p>
+
+<p>在这篇文章中，我将向你展示如何一步步的在项目中集成Travis.不仅包括项目的编译的单元测试运行，还包括将应用部署到你所有的测试设备上。</p>
+
+<h2>GITHub集成</h2>
+
+<p>我最喜欢Travis的一点就是它与GitHub的webUI集成的非常好，例如pull请求，Travis会为每次请求都执行编译操作。如果一切正常，pull请求在Github上看起来这样:
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/github_ready_to_merge.jpg" alt="e" /></p>
+
+<p>万一编译不成功，Github页面会修改相应的颜色。给予提醒:
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/github_merge_with_caution.jpg" alt="1" /></p>
+
+<h2>链接 Travis 和 GitHub</h2>
+
+<p>让我们看一下如何将Github项目与Travis链接上，使用Github账号登录 <a href="https://travis-ci.org/">Travis 站点</a>。对于私有仓库，需要注册一个Travis 专业版账号</p>
+
+<p>登录成功后，需要为项目开启Travis支持，导航到<a href="https://travis-ci.org/profile">属性页面</a>,该页面列出了所有的github项目，不过要注意，如果此后创建了一个新的仓库，要使用 sync now 按钮进行同步。Travis只会偶尔更新的项目列表.</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/objc_travis_flick.jpg" alt="test" /></p>
+
+<p>现在只需要打开这个开关就可以在你的项目添加Travis服务，之后你会看到Travis会和Github项目设置关联。下一步就是告诉Travis，当它收到项目改动通知之后该做什么。</p>
+
+<h2>最简单的项目配置</h2>
+
+<p>Tranvis CI 需要项目的一些基本信息。在项目的根目录创建一个名为 .travis.yml的文件，文件中内容如下：</p>
+
+<pre><code>language: objective-c
+</code></pre>
+
+<p>Travis 编译器运行在虚拟机环境下，该编译器已经利用 <code>Ruby</code>,<code>homebrew</code>,<code>CocoaPods</code>和一些默认的编译脚本进行过<a href="http://about.travis-ci.org/docs/user/osx-ci-environment/">预配置</a>.上述的配置项已经足够编译你的项目了。</p>
+
+<p>预装的编译脚本会分析你的Xcode项目，并对每个target进行编译。如果所有文件都没有编译错误，并且测试也没有被打断，那么项目就编译成功了。现在可以将改动push到GitHub上看看能否成功编译。</p>
+
+<p>虽然上述配置过程真的很简单，不过对你的项目不一定适用。这里几乎没有什么文档来指导用户如何配置默认的编译行为。例如：有一次我没有用 iphonesimulator SDK 导致代码签名错误。如果刚刚那个最简单的配置对你的项目不适用的话，让我们来看一下如何对Travis使用自定义的编译命令</p>
+
+<h3>自定义编译命令</h3>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[CATransform3D]]></title>
@@ -928,312 +977,6 @@ finalLayoutAttributesForDisappearingDecorationElementOfKind:atIndexPath:
 <p>根据自定义collection view布局的复杂性，写一个通常很不容易。确切的说，本质上这和从头写一个完整的实现相同布局自定义视图类一样困难了。因为所涉及的计算需要确定去那些子视图是当前可见的，以及他们的位置。尽管如此，使用UIcollectionview还是给你带来了一些很好的效果，比如cell重用，自动支持动画，更不要提整洁的独立布局，子视图管理。</p>
 
 <p>自定义collection view布局也是向<a href="http://objccn.io/issue-1-1/">轻量级view Controller</a>迈出了很好的异步，正如你的view controller不要包含任何布局代码。应该和一二个独立的dataSource类结合在一起，collection view的视图控制器将很难再包含任何代码</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[OHHTTPStubs介绍]]></title>
-    <link href="http://andrew-anlu.github.io/blog/2016/04/22/ohhttpstubsjie-shao/"/>
-    <updated>2016-04-22T17:18:29+08:00</updated>
-    <id>http://andrew-anlu.github.io/blog/2016/04/22/ohhttpstubsjie-shao</id>
-    <content type="html"><![CDATA[<p><a href="https://github.com/AliSoftware/OHHTTPStubs">OHHTTPStubs</a>是一个模拟网络请求的一个框架，它使用起来非常方便和强大，它能帮你</p>
-
-<ol>
-<li>测试你的app仿真一个服务器（比如加载一个本地文件）,模拟网络慢的情况等</li>
-<li>使用伪造的网络数据编写单元测试</li>
-</ol>
-
-
-<!--more-->
-
-
-<h2>简单用法</h2>
-
-<h2>在Objc中</h2>
-
-<pre><code>[OHHTTPStubs stubRequestsPassingTest:^BOOL(NSURLRequest *request) {
-  return [request.URL.host isEqualToString:@"mywebservice.com"];
-} withStubResponse:^OHHTTPStubsResponse*(NSURLRequest *request) {
-  // Stub it with our "wsresponse.json" stub file (which is in same bundle as self)
-  NSString* fixture = OHPathForFile(@"wsresponse.json", self.class);
-  return [OHHTTPStubsResponse responseWithFileAtPath:fixture
-            statusCode:200 headers:@{@"Content-Type":@"application/json"}];
-}];
-</code></pre>
-
-<h2>在swift中</h2>
-
-<pre><code>stub(isHost("mywebservice.com")) { _ in
-  // Stub it with our "wsresponse.json" stub file (which is in same bundle as self)
-  let stubPath = OHPathForFile("wsresponse.json", self.dynamicType)
-  return fixture(stubPath!, headers: ["Content-Type":"application/json"])
-}
-</code></pre>
-
-<h2>语法讲解</h2>
-
-<p><code>OHHTTPStubs stubRequestsPassingTest:</code>方法创建了模拟服务器，<code>request</code>是请求的标准判断，比如</p>
-
-<pre><code>[request.URL.host isEqualToString:@"mywebservice.com"]
-</code></pre>
-
-<p>意思就是如果请求的url是<code>mywebservice.com</code>，我们就返回response,要不然不执行</p>
-
-<pre><code> NSString* fixture = OHPathForFile(@"wsresponse.json", self.class);
-  return [OHHTTPStubsResponse responseWithFileAtPath:fixture
-            statusCode:200 headers:@{@"Content-Type":@"application/json"}];
-</code></pre>
-
-<p>返回一个respoinse,其中包含了返回的数据，</p>
-
-<ol>
-<li>获取的一个本地文件</li>
-<li>返回的状态码 200  (200表示正确返回)</li>
-<li>headers：返回的头,如果是json一般是:@{@&ldquo;Content-Type&rdquo;:@&ldquo;application/json&rdquo;}</li>
-</ol>
-
-
-<h1>快速开始一个Demo</h1>
-
-<h2>创建一个空工程</h2>
-
-<p>用xcode创建一个工程，用pods创建一个Podfile</p>
-
-<p>内容如下:</p>
-
-<pre><code>pod 'OHHTTPStubs', '~&gt; 5.0.0'
-
-target :OHHTTPStubsDemoTests, :exclusive =&gt; true do
-    link_with 'OHHTTPStubsDemoTests'
-
-    pod 'OHHTTPStubs'
-end
-</code></pre>
-
-<p>执行 <code>pod install</code></p>
-
-<p>成功安装OHHTTPStubs后，在OHHTTPStubsDemoTests目录中编写测试类:</p>
-
-<h3>创建session</h3>
-
-<p>在顶部声明一个变量session</p>
-
-<pre><code>@property (nonatomic,strong) NSURLSession *session;
-</code></pre>
-
-<p>在setUp方法中，创建该变量实例:</p>
-
-<pre><code>self.session=[NSURLSession sharedSession];
-</code></pre>
-
-<p>在 testExample()方法中：</p>
-
-<pre><code>/**
- *  返回自定义的普通文本
- */
-- (void)testExample {
-
-    //开始模拟服务器
-    [OHHTTPStubs stubRequestsPassingTest:^BOOL(NSURLRequest * _Nonnull request) {
-        //发送请求的url后缀必须是.com结尾的
-        return [request.URL.pathExtension isEqualToString:@"com"];
-    } withStubResponse:^OHHTTPStubsResponse * _Nonnull(NSURLRequest * _Nonnull request) {
-        //创建一个字符串
-        NSData * stubData = [@"hello world" dataUsingEncoding:NSUTF8StringEncoding];
-        //响应数据
-        /**
-         *  responseWithData:返回的数据
-            statusCode:状态码,200表示成功
-            headers:http的header
-         */
-        return [OHHTTPStubsResponse responseWithData:stubData statusCode:200 headers:@{@"Content-Type":@"text/plain"}];
-    }];
-
-
-    //在XCT测试框架中，这个表示期望值，因为这个期望值是支持异步测试的，我们是异步请求，所以一定要是使用XCTestExpectation这个特性
-     XCTestExpectation *expectation=[self expectationWithDescription:@"sessionDataTask expectation"];
-
-    //创建session任务
-    NSURLSessionDataTask *dataTask=[self.session dataTaskWithURL:[NSURL URLWithString:@"hello.com"] completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-
-        //解析返回的字符串
-        NSString *resultStr=[[NSString alloc]initWithData:data encoding:NSUTF8StringEncoding];
-
-        NSLog(@"返回的数据:%@",resultStr);
-
-        XCTAssert(resultStr!=nil);
-
-        //断言返回的字符串是hello world,如果不是，则断言失败
-        XCTAssertTrue([resultStr isEqualToString:@"hello world"]);
-
-        //在想异步测试的地方加上下面这行代码
-        [expectation fulfill];
-    }];
-    //启动任务
-    [dataTask resume];
-
-
-    //使用XCTestExpectation,必须设置如下的waitForExpectationsWithTimeout方法，如果超时则失败
-    [self waitForExpectationsWithTimeout:4 handler:^(NSError * _Nullable error) {
-        if(error){
-            NSLog(@"出错了:%s",__FUNCTION__);
-        }
-    }];
-
-
-}
-</code></pre>
-
-<p>这里面使用到了 <code>XCTestExpectation</code>，这是特性是用来测试异步程序代码的。在想测试异步代码的地方加上<code>[expectation fulfill];</code>,
-最后，要加上<code>waitForExpectationsWithTimeout</code>方法，它们是配对出现的。</p>
-
-<p>OHHTTPStubs创建了模拟服务器后，下面发的任何网络请求都会被模拟服务器返回，正如上面的代码所示，测试结果:
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160422-3.png" alt="test" />
-断言成功！</p>
-
-<h2>添加本地文件</h2>
-
-<ol>
-<li>在本地创建一个stub.txt的文本文件，内容自定</li>
-<li>在本地创建一个stub.jpg的图片，图片自定</li>
-</ol>
-
-
-<p>图片
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160422-5.png" alt="1" /></p>
-
-<p>文本
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160422-4.png" alt="2" /></p>
-
-<h3>创建文本的TextStub</h3>
-
-<pre><code>/**
- *  创建文本的TextStub
- */
--(void)createTextStub{
-    // #1
-    static id&lt;OHHTTPStubsDescriptor&gt; textStub = nil;
-
-    // #2
-    textStub= [OHHTTPStubs stubRequestsPassingTest:^BOOL(NSURLRequest * _Nonnull request) {
-        return [request.URL.pathExtension isEqualToString:@"txt"];
-    } withStubResponse:^OHHTTPStubsResponse * _Nonnull(NSURLRequest * _Nonnull request) {
-
-        NSString *path = OHPathForFile(@"stub.txt",self.class);
-
-       //#3
-        return [[OHHTTPStubsResponse responseWithFileAtPath:path
-                                                 statusCode:200 headers:@{@"Content-Type":@"text/plain"}]
-                requestTime:1.0f
-                responseTime:OHHTTPStubsDownloadSpeedWifi];
-
-    }];
-    //#4
-    textStub.name = @"text stub";
-}
-</code></pre>
-
-<p>上面代码意义如下:</p>
-
-<ol>
-<li>声明一个返回的OHHTTPStubsDescriptor,这是创建模拟服务器的返回结果描述</li>
-<li>开始创建模拟服务器</li>
-<li>返回response，其中设置了返回数据，状态码，请求时间等</li>
-<li>给textStub起个名字</li>
-</ol>
-
-
-<h2>测试文本的模拟服务器</h2>
-
-<p>创建一个testStubTextTask方法:</p>
-
-<pre><code>/**
- *  测试文本的Stub任务
- */
--(void)testStubTextTask{
-    //创建文本的模拟服务器
-    [self createTextStub];
-    //创建一个期望值
-    XCTestExpectation *expection=[self expectationWithDescription:@"high expection"];
-
-    NSURLSession *session=[NSURLSession sharedSession];
-
-    NSString *urlString=@"stub.txt";
-    NSURLSessionDataTask *dataTask = [session dataTaskWithURL:[NSURL URLWithString:urlString] completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-
-        NSString* receivedText = [[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding];
-        NSLog(@"返回的结果:%@",receivedText);
-
-        XCTAssert(receivedText!=nil);
-
-        [expection fulfill];
-    }];
-
-    [dataTask resume];
-
-    [self waitForExpectationsWithTimeout:5 handler:^(NSError * _Nullable error) {
-        if(error){
-            NSLog(@"出错了:%@",error.description);
-        }
-    }];
-}
-</code></pre>
-
-<h2>创建图片的stub</h2>
-
-<pre><code>/**
- *  创建Image的stub
- */
--(void)createImageStub{
-    static id&lt;OHHTTPStubsDescriptor&gt; imageStub = nil;
-
-    imageStub=[OHHTTPStubs stubRequestsPassingTest:^BOOL(NSURLRequest * _Nonnull request) {
-        return [request.URL.pathExtension isEqualToString:@"png"];
-    } withStubResponse:^OHHTTPStubsResponse * _Nonnull(NSURLRequest * _Nonnull request) {
-        return [OHHTTPStubsResponse responseWithFileAtPath:OHPathForFile(@"stub.jpg", self.class) statusCode:200 headers:@{@"Content-Type":@"image/jpeg"}];
-    }];
-
-    imageStub.name=@"Image stub";
-}
-</code></pre>
-
-<h2>测试Image的模拟服务器</h2>
-
-<pre><code>/**
- *  测试Image的模拟服务器
- */
-- (void)testImageStubTask{
-
-    [self createImageStub];
-
-    XCTestExpectation *expection=[self expectationWithDescription:@"Image Expection"];
-
-    NSURLSessionDataTask *dataStask=[self.session dataTaskWithURL:[NSURL URLWithString:@"test.png" relativeToURL:nil] completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-
-        UIImage *image=[UIImage imageWithData:data];
-
-        NSLog(@"返回的image:%@",image.description);
-
-        XCTAssert(image!=nil);
-
-        [expection fulfill];
-
-    }];
-
-    [dataStask resume];
-
-    [self waitForExpectationsWithTimeout:3 handler:^(NSError * _Nullable error) {
-        if(error){
-            NSLog(@"出错了:%@",error.description);
-        }
-    }];
-
-}
-</code></pre>
-
-<h2>完整工程</h2>
-
-<p><a href="https://github.com/TLOpenSpring/OHHTTPStubsDemo/archive/master.zip">完整工程在这里下载</a></p>
 ]]></content>
   </entry>
   

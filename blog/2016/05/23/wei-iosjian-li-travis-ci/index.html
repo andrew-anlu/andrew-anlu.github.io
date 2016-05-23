@@ -5,17 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Ios学习资料 - 安路的技术博客</title>
+  <title>为iOS建立Travis CI - 安路的技术博客</title>
   <meta name="author" content="安路">
 
   
-  <meta name="description" content="最全学习资料 巧大的博客
-雪峰的官方网站
-猫神的博客
-http://www.padovo.com
-http://hujiaweibujidao.github.io
-里脊串的技术博客 优秀的iOS学习网站 objc网站
-http://www.raywenderlich.com/tutorials &hellip;">
+  <meta name="description" content="你是否曾经试着为ios项目搭建一台支持持续集成的服务器，从我的个人经验而言，这可不是一个轻松的活。首先需要准备一台MAc电脑，并安装好全部所需的软件和插件。你要负责管理所有的用户账户，并提供安全保护。你需要授予访问仓库的权限，并配置所有的编译步骤和证书，在项目的运行时期，你需要保持服务器稳健和最新 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -24,7 +18,7 @@ http://www.raywenderlich.com/tutorials &hellip;">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://andrew-anlu.github.io/blog/2015/09/19/iosxue-xi-zi-liao/">
+  <link rel="canonical" href="http://andrew-anlu.github.io/blog/2016/05/23/wei-iosjian-li-travis-ci/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="安路的技术博客" type="application/atom+xml">
@@ -75,7 +69,7 @@ http://www.raywenderlich.com/tutorials &hellip;">
   
   <header>
     
-      <h1 class="entry-title">Ios学习资料</h1>
+      <h1 class="entry-title">为iOS建立Travis CI</h1>
     
     
       <p class="meta">
@@ -84,7 +78,7 @@ http://www.raywenderlich.com/tutorials &hellip;">
 
 
 
-<time class='entry-date' datetime='2015-09-19T09:10:54+08:00'><span class='date'><span class='date-month'>Sep</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>9:10 am</span></time>
+<time class='entry-date' datetime='2016-05-23T14:30:30+08:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>23</span><span class='date-suffix'>rd</span>, <span class='date-year'>2016</span></span> <span class='time'>2:30 pm</span></time>
         
            | <a href="#disqus_thread"
              data-disqus-identifier="http://andrew-anlu.github.io">Comments</a>
@@ -94,41 +88,48 @@ http://www.raywenderlich.com/tutorials &hellip;">
   </header>
 
 
-<div class="entry-content"><p><a href="http://codecloud.net/ios-mac-study-5155.html?hmsr=toutiao.io&amp;utm_medium=toutiao.io&amp;utm_source=toutiao.io">最全学习资料</a></p>
+<div class="entry-content"><p>你是否曾经试着为ios项目搭建一台支持<a href="http://baike.baidu.com/link?url=9m9zB2m909wrZ82wdNWMhtPBTt14PduTPIyi78YL0sS7ccrE-DN22S55wCuEhuobFZ0dL5T4MhKmQzFLx1q4-K">持续集成</a>的服务器，从我的个人经验而言，这可不是一个轻松的活。首先需要准备一台MAc电脑，并安装好全部所需的软件和插件。你要负责管理所有的用户账户，并提供安全保护。你需要授予访问仓库的权限，并配置所有的编译步骤和证书，在项目的运行时期，你需要保持服务器稳健和最新。</p>
 
 <!--more-->
 
 
-<ul>
-<li><a href="http://devtang.com">巧大的博客</a></li>
-<li><a href="http://www.liaoxuefeng.com">雪峰的官方网站</a></li>
-<li><a href="http://onevcat.com">猫神的博客</a></li>
-<li><a href="http://www.padovo.com">http://www.padovo.com</a></li>
-<li><a href="http://hujiaweibujidao.github.io">http://hujiaweibujidao.github.io</a></li>
-<li><a href="http://adad184.com">里脊串的技术博客</a></li>
-</ul>
+<p>最后，原本你想节省时间，会发现你花费了大量的时间去维护这台服务器，不过如果你的项目托管在github上，现在有了新的希望：<a href="https://travis-ci.org/">Travis CI</a>.该服务可以为你的项目提供持续集成的支持，也就意味着它会负责好托管一个项目的所有细节。在ruby的世界中，Travis CI以久负盛名。从2013年4月起，Travs也开始支持ios和mac平台</p>
+
+<p>在这篇文章中，我将向你展示如何一步步的在项目中集成Travis.不仅包括项目的编译的单元测试运行，还包括将应用部署到你所有的测试设备上。</p>
+
+<h2>GITHub集成</h2>
+
+<p>我最喜欢Travis的一点就是它与GitHub的webUI集成的非常好，例如pull请求，Travis会为每次请求都执行编译操作。如果一切正常，pull请求在Github上看起来这样:
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/github_ready_to_merge.jpg" alt="e" /></p>
+
+<p>万一编译不成功，Github页面会修改相应的颜色。给予提醒:
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/github_merge_with_caution.jpg" alt="1" /></p>
+
+<h2>链接 Travis 和 GitHub</h2>
+
+<p>让我们看一下如何将Github项目与Travis链接上，使用Github账号登录 <a href="https://travis-ci.org/">Travis 站点</a>。对于私有仓库，需要注册一个Travis 专业版账号</p>
+
+<p>登录成功后，需要为项目开启Travis支持，导航到<a href="https://travis-ci.org/profile">属性页面</a>,该页面列出了所有的github项目，不过要注意，如果此后创建了一个新的仓库，要使用 sync now 按钮进行同步。Travis只会偶尔更新的项目列表.</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/objc_travis_flick.jpg" alt="test" /></p>
+
+<p>现在只需要打开这个开关就可以在你的项目添加Travis服务，之后你会看到Travis会和Github项目设置关联。下一步就是告诉Travis，当它收到项目改动通知之后该做什么。</p>
+
+<h2>最简单的项目配置</h2>
+
+<p>Tranvis CI 需要项目的一些基本信息。在项目的根目录创建一个名为 .travis.yml的文件，文件中内容如下：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>language: objective-c</span></code></pre></td></tr></table></div></figure>
 
 
-<h2>优秀的iOS学习网站</h2>
+<p>Travis 编译器运行在虚拟机环境下，该编译器已经利用 <code>Ruby</code>,<code>homebrew</code>,<code>CocoaPods</code>和一些默认的编译脚本进行过<a href="http://about.travis-ci.org/docs/user/osx-ci-environment/">预配置</a>.上述的配置项已经足够编译你的项目了。</p>
 
-<ul>
-<li><a href="https://www.objc.io">objc网站</a></li>
-<li><a href="http://www.raywenderlich.com/tutorials">http://www.raywenderlich.com/tutorials</a></li>
-<li><a href="http://www.cocoachina.com">cocoChina</a></li>
-<li><a href="http://www.swifttoolbox.io/">http://www.swifttoolbox.io/</a></li>
-<li><a href="https://swift.zeef.com/robin.eggenkamp">https://swift.zeef.com/robin.eggenkamp</a></li>
-<li><a href="https://github.com/ipader/SwiftGuide">https://github.com/ipader/SwiftGuide</a></li>
-<li><a href="https://www.objc.io/">https://www.objc.io/</a></li>
-<li><a href="http://nshipster.com/">http://nshipster.com/</a></li>
-<li><a href="http://petersteinberger.com/">http://petersteinberger.com/</a></li>
-<li><a href="http://floriankugler.com/">http://floriankugler.com/</a></li>
-<li><a href="https://cocoa.tumblr.com/">https://cocoa.tumblr.com/</a></li>
-<li><a href="http://iosdevtips.co/">http://iosdevtips.co/</a></li>
-<li><a href="http://iosdevweekly.com/">http://iosdevweekly.com/</a></li>
-<li><a href="http://ios-goodies.com/">http://ios-goodies.com/</a></li>
-<li><a href="http://www.appcoda.com/">http://www.appcoda.com/</a></li>
-</ul>
+<p>预装的编译脚本会分析你的Xcode项目，并对每个target进行编译。如果所有文件都没有编译错误，并且测试也没有被打断，那么项目就编译成功了。现在可以将改动push到GitHub上看看能否成功编译。</p>
 
+<p>虽然上述配置过程真的很简单，不过对你的项目不一定适用。这里几乎没有什么文档来指导用户如何配置默认的编译行为。例如：有一次我没有用 iphonesimulator SDK 导致代码签名错误。如果刚刚那个最简单的配置对你的项目不适用的话，让我们来看一下如何对Travis使用自定义的编译命令</p>
+
+<h3>自定义编译命令</h3>
 </div>
 
 
@@ -144,7 +145,7 @@ http://www.raywenderlich.com/tutorials &hellip;">
 
 
 
-<time class='entry-date' datetime='2015-09-19T09:10:54+08:00'><span class='date'><span class='date-month'>Sep</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>9:10 am</span></time>
+<time class='entry-date' datetime='2016-05-23T14:30:30+08:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>23</span><span class='date-suffix'>rd</span>, <span class='date-year'>2016</span></span> <span class='time'>2:30 pm</span></time>
       
 
 <span class="categories">
@@ -184,10 +185,8 @@ http://www.raywenderlich.com/tutorials &hellip;">
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2015/08/28/gityuan-cheng-ban-ben-ku/" title="Previous Post: Git远程版本库">&laquo; Git远程版本库</a>
+        <a class="basic-alignment left" href="/blog/2016/05/22/nodejs-dai-ma-de-zu-zhi-he-bu-shu/" title="Previous Post: Nodejs-代码的组织和部署">&laquo; Nodejs-代码的组织和部署</a>
       
-      
-        <a class="basic-alignment right" href="/blog/2015/10/12/wei-xin-deng-lu/" title="Next Post: 微信登录">微信登录 &raquo;</a>
       
     </p>
   </footer>
@@ -323,8 +322,8 @@ http://www.raywenderlich.com/tutorials &hellip;">
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://andrew-anlu.github.io/blog/2015/09/19/iosxue-xi-zi-liao/';
-        var disqus_url = 'http://andrew-anlu.github.io/blog/2015/09/19/iosxue-xi-zi-liao/';
+        var disqus_identifier = 'http://andrew-anlu.github.io/blog/2016/05/23/wei-iosjian-li-travis-ci/';
+        var disqus_url = 'http://andrew-anlu.github.io/blog/2016/05/23/wei-iosjian-li-travis-ci/';
         var disqus_script = 'embed.js';
       
     (function () {
