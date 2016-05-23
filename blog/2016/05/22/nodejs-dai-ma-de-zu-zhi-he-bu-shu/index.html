@@ -347,6 +347,123 @@ NPM
 
 <h2><a name="NPM">NPM</a></h2>
 
+<p>NPM是随同nodejs一起安装的包管理工具，能解决nodejs代码部署上的很多问题，常见的使用场景有以下几种：</p>
+
+<ul>
+<li>允许用户从NPM服务器上下载被人编写的三方包到本地使用</li>
+<li>允许用户从NPM服务器上下载并安装别人编写的命令行程序到本地使用</li>
+<li>允许用户将自己编写的包或命令行程序上传到NPM服务器供别人使用</li>
+</ul>
+
+
+<p>可以看到，NPM建立了一个nodejs生态圈，nodejs开发者和用户可以在里面胡同有无。以下分别介绍这三种场景下怎样使用NPM</p>
+
+<h3>下载三方包</h3>
+
+<p>需要使用第三方包时，首先得知道有那些包可用。虽然 nspmjs.org提供了搜索框可以根据报名来搜索，但如果连想使用的第三方包的名字都不确定的话，就请百度一下吧。知道了包名之后，比如上边中的argv,就可以在工程目录中打开终端，使用以下命令下载第三方包</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ npm install argv
+</span><span class='line'>...
+</span><span class='line'>argv@0.0.2 node_modules\argv</span></code></pre></td></tr></table></div></figure>
+
+
+<p>下载后之后，argb包就放在了工程目录下的node_modules目录中，因此在代码中只需要通过<code>require('argv')</code>的方式就好，无需指定第三方的包路径</p>
+
+<p>以上命令默认下载最新版的第三方包，如果想要下载指定版本的话，可以在包名边上加上@(version),例如通过以下命令可以下载0.0.1版的argv</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ npm install argv@0.0.1
+</span><span class='line'>...
+</span><span class='line'>argv@0.0.1 node_modules\argv</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果使用到的第三方包比较多，在终端下一个包一条命令地安装未免太费劲了，因此NPM对 package.json的字段做了扩展，允许在其中申明三方包依赖，因此，上边的例子中的package.json可以改写如下:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{
+</span><span class='line'>    "name": "node-echo",
+</span><span class='line'>    "main": "./lib/echo.js",
+</span><span class='line'>    "dependencies": {
+</span><span class='line'>        "argv": "0.0.2"
+</span><span class='line'>    }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样处理后，在工程目录下就可以使用npm install 命令批量安装第三方包了。更重要的是，当以后node_echo也上传到了NPM服务器，别人下载这个包时，NPM会根据包中申明的第三方包依赖自动下载进一步依赖的三方包。例如，使用 <code>npm install node-echo</code> 命令时，NPM会自动创建一下目录结构：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- project/
+</span><span class='line'>    - node_modules/
+</span><span class='line'>        - node-echo/
+</span><span class='line'>            - node_modules/
+</span><span class='line'>                + argv/
+</span><span class='line'>            ...
+</span><span class='line'>    ...</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如此一来，用户只需关心自己直接使用的第三方包，不需要自己去解决所有包的依赖关系。</p>
+
+<h3>安装命令行程序</h3>
+
+<p>从NPM服务器上下载安装一个命令行程序的方法与三方包类似，例如上例中的node-echo提供了命令行使用方式，只要node-echo自己配置好了相关的package.json字段，对于用户而言，只需要使用以下命令安装程序。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ npm install node-echo -g</span></code></pre></td></tr></table></div></figure>
+
+
+<p>参数中的 -g 表示全局安装，因此node-echo会默认安装到以下位置，并且NPM会自动创建好Linux系统下需要的软连接或windows系统下需要的.cmd文件。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- /usr/local/               # Linux系统下
+</span><span class='line'>    - lib/node_modules/
+</span><span class='line'>        + node-echo/
+</span><span class='line'>        ...
+</span><span class='line'>    - bin/
+</span><span class='line'>        node-echo
+</span><span class='line'>        ...
+</span><span class='line'>    ...
+</span><span class='line'>
+</span><span class='line'>- %APPDATA%\npm\            # Windows系统下
+</span><span class='line'>    - node_modules\
+</span><span class='line'>        + node-echo\
+</span><span class='line'>        ...
+</span><span class='line'>    node-echo.cmd
+</span><span class='line'>    ...</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>发布代码</h3>
+
 <h2><a name="小结">小结</a></h2>
 </div>
 
