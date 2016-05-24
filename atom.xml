@@ -4,7 +4,7 @@
   <title><![CDATA[安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-05-23T14:51:33+08:00</updated>
+  <updated>2016-05-24T09:05:58+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -439,7 +439,77 @@
 
 <h3>发布代码</h3>
 
+<p>第一次使用NPM发布代码前需要注册一个账号。终端下运行 npm adduser,之后按照提示做即可。账号搞定后，接着我们需要编辑 package.json文件，加入NPM必需的字段。接着上边 node-echo的例子，package.json 里必要的字段如下:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{
+</span><span class='line'>    "name": "node-echo",           # 包名，在NPM服务器上须要保持唯一
+</span><span class='line'>    "version": "1.0.0",            # 当前版本号
+</span><span class='line'>    "dependencies": {              # 三方包依赖，需要指定包名和版本号
+</span><span class='line'>        "argv": "0.0.2"
+</span><span class='line'>      },
+</span><span class='line'>    "main": "./lib/echo.js",       # 入口模块位置
+</span><span class='line'>    "bin" : {
+</span><span class='line'>        "node-echo": "./bin/node-echo"      # 命令行程序名和主模块位置
+</span><span class='line'>    }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>之后，我们就可以在package.json所在目录下运行 npm publish 发布代码了。</p>
+
+<h3>版本号</h3>
+
+<p>使用NPM下载和发布代码时都会接触到版本号。NPM使用语义版本号来管理代码，这里简单介绍一下。</p>
+
+<p>语义版本号分为X.Y.Z三位，分别代表主版本号，次版本号和补丁版本号。当代码变更时，版本号按以下原则更新。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>+ 如果只是修复bug，需要更新Z位。
+</span><span class='line'>
+</span><span class='line'>+ 如果是新增了功能，但是向下兼容，需要更新Y位。
+</span><span class='line'>
+</span><span class='line'>+ 如果有大变动，向下不兼容，需要更新X位。</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>灵机一点</h3>
+
+<p>除了本章介绍的部分外，NPM还提供了很多功能，package.json里也有很多其它有用的字段。除了可以在npmjs.org/doc查看官方文档之外，这里再介绍一些NPM常用命令</p>
+
+<ul>
+<li>NPM提供了很多命令，例如install和publish，使用NPM help可查看所有命令</li>
+<li>使用 npm help 可查看某条命令的详细帮助，例如 npm help install</li>
+<li>在package.json所在目录下使用 <code>npm install -g</code>可先在本地安装当前命令行程序，可用于发布前的本地测试。</li>
+<li>使用<code>npm update &lt;package&gt;</code>可以把当前目录下node_modules子目录边的对应模块更新至最新版本</li>
+<li>使用<code>npm update &lt;package&gt; -g</code>可以把全局安装的对应命令行程序更新至最新版</li>
+<li>使用<code>npm cache clear</code>可以清空 NPM本地缓存，用于对付使用相同版本号发布新版本代码的人</li>
+<li>使用<code>npm unpublish &lt;package&gt;@&lt;version&gt;</code>可以撤销发布自己发不过的某个版本</li>
+</ul>
+
+
 <h2><a name="小结">小结</a></h2>
+
+<ul>
+<li>编写代码前先规划好目录结果，才能做到有条不紊</li>
+<li>稍大些的程序可以将代码拆分为多个模块管理，更大些的程序可以使用包来组织模块</li>
+<li>合理使用 node_modules和NODE_PATH来解耦包的使用方式和物理路径</li>
+<li>使用NPM加入Nodejs生态圈互通有无</li>
+<li>想到了心仪的包名时请提前在NPM上抢注</li>
+</ul>
+
 ]]></content>
   </entry>
   
