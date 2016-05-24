@@ -130,6 +130,97 @@
 <p>虽然上述配置过程真的很简单，不过对你的项目不一定适用。这里几乎没有什么文档来指导用户如何配置默认的编译行为。例如：有一次我没有用 iphonesimulator SDK 导致代码签名错误。如果刚刚那个最简单的配置对你的项目不适用的话，让我们来看一下如何对Travis使用自定义的编译命令</p>
 
 <h3>自定义编译命令</h3>
+
+<p>Travis 使用命令行对项目进行编译。因此，第一步就是使项目能够在本地编译。作为Xcode命令行工具的一部分，Apple提供了<code>xcodebuild</code>命令</p>
+
+<p>打开终端并输入:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>xcodebuild --help</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上述命令会列出xcodebuild所有可用的参数。如果命令执行失败了，确保命令行工具已经成功安装。一个常见的编译命令看起来是这样的：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>'xcodebuild -project {project}.xcodeproj -target {target} -sdk iphonesimulator ONLY_ACTIVE_ARCH=NO</span></code></pre></td></tr></table></div></figure>
+
+
+<p>使用 iphonesimulator SDK是为了避免签名错误，知道我们稍后引入证书之前，这一步是必须的。通过设置<code>ONLY_ACTIVE_ARCH=NO</code>我们可以确保利用模拟器架构编译工程。你也可以设置额外的属性，例如<code>configuration</code>,输入 man xcodebuild查看相关文档。</p>
+
+<p>对于使用 CocoaPods的项目，需要用下面的命令来指定 workspace和scheme:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>xcodebuild -workspace {workspace}.xcworkspace -scheme {scheme} -sdk iphonesimulator ONLY_ACTIVE_ARCH=NO
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>schemes 是由Xcode自动生成的，但这在服务器上不会发生。确保所有的scheme都被设置为 shared并加入到仓库中，否则它只会在本地工作而不会被Travis CI识别。</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/objc_shared_schemes.jpg" alt="w" /></p>
+
+<p>我们实例项目下的 .travis.yml文件现在看起来应该是这样</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>language: objective-c
+</span><span class='line'>script: xcodebuild -workspace TravisExample.xcworkspace -scheme TravisExample -sdk iphonesimulator ONLY_ACTIVE_ARCH=NO</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>运行测试</h2>
+
+<p>对月测试来说，通常使用如下这个命令(注意 test 属性)</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>xcodebuild test -workspace {workspace}.xcworkspace -scheme {test_scheme} -sdk iphonesimulator ONLY_ACTIVE_ARCH=NO
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>不幸的是，xcodebuild对于ios来说，并不能正确支持target和应用程序的测试。<a href="http://www.raingrove.com/2012/03/28/running-ocunit-and-specta-tests-from-command-line.html">这里有一些解决方案</a>不过我建议使用Xctool.</p>
+
+<h3>Xctool</h3>
+
+<p><a href="https://github.com/facebook/xctool">Xctool</a>是来自FaceBook的命令行工具，它可以简化程序的编译和测试。它的彩色输出信息比 xcodebuild更加简洁美观。同时还添加了对逻辑测试，应用测试的支持。</p>
+
+<p>Travis中已经预装了xctool。要在本地测试的话，需要用homebrew安装xctool:</p>
+
+<p>xctool用法非常简单，它使用的参数跟xcodebuild相同：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>xctool test -workspace TravisExample.xcworkspace -scheme TravisExampleTests -sdk iphonesimulator ONLY_ACTIVE_ARCH=NO
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>一旦相关命令在本地能正常工作，那么就是时候把它们添加到 .travis.yml中了：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>language: objective-c
+</span><span class='line'>script:
+</span><span class='line'>  - xctool -workspace TravisExample.xcworkspace -scheme TravisExample -sdk iphonesimulator ONLY_ACTIVE_ARCH=NO
+</span><span class='line'>  - xctool test -workspace TravisExample.xcworkspace -scheme TravisExampleTests -sdk iphonesimulator ONLY_ACTIVE_ARCH=NO</span></code></pre></td></tr></table></div></figure>
+
+
+<p>到此为止，介绍的内容对于使用Travis的library工程来说，已经足够了。我们可以确保项目正常编译并测试通过。但对于ios应用来说，我们希望能在真实的物理设备上进行测试。也就说我们需要将应用部署到我们的所有测试设备上。当然，我们希望Travis能自动完成这项任务。首先，我们需要给程序签名</p>
+
+<h1>应用程序的签名</h1>
+
+<p>为了在Travis中能给程序签名，我们需要准备好所有必须的证书和配置文件。就像每个ios开发人员指导的那样，这可能是最困难的一步。后面，我将写一些脚本在服务器上给应用程序签名。</p>
+
+<h2>证书和配置文件</h2>
+
+<h3>1.苹果全球开发者关系认证</h3>
+
+<p>从<a href="http://developer.apple.com/certificationauthority/AppleWWDRCA.cer">苹果官网</a>或者从钥匙串中导出。并将保存到项目的目录<code>scripts/certs/apple.cer</code>中。</p>
+
+<h3>2.iPhone发布证书 + 私钥</h3>
+
+<p>如果还没有发布证书的话，先创建一个。登录<a href="https://developer.apple.com/account/overview.action">苹果开发者账号</a>,按照步骤，创建一个新的生产环境证书(<em>Certificates</em>)><em>Production</em>><em>Add</em>><em>App Store and ad hoc</em>)。然后下载并安装证书。之后，可以在钥匙串中找到它。打开Mac中的钥匙串应用程序：</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/dist_cert_keychain.jpg" alt="key" /></p>
+
+<p>右键单击证书，选择<code>Export ....</code>将证书导出至<code>scripts/certs/dist.cer</code>.然后导出私钥并保存至<code>cripts/certs/dist.p12</code>.记得输入私钥的密码.</p>
 </div>
 
 
