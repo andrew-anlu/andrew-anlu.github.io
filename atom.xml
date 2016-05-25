@@ -4,7 +4,7 @@
   <title><![CDATA[安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-05-24T09:33:59+08:00</updated>
+  <updated>2016-05-25T09:01:07+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -151,6 +151,173 @@
 <p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/dist_cert_keychain.jpg" alt="key" /></p>
 
 <p>右键单击证书，选择<code>Export ....</code>将证书导出至<code>scripts/certs/dist.cer</code>.然后导出私钥并保存至<code>cripts/certs/dist.p12</code>.记得输入私钥的密码.</p>
+
+<p>由于Travis需要知道私钥密码，因此我们要把这个密码存储在某个地方，当然，我们不希望已明文的形式存储。我们可以用<a href="http://about.travis-ci.org/docs/user/build-configuration/#Secure-environment-variables">Travis的安全环境变量</a>。打开终端，并定位到包含 .travis.yml文件所在目录。首先用 <code>gem install travis</code>命令安装Travis gem.之后用下面的命令添加秘钥密码:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>travis encrypt "KEY_PASSWORD={password}" --add</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上面的命令会安装一个叫做<code>Key_Password</code>的加密环境变量到 .travis.yml 配置文件中。这样就可以在被 Travis CI执行的脚本中使用这个变量</p>
+
+<h3>3.ios 配置文件(发布)</h3>
+
+<p>如果还没有用于发布的配置文件，那么也创建一个新的。根据开发者账号类型，可以选择创建 <a href="https://developer.apple.com/library/ios/documentation/IDEs/Conceptual/AppDistributionGuide/TestingYouriOSApp/TestingYouriOSApp.html">ADHoc</a>或<a href="https://developer.apple.com/programs/ios/enterprise/gettingstarted/">IN House</a>配置文件<em>(Provisioning Profiles > Distribution > Add > Ad Hoc or In House)</em>.然后将其下载保存到<code>scripts/profile/</code>目录。</p>
+
+<p>由于Travis需要访问这个配置文件，所以我们需要将这个文件的名字存储为一个全局变量。并将其添加到.travis.yml文件的全局环境变量section中。例如，如果配置文件的名字是 <code>TravisExample_Ad_Hoc.mobileprovision</code>,那么按照如下进行添加:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>env:
+</span><span class='line'>  global:
+</span><span class='line'>  - APP_NAME="TravisExample"
+</span><span class='line'>  - 'DEVELOPER_NAME="iPhone Distribution: {your_name} ({code})"'
+</span><span class='line'>  - PROFILE_NAME="TravisExample_Ad_Hoc"</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上面还声明了两个环境变量。第三行中的<code>APP_name</code>通常为项目默认的target的名字。第四行的<code>DEVELOPER_NAME</code>是xcode中，默认target里面Build Settings的Code Signing Identity > Release 对应的名字。然后搜索程序的<code>Ad Hod</code>或者<code>In house</code>配置文件，将其中黑体文字取出，根据设置的不同，括弧中可能不会有任何信息。</p>
+
+<h2>加密证书和配置文件</h2>
+
+<p>如果你的GitHub仓库是公开的，你可能希望对证书和配置文件进行加密。如果你的是私有仓库，可以跳过这一节</p>
+
+<p>首先，我们需要一个密码来对所有的文件进行加密。在我们的实例中，密码为"foo",记住在你的工程中设置的密码应该更加复杂。在命令行汇总，我们使用<code>openssl</code>加密所有的敏感文件：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>openssl aes-256-cbc -k "foo" -in scripts/profile/TravisExample_Ad_Hoc.mobileprovision -out scripts/profile/TravisExample_Ad_Hoc.mobileprovision.enc -a
+</span><span class='line'>openssl aes-256-cbc -k "foo" -in scripts/certs/dist.cer -out scripts/certs/dist.cer.enc -a
+</span><span class='line'>openssl aes-256-cbc -k "foo" -in scripts/certs/dist.p12 -out scripts/certs/dist.cer.p12 -a</span></code></pre></td></tr></table></div></figure>
+
+
+<p>通过上面的命令，可以创建出以 .enc结尾的加密文件。之后可以把原始文件忽略或者移除掉。至少不要把原始文件提交到GitHub中，否则原始文件会显示在GitHub中。如果你不小心把原始文件提交上去了，那么请看这里<a href="https://help.github.com/articles/remove-sensitive-data">如何解决</a></p>
+
+<p>现在，我们的文件已经被加密了，接下来我们需要告诉Travis对文件进行解密。解密过程，需要用到密码。具体释放方法跟之前创建的<code>KEY_PASSOWORD</code>变量一样:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>travis encrypt "ENCRYPTION_SECRET=foo" --add</span></code></pre></td></tr></table></div></figure>
+
+
+<p>最后，我们需要告诉Travis那些文件需要进行解密.将下面的命令添加到 .travis.yml文件中的before-script部分：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>before_script:
+</span><span class='line'>- openssl aes-256-cbc -k "$ENCRYPTION_SECRET" -in scripts/profile/TravisExample_Ad_Hoc.mobileprovision.enc -d -a -out scripts/profile/TravisExample_Ad_Hoc.mobileprovision
+</span><span class='line'>- openssl aes-256-cbc -k "$ENCRYPTION_SECRET" -in scripts/certs/dist.p12.enc -d -a -out scripts/certs/dist.p12
+</span><span class='line'>- openssl aes-256-cbc -k "$ENCRYPTION_SECRET" -in scripts/certs/dist.p12.enc -d -a -out scripts/certs/dist.p12</span></code></pre></td></tr></table></div></figure>
+
+
+<p>就这样，在GitHub上面的文件就安全了，并且Travis依旧能读取并使用这些加密后的文件。但是有一个安全问题你需要知道，在Travis的编译日志中可能会显示出解密环境变量。不过对pull请求来说不会出现</p>
+
+<h2>添加脚本</h2>
+
+<p>现在我们需要确保证书都导入到了Travis CI的钥匙串中。为此，我们需要在scripts文件夹中添加一个名为 <code>add-key.sh</code>的文件：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>#!/bin/sh
+</span><span class='line'>security create-keychain -p travis ios-build.keychain
+</span><span class='line'>security import ./scripts/certs/apple.cer -k ~/Library/Keychains/ios-build.keychain -T /usr/bin/codesign
+</span><span class='line'>security import ./scripts/certs/dist.cer -k ~/Library/Keychains/ios-build.keychain -T /usr/bin/codesign
+</span><span class='line'>security import ./scripts/certs/dist.p12 -k ~/Library/Keychains/ios-build.keychain -P $KEY_PASSWORD -T /usr/bin/codesign
+</span><span class='line'>mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+</span><span class='line'>cp ./scripts/profile/$PROFILE_NAME.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/</span></code></pre></td></tr></table></div></figure>
+
+
+<p>通过上面的命令创建了一个名为<code>ios-build</code>的临时钥匙串，里面包含了所有证书。注意，这里我们使用了<code>$Key_PASSWORD</code>来导入私钥。最后一步是将配置文件拷贝到LIbrary文件夹。</p>
+
+<p>创建好文件之后，确保其授予了可执行的权限：在命令行输入:<code>chmod a+x scripts/add-key.sh</code>即可。为了正常使用脚本，必须要这样处理一下。</p>
+
+<p>至此，已经导入了所有的证书和配置文件，我们可以开始给应用程序签名了。注意，在给程序签名之前必须对程序进行编译。由于我们需要知道编译结果存储在磁盘的具体位置，我建议在编译命令中使用<code>OBJROOT</code>和<code>SYMROOT</code>来指定输出目录，另外，为了创建 release版本，还需要把SDK设置为 iphones,以及configuration修改为 Release:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>xctool -workspace TravisExample.xcworkspace -scheme TravisExample -sdk iphoneos -configuration Release OBJROOT=$PWD/build SYMROOT=$PWD/build ONLY_ACTIVE_ARCH=NO 'CODE_SIGN_RESOURCE_RULES_PATH=$(SDKROOT)/ResourceRules.plist'
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果运行了上面的命令，那么编译完成之后，可以在<code>build/Release-iphoneos</code>目录中找到对应程序的二进制文件。接下来，就可以对其签名，并创建IPA文件了。为此，我们创建了一个新的脚本：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>#!/bin/sh
+</span><span class='line'>if [[ "$TRAVIS_PULL_REQUEST" != "false" ]]; then
+</span><span class='line'>  echo "This is a pull request. No deployment will be done."
+</span><span class='line'>  exit 0
+</span><span class='line'>fi
+</span><span class='line'>if [[ "$TRAVIS_BRANCH" != "master" ]]; then
+</span><span class='line'>  echo "Testing on a branch other than master. No deployment will be done."
+</span><span class='line'>  exit 0
+</span><span class='line'>fi
+</span><span class='line'>
+</span><span class='line'>PROVISIONING_PROFILE="$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_NAME.mobileprovision"
+</span><span class='line'>OUTPUTDIR="$PWD/build/Release-iphoneos"
+</span><span class='line'>
+</span><span class='line'>xcrun -log -sdk iphoneos PackageApplication "$OUTPUTDIR/$APPNAME.app" -o "$OUTPUTDIR/$APPNAME.ipa" -sign "$DEVELOPER_NAME" -embed "$PROVISIONING_PROFILE"</span></code></pre></td></tr></table></div></figure>
+
+
+<p>第二行至第九行非常重要。我们并不希望在某个特性分支上创建新的release.对Pull请求也一样的。由于安全环境变量被禁用，所有pull请求也不会编译。</p>
+
+<p>第十四行，才是真正的签名操作。这个命令会在<code>build/Release-iphoneos</code>目录下生成2个文件：<code>TravisExample.ipa</code>和<code>TravisExample.app.dsym</code>。第一个文件包含了分发至手机上的应用程序。dsym文件包含了二进制文件的调试信息。这个文件对于记录设备上的crash信息非常重要。之后当我们部署应用程序的时候，会用到这两个文件。</p>
+
+<p>最后一个脚本是移除之前创建的临时钥匙串，并删除配置文件。虽然这不是必须的，不过这有助于进行本地测试。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>#!/bin/sh
+</span><span class='line'>security delete-keychain ios-build.keychain
+</span><span class='line'>rm -f ~/Library/MobileDevice/Provisioning\ Profiles/$PROFILE_NAME.mobileprovision</span></code></pre></td></tr></table></div></figure>
+
+
+<p>最后一步，我们必须告诉Travis什么时候执行这三个脚本，在应用程序编译，签名和清楚等之前，需要先添加私钥。在 .travis.yml文件中添加如下内容：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>before_script:
+</span><span class='line'>- ./scripts/add-key.sh
+</span><span class='line'>- ./scripts/update-bundle.sh
+</span><span class='line'>script:
+</span><span class='line'>- xctool -workspace TravisExample.xcworkspace -scheme TravisExample -sdk iphoneos -configuration Release OBJROOT=$PWD/build SYMROOT=$PWD/build ONLY_ACTIVE_ARCH=NO
+</span><span class='line'>after_success:
+</span><span class='line'>- ./scripts/sign-and-upload.sh
+</span><span class='line'>after_script:
+</span><span class='line'>- ./scripts/remove-key.sh</span></code></pre></td></tr></table></div></figure>
+
+
+<p>完成上面的所有操作之后，我们就可将所有内容push到GItHub上，等待Travis对应用程序进行签名，我们可以在工程页面下的Travis控制台验证是否一切正常，如果一切正常的话，下面来看看如何将签名好的应用程序部署给测试人员。</p>
+
+<h2>部署应用程序</h2>
 ]]></content>
   </entry>
   
