@@ -388,6 +388,166 @@
 <p>完成上面的所有操作之后，我们就可将所有内容push到GItHub上，等待Travis对应用程序进行签名，我们可以在工程页面下的Travis控制台验证是否一切正常，如果一切正常的话，下面来看看如何将签名好的应用程序部署给测试人员。</p>
 
 <h2>部署应用程序</h2>
+
+<p>这里有两个知名的服务可以帮你发布应用程序:<a href="http://testflightapp.com/">TestFlight</a>和<a href="http://hockeyapp.net/">HockyeyApp</a>。不管选择哪个都能满足需求。就我个人而言，推荐使用 HockeyApp,不过这里我会对这两个服务都做介绍。</p>
+
+<p>首先我们队 sign-and-build.sh脚本做一个扩充&ndash;在里面添加一些release记录:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>RELEASE_DATE=`date '+%Y-%m-%d %H:%M:%S'`
+</span><span class='line'>RELEASE_NOTES="Build: $TRAVIS_BUILD_NUMBER\nUploaded: $RELEASE_DATE"</span></code></pre></td></tr></table></div></figure>
+
+
+<p>注意这里使用了一个Travis的全局变量<code>TRAVIS_BUILD_NUMBER</code>.</p>
+
+<h2>TestFlight</h2>
+
+<p>创建一个<a href="https://testflightapp.com/register/">TestFlight账号</a>，并配置好应用程序。为了使用TestFlight的API,首先需要获得<a href="https://testflightapp.com/account/#api">apitoken</a>和<a href="https://testflightapp.com/dashboard/team/edit/?next=/api/doc/">teamtoken</a>。再强调一次，我们需要确保它们是加密的。在命令行中执行如下命令:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>travis encrypt "TESTFLIGHT_API_TOKEN={api_token}" --add
+</span><span class='line'>travis encrypt "TESTFLIGHT_TEAM_TOKEN={team_token}" --add</span></code></pre></td></tr></table></div></figure>
+
+
+<p>现在我们可以调用相应的API了。并将下面的内容添加到<code>sign-and-build.sh:</code></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>curl http://testflightapp.com/api/builds.json \
+</span><span class='line'>  -F file="@$OUTPUTDIR/$APPNAME.ipa" \
+</span><span class='line'>  -F dsym="@$OUTPUTDIR/$APPNAME.app.dSYM.zip" \
+</span><span class='line'>  -F api_token="$TESTFLIGHT_API_TOKEN" \
+</span><span class='line'>  -F team_token="$TESTFLIGHT_TEAM_TOKEN" \
+</span><span class='line'>  -F distribution_lists='Internal' \
+</span><span class='line'>  -F notes="$RELEASE_NOTES"</span></code></pre></td></tr></table></div></figure>
+
+
+<p>千万不要使用verbose标记(-v)&ndash;这会暴露加密tokens.</p>
+
+<h2>HOckeyApp</h2>
+
+<p>注册一个<a href="http://hockeyapp.net/plans">HockeyApp账号</a>，并创建一个新的应用程序。然后在概述页面获取一个AppId.接下来，我们必须创建一个Api Token.打开<a href="https://rink.hockeyapp.net/manage/auth_tokens">这个页面</a>并创建一个。如果你希望自动的将新版本部署给所有的测试人员，那么请选择 Full Access版本。</p>
+
+<p>对App Id 和token进行加密:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>travis encrypt "HOCKEY_APP_ID={app_id}" --add
+</span><span class='line'>travis encrypt "HOCKEY_APP_TOKEN={api_token}" --add</span></code></pre></td></tr></table></div></figure>
+
+
+<p>然后在sign-and-build.sh文件中调用相关的API:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>curl https://rink.hockeyapp.net/api/2/apps/$HOCKEY_APP_ID/app_versions \
+</span><span class='line'>  -F status="2" \
+</span><span class='line'>  -F notify="0" \
+</span><span class='line'>  -F notes="$RELEASE_NOTES" \
+</span><span class='line'>  -F notes_type="0" \
+</span><span class='line'>  -F ipa="@$OUTPUTDIR/$APPNAME.ipa" \
+</span><span class='line'>  -F dsym="@$OUTPUTDIR/$APPNAME.app.dSYM.zip" \
+</span><span class='line'>  -H "X-HockeyAppToken: $HOCKEY_APP_TOKEN"</span></code></pre></td></tr></table></div></figure>
+
+
+<p>注意我们还上传了dsym文件。如果集成了TestFlight或HockeyAppSdk，我们可以立即收集到易读的crash报告。</p>
+
+<h2>Travis故障排除</h2>
+
+<p>知道如何不通过直接访问编译环境就能找出问题是非常重要的。</p>
+
+<p>在写本文的时候，还没有可以下载的虚拟机映像。如果Travis不能正常编译，首先试着在本地重现问题。在本地执行跟Travis相同的编译命令：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>xctool ...</span></code></pre></td></tr></table></div></figure>
+
+
+<p>为了调试shell脚本，首先需啊哟定义环境变量。我的做法是创建一个新的shell脚本来设置所有的环境变量。记得将这个脚本添加到 .gitignore文件中&ndash;因为我们不希望将该文件公开暴露出去。支队示例工程来说， config.sh脚本文件看起来是这样的：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>#!/bin/bash
+</span><span class='line'>
+</span><span class='line'># Standard app config
+</span><span class='line'>export APP_NAME=TravisExample
+</span><span class='line'>export DEVELOPER_NAME=iPhone Distribution: Mattes Groeger
+</span><span class='line'>export PROFILE_NAME=TravisExample_Ad_Hoc
+</span><span class='line'>export INFO_PLIST=TravisExample/TravisExample-Info.plist
+</span><span class='line'>export BUNDLE_DISPLAY_NAME=Travis Example CI
+</span><span class='line'>
+</span><span class='line'># Edit this for local testing only, DON'T COMMIT it:
+</span><span class='line'>export ENCRYPTION_SECRET=...
+</span><span class='line'>export KEY_PASSWORD=...
+</span><span class='line'>export TESTFLIGHT_API_TOKEN=...
+</span><span class='line'>export TESTFLIGHT_TEAM_TOKEN=...
+</span><span class='line'>export HOCKEY_APP_ID=...
+</span><span class='line'>export HOCKEY_APP_TOKEN=...
+</span><span class='line'>
+</span><span class='line'># This just emulates Travis vars locally
+</span><span class='line'>export TRAVIS_PULL_REQUEST=false
+</span><span class='line'>export TRAVIS_BRANCH=master
+</span><span class='line'>export TRAVIS_BUILD_NUMBER=0</span></code></pre></td></tr></table></div></figure>
+
+
+<p>为了暴露所有的环境变量，执行如下命令(确保config.sh是可执行的)</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>. ./config.sh</span></code></pre></td></tr></table></div></figure>
+
+
+<p>然后试着运行 <code>echo $APP_NAME</code>,以此检查脚本是否正确。如果正确的话，那么现在我们不用做任何修改，就能在本地运行所有的shell脚本了。</p>
+
+<p>如果在本地得到的是不同的编译信息，那么可能是使用了不同的库和gems.尽量试着将配置信息设置和Travis VM 相同的信息。Travis在这里列出了其所有的安装的软件版本，你也可以在travis的配置文件中添加调试信息得到所有库文件的版本。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>gem cocoapod --version
+</span><span class='line'>brew --version
+</span><span class='line'>xctool -version
+</span><span class='line'>xcodebuild -version -sdk</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在本地安装好与服务器完全相同的软件之后，再重新编译项目。</p>
+
+<p>如果获取的编译信息仍然不一样，试着将项目check out到一个新目录。并确保所有的缓存都已清空。每次编译程序时，Travis都会创建一个全新的虚拟机，所以不存在缓存的问题，但在你的本地机器上可能会出现。</p>
+
+<p>一旦在本地重现出和服务器相同的错误，就可以开始调差具体问题了。当然导致问题的原因取决于具体问题。一般来说，通过Google都能找到引发问题的根源。</p>
+
+<p>如果一个问题影响到了Travis上的其它项目，那么可能是Travis环境配置的原因。</p>
 </div>
 
 
