@@ -4,7 +4,7 @@
   <title><![CDATA[安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-05-26T15:12:40+08:00</updated>
+  <updated>2016-05-27T08:33:44+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -19,6 +19,19 @@
     <updated>2016-05-26T15:09:59+08:00</updated>
     <id>http://andrew-anlu.github.io/blog/2016/05/26/swiftyu-fa-xiao-ji-qiao</id>
     <content type="html"><![CDATA[<h3><a name="判断某个对象是否响应了某个方法"> 判断某个对象是否响应了某个方法</a></h3>
+
+<!--more-->
+
+
+<p>没有参数的:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>if(view.respondsToSelector(#selector(startAnimating))){
+</span><span class='line'>        
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
 
 <p>一个参数的:</p>
 
@@ -509,6 +522,22 @@
 <p>一旦在本地重现出和服务器相同的错误，就可以开始调差具体问题了。当然导致问题的原因取决于具体问题。一般来说，通过Google都能找到引发问题的根源。</p>
 
 <p>如果一个问题影响到了Travis上的其它项目，那么可能是Travis环境配置的原因。</p>
+
+<h2>点评</h2>
+
+<p>TravisCI跟市面上同类产品相比还是有一些限制。因为Travis运行在一个预先配置好的虚拟机上，因此必须为每次编译都安装一遍所有的依赖。这会花费一些额外的时间。不过Travis团队已经在着手提供一种缓存机制解决这个问题了。</p>
+
+<p>在一定程度上，你会依赖于Travis所提供的配置。比如你只能使用Travis内置的Xcode版本进行编译。如果你本地使用的Xcode版本比较新，你的项目在服务器上可能无法编译通过。如果Travis能够为不同的Xcode版本都分别设置一个对应虚拟机会就好了。</p>
+
+<p>对于复杂的项目来说，你可能希望把整个编译任务分为编译应用，运行集成测试等。这样你可以快速获得编译信息而不用等所有的测试都完后才能。目前Travis还没有直接支持有依赖的编译。</p>
+
+<p>当项目被push到Github上时，travis会自动触发。不过编译动作不会立即触发，你的项目会被放到一个根据项目所用语言不同而不同的一个全局编译队列，不过专业版允许并发编译。</p>
+
+<h2>总结</h2>
+
+<p>Travis Ci提供了一个动能完整的持续集成环境，已进行应用程序的编译，测试和部署。对于开源项目来说，这项服务是完全免费的。很多社区都得益于GitHub强大的持续集成能力。</p>
+
+<p>如果你还没有用过Travis.赶紧去试试吧，它棒极了！</p>
 ]]></content>
   </entry>
   

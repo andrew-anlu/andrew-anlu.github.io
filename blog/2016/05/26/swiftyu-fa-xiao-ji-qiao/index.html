@@ -9,11 +9,12 @@
   <meta name="author" content="安路">
 
   
-  <meta name="description" content="判断某个对象是否响应了某个方法 一个参数的: 1
+  <meta name="description" content="判断某个对象是否响应了某个方法 没有参数的: 1
 2
-3 if(self.modeView.respondsToSelector(#selector(hideAnimated(_:)))){ } 多个参数的: 1
+3
+if(view.respondsToSelector(#selector(startAnimating))){ } 一个参数的: 1
 2
-3 if(self.modeView.respondsToSelector(# &hellip;">
+3 if(self.modeView.respondsToSelector(#selector( &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -93,6 +94,19 @@
 
 
 <div class="entry-content"><h3><a name="判断某个对象是否响应了某个方法"> 判断某个对象是否响应了某个方法</a></h3>
+
+<!--more-->
+
+
+<p>没有参数的:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>if(view.respondsToSelector(#selector(startAnimating))){
+</span><span class='line'>        
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
 
 <p>一个参数的:</p>
 
