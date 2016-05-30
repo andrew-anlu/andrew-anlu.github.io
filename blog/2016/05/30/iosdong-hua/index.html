@@ -1,0 +1,500 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Ios动画 - 安路的技术博客</title>
+  <meta name="author" content="安路">
+
+  
+  <meta name="description" content="我们写的应用程序往往都不是静态的，因为它们需要使用用户的需求以及为执行各种任务而改变状态。 在这些状态之间转换时，清晰的揭示正在发生什么是非常重要的。而不是在页面之间跳跃，动画帮助我们解释用户从哪里来，要到哪里去。 键盘在View中滑进滑出给了我们一个错觉，让我们以为它是简单的被隐藏在屏幕下方的， &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://andrew-anlu.github.io/blog/2016/05/30/iosdong-hua/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="安路的技术博客" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//libs.baidu.com/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">安路的技术博客</a></h1>
+  
+    <h2>Nothing in life is to be feared. It is only to be understood</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://andrew-anlu.github.io" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="andrew-anlu.github.io">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/blog/">About me</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Ios动画</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-05-30T09:26:31+08:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>30</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>9:26 am</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>我们写的应用程序往往都不是静态的，因为它们需要使用用户的需求以及为执行各种任务而改变状态。</p>
+
+<p>在这些状态之间转换时，清晰的揭示正在发生什么是非常重要的。而不是在页面之间跳跃，动画帮助我们解释用户从哪里来，要到哪里去。</p>
+
+<!--more-->
+
+
+<p>键盘在View中滑进滑出给了我们一个错觉，让我们以为它是简单的被隐藏在屏幕下方的，并且是手机很自然的一个部分。View Controller转场加强了我们的应用程序的导航结构，并且给了用户正在移向那个方向的提示。微妙的反弹和碰撞使界面栩栩如生，并且激发出了物理的质感。要是没有这些的话，我们就只有一个没有视觉设计的干巴巴的环境了。</p>
+
+<p>动画是叙述你的应用的故事的绝佳方式，在了解动画背景的基本原理之后，设计它们会轻松很多。</p>
+
+<h2>首要任务</h2>
+
+<p>在这篇文章中，我们将特别地针对  Core Anmiation进行探讨，虽然你将看到的很多东西也可以用更高级的UIKit的方法来完成，但是Core Animation将会让你更好的理解正在发生什么。它以一种更明确的方式来描述动画，这对这篇文章以及你自己的代码的读者来说都非常有用。</p>
+
+<p>在看动画如何与我们的屏幕上的看到的内容交互之前，我们需要快速浏览一下Core Animation的<code>CALayer</code>，这是动画产生作用的地方。</p>
+
+<p>你大概知道UIView实例，以及layer-backed的NSView,修改它们的layer来委托强大的Core Graphics框架来进行渲染。然而你务必要理解，当把动画添加到一个layer时，是不直接修改它的属性的。</p>
+
+<p>取而代之，Core Animation维护了两个平行的layer层次结构:mode layer tree(模型层树)和presentation layer tree(表示层树)。前者中的layers反映了我们能直接看到的layers的状态，而后者的layers则是正在表现的值的近似。</p>
+
+<p>考虑在view上增加一个渐出动画。如果在动画中的任意时刻，查看layer的opacity值，你是得不到与屏幕内容对应的透明度的。取而代之，你需要查看presentaion layer 以获得正确的结果。</p>
+
+<p>虽然你可能不会去直接设置presentaion layer的属性，但是使用它的当前值来创建新的动画护着在动画发生时与layers交互式非常有用的。</p>
+
+<p>通过使用 <code>-[CALayer presentaionLayer]</code>和<code>[CALayer modelLayer]</code>，你可以在两个layer之间轻松切换。</p>
+
+<h2>基本动画</h2>
+
+<p>可能最常见的情况是将一个View的属性从一个值改变为另一个值，考虑夏敏的这个例子。</p>
+
+<p> <img src="http://7xkxhx.com1.z0.glb.clouddn.com/rocket-linear.gif" alt="w" />
+ 
+在这里，我们让红色小火箭的 x-position从77 变为455,刚好超过的parent View的边，为了填充所有路径，我们需要确定我们的火箭在任意时刻所到达的位置。这通常使用线性插值法来完成。</p>
+
+<pre><code>X(T)=x0 + t△x
+</code></pre>
+
+<p>也就是说，对于动画给定的一个分数t,火箭的x坐标就是起始点的x坐标77，加上一个到终点的距离∆x = 378,乘以该分数的值。</p>
+
+<p>使用<code>CABasicAnimation</code>，我们可以如下实现这个动画:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>CABasicAnimation *animation = [CABasicAnimation animation];
+</span><span class='line'>animation.keyPath = @"position.x";
+</span><span class='line'>animation.fromValue = @77;
+</span><span class='line'>animation.toValue = @455;
+</span><span class='line'>animation.duration = 1;
+</span><span class='line'>
+</span><span class='line'>[rocket.layer addAnimation:animation forKey:@"basic"];
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>请注意我们的动画键路径，也就是position.x,实际上包含一个存储在<code>position</code>属性中的CGPoint结构体成员。这是CoreAnimation一个非常方便的特性。请查看<a href="https://developer.apple.com/library/ios/documentation/Cocoa/Conceptual/CoreAnimation_guide/Key-ValueCodingExtensions/Key-ValueCodingExtensions.html">支持的键路径的完整列表</a></p>
+
+<p>然而，当我们运行该代码时，我们意识到火箭在完成动画后马上回到了初始位置，这是因为在默认情况下，动画不会再超出其持续时间后还修改 presentaion layer.实际上，在结束时它甚至会被彻底移除。</p>
+
+<p>一旦动画被移除，presentation layer将回到 model layer的值，并且因为我们从未修改该layer的 postion属性，所以我们的飞船将重新出现在它开始的地方。</p>
+
+<p>这里有两种解决这个问题的方法:</p>
+
+<p>第一种方法是直接在 model layer上更新尚需经，这是推荐的做法，因为它使得动画完全可选。</p>
+
+<p>一旦动画完成并且从layer中移除，presentation layer将回到model layer设置的值，而这个值恰好与动画最后一个步骤相匹配</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>CABasicAnimation *animation = [CABasicAnimation animation];
+</span><span class='line'>animation.keyPath = @"position.x";
+</span><span class='line'>animation.fromValue = @77;
+</span><span class='line'>animation.toValue = @455;
+</span><span class='line'>animation.duration = 1;
+</span><span class='line'>
+</span><span class='line'>[rocket.layer addAnimation:animation forKey:@"basic"];
+</span><span class='line'>
+</span><span class='line'>rocket.layer.position = CGPointMake(455, 61);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>或者，你可以通过设置动画的fillMode属性为<code>kCAFillModeForward</code>，并设置<code>removedOnCompletion</code>为No以防止它被自动移除:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>CABasicAnimation *animation = [CABasicAnimation animation];
+</span><span class='line'>animation.keyPath = @"position.x";
+</span><span class='line'>animation.fromValue = @77;
+</span><span class='line'>animation.toValue = @455;
+</span><span class='line'>animation.duration = 1;
+</span><span class='line'>
+</span><span class='line'>animation.fillMode = kCAFillModeForward;
+</span><span class='line'>animation.removedOnCompletion = NO;
+</span><span class='line'>
+</span><span class='line'>[rectangle.layer addAnimation:animation forKey:@"basic"];</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果将已完成的动画保持在layer上时，会造成额外的开销，因为渲染器会去进行额外的绘画工作。</p>
+
+<p>指的指出的是，实际上我们创建的动画对象在被添加到layer时立刻就复制了一份。这个特性在多个view中重用动画时这非常有用。比方说我们想要第二个火箭在第一个火箭起飞后不久后起飞：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>CABasicAnimation *animation = [CABasicAnimation animation];
+</span><span class='line'>animation.keyPath = @"position.x";
+</span><span class='line'>animation.byValue = @378;
+</span><span class='line'>animation.duration = 1;
+</span><span class='line'>
+</span><span class='line'>[rocket1.layer addAnimation:animation forKey:@"basic"];
+</span><span class='line'>rocket1.layer.position = CGPointMake(455, 61);
+</span><span class='line'>
+</span><span class='line'>animation.beginTime = CACurrentMediaTime() + 0.5;
+</span><span class='line'>
+</span><span class='line'>[rocket2.layer addAnimation:animation forKey:@"basic"];
+</span><span class='line'>rocket2.layer.position = CGPointMake(455, 111);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>设置动画的<code>beginTime</code>为未来0.5秒将只会影响<code>rocket2</code>，因为动画在执行语句<code>[rocket1.layer addAnimation:animation forKey:@"basic"];</code>时已经被复制了，并且之后的rocket1也不会考虑对动画对象的改变。</p>
+
+<p>不妨看一看David的<a href="http://ronnqvi.st/controlling-animation-timing/">关于动画时间的一篇很棒的文章</a>，通过它可以学习如何更精确的控制你的动画。</p>
+
+<p>我决定再使用<code>CABasicAnimation</code>的byValule属性创建一个动画，这个动画从presentaion layer的当前值开始，加上byValue的值后结束。这使得动画更易于重用，因为你不需要精确的指定可能无法提前知道的from- 和 toValue的值。</p>
+
+<p><code>fromValue</code>,<code>byValue</code>和<code>toValue</code>的不同组合可以用来实现不同的效果，如果你需要创建一个可以在你的不同应用中重用的动画，你可以<a href="https://developer.apple.com/library/ios/documentation/GraphicsImaging/Reference/CABasicAnimation_class/Introduction/Introduction.html#//apple_ref/doc/uid/TP40004496-CH1-SW4">查看文档</a></p>
+
+<h2>多步动画</h2>
+
+<p>这很容易想到一个场景，你想要为你的冻哈定义超过两个步骤，我们可以使用更通用的<code>CAKeyframeAnimation</code>，而不是去链接多个<code>CABasicAnimation</code>实例。</p>
+
+<p>关键帧(keyFrame)使我们能够定义动画中任意的一个点，然后让core Animation填充所谓的中间帧</p>
+
+<p>比方说我们正在制作我们下一个Iphone应用程序汇总的登录表单，我们希望当用户输入错误的密码时表单会晃动，使用关键帧动画，看起来大概像是这样：
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/form.gif" alt="d" /></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>CAKeyframeAnimation *animation = [CAKeyframeAnimation animation];
+</span><span class='line'>animation.keyPath = @"position.x";
+</span><span class='line'>animation.values = @[ @0, @10, @-10, @10, @0 ];
+</span><span class='line'>animation.keyTimes = @[ @0, @(1 / 6.0), @(3 / 6.0), @(5 / 6.0), @1 ];
+</span><span class='line'>animation.duration = 0.4;
+</span><span class='line'>
+</span><span class='line'>animation.additive = YES;
+</span><span class='line'>
+</span><span class='line'>[form.layer addAnimation:animation forKey:@"shake"];</span></code></pre></td></tr></table></div></figure>
+
+
+<p>values数组定义了表单应该到哪些位置、</p>
+
+<p>设置keytimes属性让我们能够指定关键帧动画发生的时间。它们被指定为关键帧动画总持续时间的一个分数。</p>
+
+<blockquote><p><em>注意:</em></p>
+
+<p><a style="font-style:normal">
+请注意我是如何选择不同的值从0到10到-10转换以维持恒定的速度的。
+</a></p></blockquote>
+
+<p>设置additive尚需经为YES 使 Core Animation在更新 presentaion layer之前将动画的值添加到 model layer中去。这使得我们能够对所有形式的需要更新的元素重用相同的动画，且无需提前知道它们的位置。因为这个属性从<code>CAPropertyAnimation</code>继承，所以你也可以在使用<code>CABasicAnimation</code>时使用它。</p>
+
+<h2>沿路径的动画</h2>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">安路</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2016-05-30T09:26:31+08:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>30</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>9:26 am</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/ios/'>ios</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+
+<!-- JiaThis Button BEGIN -->
+<div class="jiathis_style_32x32">
+	<a class="jiathis_button_qzone"></a>
+	<a class="jiathis_button_tsina"></a>
+	<a class="jiathis_button_tqq"></a>
+	<a class="jiathis_button_weixin"></a>
+	<a class="jiathis_button_renren"></a>
+	<a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank"></a>
+	<a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+<br><br>
+<!-- UY BEGIN -->
+<div id="uyan_frame"></div>
+<script type="text/javascript" src="http://v2.uyan.cc/code/uyan.js?uid=2052593"></script>
+<!-- UY END -->
+
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2016/05/26/swiftyu-fa-xiao-ji-qiao/" title="Previous Post: swift语法小技巧">&laquo; swift语法小技巧</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+<h1>
+	QQ群
+</h1>
+   <br/>
+	<p>欢迎加入swift学习交流群:252710124</p>
+</section>
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/05/30/iosdong-hua/">Ios动画</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/05/26/swiftyu-fa-xiao-ji-qiao/">Swift语法小技巧</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/05/23/wei-iosjian-li-travis-ci/">为iOS建立Travis CI</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/05/22/nodejs-dai-ma-de-zu-zhi-he-bu-shu/">Nodejs-代码的组织和部署</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/05/21/nodejsji-chu/">Nodejs基础</a>
+      </li>
+    
+  </ul>
+</section>
+<section>
+	<h1>文章分类</h1>
+	<ul id="categories">
+		<li class='category'><a href='/blog/categories/cocoapods/'>cocoapods (1)</a></li>
+<li class='category'><a href='/blog/categories/git/'>git (3)</a></li>
+<li class='category'><a href='/blog/categories/ios/'>ios (21)</a></li>
+<li class='category'><a href='/blog/categories/life/'>life (1)</a></li>
+<li class='category'><a href='/blog/categories/mac/'>mac (2)</a></li>
+<li class='category'><a href='/blog/categories/nodejs/'>nodejs (2)</a></li>
+<li class='category'><a href='/blog/categories/octopress/'>octopress (2)</a></li>
+<li class='category'><a href='/blog/categories/swift/'>swift (12)</a></li>
+<li class='category'><a href='/blog/categories/xcode/'>xcode (1)</a></li>
+
+	</ul>
+</section>
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/andrew-anlu">@andrew-anlu</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'andrew-anlu',
+            count: 3,
+            skip_forks: false,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+<section>
+  <h1>On Delicious</h1>
+  <div id="delicious"></div>
+  <script type="text/javascript" src="http://feeds.delicious.com/v2/json/Andrewswift1987?count=3&amp;sort=date&amp;callback=renderDeliciousLinks"></script>
+  <p><a href="http://delicious.com/Andrewswift1987">My Delicious Bookmarks &raquo;</a></p>
+</section>
+
+ <section>
+      <h1>访客统计</h1>
+      <br/>
+    <a href="http://info.flagcounter.com/Bkif"><img src="http://s01.flagcounter.com/count2/Bkif/bg_ffffff/txt_000000/border_CCCCCC/columns_3/maxflags_10/viewers_0/labels_1/pageviews_1/flags_1/percent_0/" alt="Free counters!" border="0"></a>
+    </section>
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><!--返回顶部开始-->
+<div id="full" style="width:0px; height:0px; position:fixed; right:180px; bottom:150px; z-index:100; text-align:center; background-color:transparent; cursor:pointer;">
+  <a href="#" onclick="goTop();return false;"><img src="http://7xsn4e.com2.z0.glb.clouddn.com/top.png" border=0 alt="返回顶部" width="50" height="50"></a>
+</div>
+<script src="/javascripts/top.js" type="text/javascript"></script>
+<!--返回顶部结束-->
+
+
+<p>
+  Copyright &copy; 2016 - 安路 -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'Andrewswift1987';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://andrew-anlu.github.io/blog/2016/05/30/iosdong-hua/';
+        var disqus_url = 'http://andrew-anlu.github.io/blog/2016/05/30/iosdong-hua/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
