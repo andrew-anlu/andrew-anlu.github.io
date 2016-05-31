@@ -4,7 +4,7 @@
   <title><![CDATA[安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-05-30T10:12:55+08:00</updated>
+  <updated>2016-05-31T09:53:45+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -213,6 +213,235 @@
 <p>设置additive尚需经为YES 使 Core Animation在更新 presentaion layer之前将动画的值添加到 model layer中去。这使得我们能够对所有形式的需要更新的元素重用相同的动画，且无需提前知道它们的位置。因为这个属性从<code>CAPropertyAnimation</code>继承，所以你也可以在使用<code>CABasicAnimation</code>时使用它。</p>
 
 <h2>沿路径的动画</h2>
+
+<p>虽然用代码实现一个简单的水平晃动并不难，但是沿着复杂路径的 动画就需要我们在关键帧的values数组中存储大量box化的CGPoint.指的庆幸的是，<code>CAKeyFrmeAnimaiton</code>提供了更加便利的Path属性作为代替</p>
+
+<p>举个例子，我们如何让一个view做圆周运动:</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/planets.gif" alt="1" /></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>CGRect boundingRect = CGRectMake(-150, -150, 300, 300);
+</span><span class='line'>
+</span><span class='line'>CAKeyframeAnimation *orbit = [CAKeyframeAnimation animation];
+</span><span class='line'>orbit.keyPath = @"position";
+</span><span class='line'>orbit.path = CFAutorelease(CGPathCreateWithEllipseInRect(boundingRect, NULL));
+</span><span class='line'>orbit.duration = 4;
+</span><span class='line'>orbit.additive = YES;
+</span><span class='line'>orbit.repeatCount = HUGE_VALF;
+</span><span class='line'>orbit.calculationMode = kCAAnimationPaced;
+</span><span class='line'>orbit.rotationMode = kCAAnimationRotateAuto;
+</span><span class='line'>
+</span><span class='line'>[satellite.layer addAnimation:orbit forKey:@"orbit"];</span></code></pre></td></tr></table></div></figure>
+
+
+<p>使用<code>CGPathCreateWithEllipseInRect ()</code>，我们创建一个圆形的<code>CGPath</code>作为我们的关键帧动画的path.</p>
+
+<p>使用<code>calculationMode</code>是控制关键帧动画时间的另一种方式。我们通过将其设置为<code>kCAAnimationPaced</code>，让Core Animation想被驱动的对象施加一个恒定速度，不管路径的各个线程有多长，将其设置为<code>kCAAnimationPaced</code>将无视所有我们已经设置的 keyTimes.</p>
+
+<p>设置 rotationsMode属性为 <code>kCAAnimationRotateAuto</code>，确保飞船沿着路径旋转。作为对比，我们将该属性设置为nil，那动画会怎么样呢？</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/planets-incorrect.gif" alt="2" /></p>
+
+<h2>时间函数</h2>
+
+<p>让我们再次来看看第一个例子 ：</p>
+
+<p>你会发现我们的火箭的动画有些看起来非常不自然的地方，那是因为我们在现实时间中看到的大部分运动需要时间来加速或者减速。对象瞬间达到最高速度，然后再立即停止往往看起来非常不自然。除非你在让机器人跳舞，但这很少是想要的结果。</p>
+
+<p>为了给我们的动画一个存在惯性的感觉，我们可以使用我们上面提到的参数因子来进行插值。然而，如果我们接下来需要为每个需要加速或减速的行为创建一个新的插值函数，这将是一个很难扩展的方法。</p>
+
+<p>取而代之，常见的做法是把要进行动画的属性的插值从动画的速度中解耦出来。这样一来，给动画提速会差生一种小火箭加速运动的效果，而不用改变我们的插值函数。</p>
+
+<p>我们可以通过引入一个时间函数 （timing function）来实现这个目标。该函数通过修改持续时间的分数来控制动画的速度。</p>
+
+<p>最简单的easing函数是linear.它在整个动画上维持一个恒定的速度。在 Core Animation中，这个功能由CAMediaTimingFunction来表示。</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/rect-linear.gif" alt="2" /></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>CABasicAnimation *animation = [CABasicAnimation animation];
+</span><span class='line'>animation.keyPath = @"position.x"; 
+</span><span class='line'>animation.fromValue = @50;
+</span><span class='line'>animation.toValue = @150;
+</span><span class='line'>animation.duration = 1;
+</span><span class='line'>
+</span><span class='line'>animation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionLinear];
+</span><span class='line'>
+</span><span class='line'>[rectangle.layer addAnimation:animation forKey:@"basic"];
+</span><span class='line'>
+</span><span class='line'>rectangle.layer.position = CGPointMake(150, 0);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Core Animation附带了一些linear之外的内置easing函数，如:</p>
+
+<ul>
+<li><p>Ease in (kCAMediaTimingFunctionEaseIn):
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/rect-easein.gif" alt="1" /></p></li>
+<li><p>Ease out (kCAMediaTimingFunctionEaseOut):
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/rect-easeout.gif" alt="2" /></p></li>
+<li><p>Ease in ease out (kCAMediaTimingFunctionEaseInEaseOut):</p></li>
+</ul>
+
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/rect-easeineaseout.gif" alt="3" /></p>
+
+<ul>
+<li>默认 (kCAMediaTimingFunctionDefault):
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/rect-default.gif" alt="4" /></li>
+</ul>
+
+
+<p>在一定限度内，你也可以使用<code>+functionWithControlPoints::::</code>创建自己的easing函数。通过传递cubic Bezier曲线的两个控制点的x和y坐标，你可以轻松的创建自定义easying函数，比如我为我们的红色小火箭选择的那个。</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/rocket-custom.gif" alt="custom" /></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>CABasicAnimation *animation = [CABasicAnimation animation];
+</span><span class='line'>animation.keyPath = @"position.x";
+</span><span class='line'>animation.fromValue = @77;
+</span><span class='line'>animation.toValue = @455;
+</span><span class='line'>animation.duration = 1;
+</span><span class='line'>
+</span><span class='line'>animation.timingFunction = [CAMediaTimingFunction functionWithControlPoints:0.5:0:0.9:0.7];
+</span><span class='line'>
+</span><span class='line'>[rocket.layer addAnimation:animation forKey:@"basic"];
+</span><span class='line'>
+</span><span class='line'>rocket.layer.position = CGPointMake(150, 0);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我不打算讲太多关于Bezier曲线的细节，在计算机图形学中，它们是创建平滑曲线的常用技术。你可能在基于矢量的绘图工具，比如Sketch或者Adobe lllustrotor中见过它们。</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/bezier.png" alt="1" /></p>
+
+<p>传递给 <code>+functionWithControlPoints::::</code>的值有效地控制了控制点的位置。所得到的定时函数将基于得到的路径来调整动画的速度。X轴代表时间的分数，而Y轴是插值函数的插入值。</p>
+
+<p>遗憾的是，由于这些部分被锁定在[0-1]的范围内，我们不可能用它来创建一些像预期动作(Anticipation,一种像目标进发前先回退一点，到达目标后还过冲一会，见下图)这样的常见效果 .</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/anticipate.gif" alt="3" /></p>
+
+<h2>动画组</h2>
+
+<p>对于某些复杂的效果，可能需要同时为多个属性进行动画。想象一下，在一个媒体播放程序中，当切换到随机曲目时我们让随机动画效果，看起来就想下面这样:</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/covers.gif" alt="animaiton" /></p>
+
+<p>你可以看到，我们需要同时对上面的封面的 position,roation和 z-position进行动画，使用 CAAimationGroup来动画其中一个封面的代码如下:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>CABasicAnimation *zPosition = [CABasicAnimation animation];
+</span><span class='line'>zPosition.keyPath = @"zPosition";
+</span><span class='line'>zPosition.fromValue = @-1;
+</span><span class='line'>zPosition.toValue = @1;
+</span><span class='line'>zPosition.duration = 1.2;
+</span><span class='line'>
+</span><span class='line'>CAKeyframeAnimation *rotation = [CAKeyframeAnimation animation];
+</span><span class='line'>rotation.keyPath = @"transform.rotation";
+</span><span class='line'>rotation.values = @[ @0, @0.14, @0 ];
+</span><span class='line'>rotation.duration = 1.2;
+</span><span class='line'>rotation.timingFunctions = @[
+</span><span class='line'>    [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut],
+</span><span class='line'>    [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut]
+</span><span class='line'>];
+</span><span class='line'>
+</span><span class='line'>CAKeyframeAnimation *position = [CAKeyframeAnimation animation];
+</span><span class='line'>position.keyPath = @"position";
+</span><span class='line'>position.values = @[
+</span><span class='line'>    [NSValue valueWithCGPoint:CGPointZero],
+</span><span class='line'>    [NSValue valueWithCGPoint:CGPointMake(110, -20)],
+</span><span class='line'>    [NSValue valueWithCGPoint:CGPointZero]
+</span><span class='line'>];
+</span><span class='line'>position.timingFunctions = @[
+</span><span class='line'>    [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut],
+</span><span class='line'>    [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut]
+</span><span class='line'>];
+</span><span class='line'>position.additive = YES;
+</span><span class='line'>position.duration = 1.2;
+</span><span class='line'>
+</span><span class='line'>CAAnimationGroup *group = [[CAAnimationGroup alloc] init];
+</span><span class='line'>group.animations = @[ zPosition, rotation, position ];
+</span><span class='line'>group.duration = 1.2;
+</span><span class='line'>group.beginTime = 0.5;
+</span><span class='line'>
+</span><span class='line'>[card.layer addAnimation:group forKey:@"shuffle"];
+</span><span class='line'>
+</span><span class='line'>card.layer.zPosition = 1;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们使用CAAimationGroup得到一个好处是可以将所有动画作为一个对象暴露出去。如果你要在应用程序中的多个地方用工厂对象创建的重用的动画的话，这将会非常有用。</p>
+
+<p>你也可以使用动画组同时控制所有动画组成部分的时间</p>
+
+<h2>Core Animation 之外</h2>
+
+<p>你应该已经听过 UIKIT Dynamics了，这是ios7中引入的一个物理模拟框架，它允许你使用约束和力来为 views做动画。与core Animation不同，它与你在屏幕上看到的内容交互更为间接，但是它的动态特性让你可以在事先不知道结果时创建动画。</p>
 ]]></content>
   </entry>
   
