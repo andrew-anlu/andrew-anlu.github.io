@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Swift | 安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/blog/categories/swift/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-05-31T09:53:45+08:00</updated>
+  <updated>2016-07-18T16:59:54+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -45,6 +45,31 @@
 </code></pre>
 
 <p>第一个参数用<code>_</code>，第二个先参数名字，中间没有逗号</p>
+
+<h3>Swift中如何使用 #Debug</h3>
+
+<p>在oc中可以直接使用</p>
+
+<pre><code>#if DEBUG 
+  let a = 2
+#else 
+  let a = 3
+#endif
+</code></pre>
+
+<p>但是swift没有引进预处理指令，但并不代表不可以使用预处理指令。</p>
+
+<p>首先要在 setting中设置，在Swift Compiler - Custom Flags，找到 <code>Other Swift Flags</code>,添加如下标记 <code>-D DEBUG</code>,在release模式下添加 <code>-D RELEASE</code>,如图:
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/661867-43c91f8c973acc77.png" alt="logo" /></p>
+
+<p>现在就可以正常的使用#if DEBUG了</p>
+
+<h3>UIColllectionView</h3>
+
+<p>注册UIcollectionViewCell</p>
+
+<pre><code>        collectionView.registerClass(NN_XueTangCell.self, forCellWithReuseIdentifier: cellId)
+</code></pre>
 ]]></content>
   </entry>
   

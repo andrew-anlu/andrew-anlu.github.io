@@ -4,7 +4,7 @@
   <title><![CDATA[安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-05-31T09:53:45+08:00</updated>
+  <updated>2016-07-18T16:59:54+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -486,6 +486,40 @@
 
 
 <p>第一个参数用<code>_</code>，第二个先参数名字，中间没有逗号</p>
+
+<h3>Swift中如何使用 #Debug</h3>
+
+<p>在oc中可以直接使用</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>#if DEBUG 
+</span><span class='line'>  let a = 2
+</span><span class='line'>#else 
+</span><span class='line'>  let a = 3
+</span><span class='line'>#endif</span></code></pre></td></tr></table></div></figure>
+
+
+<p>但是swift没有引进预处理指令，但并不代表不可以使用预处理指令。</p>
+
+<p>首先要在 setting中设置，在Swift Compiler - Custom Flags，找到 <code>Other Swift Flags</code>,添加如下标记 <code>-D DEBUG</code>,在release模式下添加 <code>-D RELEASE</code>,如图:
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/661867-43c91f8c973acc77.png" alt="logo" /></p>
+
+<p>现在就可以正常的使用#if DEBUG了</p>
+
+<h3>UIColllectionView</h3>
+
+<p>注册UIcollectionViewCell</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>    collectionView.registerClass(NN_XueTangCell.self, forCellWithReuseIdentifier: cellId)
+</span></code></pre></td></tr></table></div></figure>
+
+
+
 ]]></content>
   </entry>
   
