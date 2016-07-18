@@ -9,7 +9,7 @@
   <meta name="author" content="安路">
 
   
-  <meta name="description" content=" 假设你已经读过AsyncDisplayKit入门,下面我们将继续介绍AsyncDisplayKit. ">
+  <meta name="description" content="自定义转场动画 ios7中最让我激动的特性之一就是提供了新的API来支持自定义ViewController之间的转场动画。 ">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -66,6 +66,45 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/04/28/viewcontrollerzhuan-chang-dong-hua/">ViewController转场动画</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-04-28T15:54:40+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>28</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>3:54 pm</span></time>
+        
+           | <a href="/blog/2016/04/28/viewcontrollerzhuan-chang-dong-hua/#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/04/28/viewcontrollerzhuan-chang-dong-hua/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>自定义转场动画</h2>
+
+<p>ios7中最让我激动的特性之一就是提供了新的API来支持自定义ViewController之间的转场动画。</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/04/28/viewcontrollerzhuan-chang-dong-hua/">阅读全文 &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -411,65 +450,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/03/29/shen-ru-li-jie-runloop/">深入理解RunLoop</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-03-29T17:29:43+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>29</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>5:29 pm</span></time>
-        
-           | <a href="/blog/2016/03/29/shen-ru-li-jie-runloop/#disqus_thread"
-             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/03/29/shen-ru-li-jie-runloop/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/1432799466416554.jpeg" alt="runloop" /></p>
-
-<p>RunLoop是ios和OSX开发中非常基础的一个概念，本章将会介绍一下在ios中，苹果是利用RunLoop实现自动释放池，延迟回调，触摸事件，屏幕刷新等.</p>
-
-<h2>RunLoop的概念</h2>
-
-<p>一般来讲，一个线程一次只能执行一个任务，执行完成之后线程就会退出。如果我们需要一个机制，让线程能随时处理事件但并不退出，通常的代码逻辑是这样的:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>function loop() {
-</span><span class='line'>    initialize();
-</span><span class='line'>    do {
-</span><span class='line'>        var message = get_next_message();
-</span><span class='line'>        process_message(message);
-</span><span class='line'>    } while (message != quit);
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/03/29/shen-ru-li-jie-runloop/">阅读全文 &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/3">&larr; Older</a>
@@ -494,6 +474,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/07/18/chang-yong-de-di-san-fang-lei-ku-and-xue-xi-zi-liao/">常用的第三方类库&amp;学习资料</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/05/30/iosdong-hua/">Ios动画</a>
       </li>
     
@@ -509,10 +493,6 @@
         <a href="/blog/2016/05/22/nodejs-dai-ma-de-zu-zhi-he-bu-shu/">Nodejs-代码的组织和部署</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2016/05/21/nodejsji-chu/">Nodejs基础</a>
-      </li>
-    
   </ul>
 </section>
 <section>
@@ -525,7 +505,7 @@
 <li class='category'><a href='/blog/categories/mac/'>mac (2)</a></li>
 <li class='category'><a href='/blog/categories/nodejs/'>nodejs (2)</a></li>
 <li class='category'><a href='/blog/categories/octopress/'>octopress (2)</a></li>
-<li class='category'><a href='/blog/categories/swift/'>swift (12)</a></li>
+<li class='category'><a href='/blog/categories/swift/'>swift (13)</a></li>
 <li class='category'><a href='/blog/categories/xcode/'>xcode (1)</a></li>
 
 	</ul>
