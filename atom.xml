@@ -4,7 +4,7 @@
   <title><![CDATA[安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-07-19T08:45:33+08:00</updated>
+  <updated>2016-07-19T13:36:31+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -12,6 +12,356 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[自定义 ViewController 容器转场]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/07/19/zi-ding-yi-viewcontroller-rong-qi-zhuan-chang/"/>
+    <updated>2016-07-19T10:02:19+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/07/19/zi-ding-yi-viewcontroller-rong-qi-zhuan-chang</id>
+    <content type="html"><![CDATA[<p>我们在本文讨论navigation controller中的两个view controller之间的转场动画，但是这些做法在 tab bar controller或者任何你自己定义的view controller容器中也是通用的&hellip;</p>
+
+<!--more-->
+
+
+<p>尽管从技术角度来讲，使用ios7的api,你可以对自定义容器中的view controller做自定义转场，但是这不是能直接使用的，实现这种效果非常不容易。</p>
+
+<p>请注意我正在讨论的自定义视图控制器容器都是UIViewController的直接子类，而不是UITabBarController或者UINavigationController的子类。</p>
+
+<p>对于你自定义的继承与UIViewController的容器子类，并没有现成可用的Api允许一个任意的动画控制器将一个子视图控制器自动转场到另外一个，不管是可交互的转场还是不可交互式的转场。我甚至都觉得苹果根据不想支持这种方式。苹果支持下面的几种转场方式:</p>
+
+<ul>
+<li>Navigation Controller推入和推出页面</li>
+<li>Tab bar Controller选择的改变</li>
+<li>Model页面的展示和消失</li>
+</ul>
+
+
+<p>在本文中，我将向你展示如何自定义视图控制器容器，并且使其支持第三方的动画控制器</p>
+
+<h2>预热准备</h2>
+
+<p>看到这里，你可能对上文我们说到一些问题犯嘀咕，让我来告诉你答案吧:</p>
+
+<p>为什么我们不直接继承UINavigationController或UITabBarController.并且使用它们提供的功能呢？</p>
+
+<p>有些时候这是你不想要的。可能你想要一个非常特殊的外观或者行为，和这些类能够提供给你的差别非常大，因此你必须使用一些黑客式的手段去达到你想要的结果，同时还要担心系统框架的版本更新后这些黑客式的手段是否还仍然有效。或者，你就是想完全控制你的视图控制器容器，避免不得不支持一些特定的功能。</p>
+
+<p>好吧，那么为什么不实用
+<code>transitionFromViewController:toViewController:duration:options:animations:completion :</code>去实现呢?</p>
+
+<p>这又是一个好问题，你可能想用这种方式去实现，但是或许你对代码的整洁性比较在意，想把这种转场相关的代码封装在内部。那么为什么不实用一个即存的，被良好验证的设计模式呢？这种设计模式可以非常方便的支持第三方的转场动画。</p>
+
+<h2>介绍相关的API</h2>
+
+<p>在我们开始写代码之前，让我们先花一分钟时间来简单看一下我们需要的组件吧。</p>
+
+<p>ios7自定义视图控制器转场的API基本上都是以协议的方式提供的，这也使其可以非常灵活的使用，因为你可以很简单地讲它们插入到你的类中。最主要的五个组件如下：</p>
+
+<ol>
+<li>动画控制器(Animation Controllers)遵从UIViewControllerAnimatedTransitioning协议，并且负责实际执行动画。</li>
+<li>交互控制器(Interaction Controllers)通过遵从UIViewControllerInteractiveTransitioning协议来控制可交互式的转场</li>
+<li>转场代理(Transitioning Delegates)根据不同的转场类型方便的提供需要的动画控制器和交互控制器</li>
+<li>转场上下文(Transitioning Contexts)定义了转场时需要的元数据，比如在转场过程中所参与的视图控制和视图相关属性。转场上下文对象遵从UIViewControllerContextTransitoning协议，并且这是由系统负责生成和提供的。</li>
+<li>转场协调器(Transition Coordinators)可以在运行转场动画时，并行的运行其他动画。转场协调器遵从UIViewControllerTransitionCoorinator协议。</li>
+</ol>
+
+
+<p>正如你从其他的阅读材料中得知的那样，转场有不可交互式和可交互式两种方式。在本文红，我们将集中精力于不可交互的转场。这种转场是最简单的转场，也是我们学习的一个好的开始。这意味着我们需要处理上面提到的动画控制器(animation controllers)，转场代理(transioning delegates)和转场上下文(transionging contexts)</p>
+
+<h2>示例工程</h2>
+
+<p>通过三个阶段，我们将要实现一个简单自定义的视图控制器容器，它可以对子视图控制器提供自定义的转场动画的支持。</p>
+
+<p>你可以在<a href="https://github.com/objcio/issue-12-custom-container-transitions">这里</a>找到这三个阶段的Xcode工程的源代码</p>
+
+<h3>阶段1:基础</h3>
+
+<p>我们应用中的核心类是<code>ContainerViewController</code>，它持有一个UIViewController实例的数组，每个实例是一个普通的ChildViewController。容器视图控制器设置了一个带有可点击图标，并代表每个子视图控制器的私有的子视图:</p>
+
+<p><img src="https://www.objccn.io/images/issues/issue-12/2014-05-01-custom-container-view-controller-transitions-stage-1.gif" alt="1" /></p>
+
+<p>我们通过点击图标在不同的子视图控制器之间切换，在这一阶段，子视图控制器之间切换时是没有转场动画的。</p>
+
+<p>你可以在这里查看<a href="https://github.com/objcio/issue-12-custom-container-transitions/tree/stage-1">阶段1</a>的源代码</p>
+
+<h3>阶段2：转场动画</h3>
+
+<p>当我们添加转场动画时，我们想要使用一个遵从 UIViewControllerAnimatedTransitioning协议的动画控制器(animation controllers)。这个协议声明了三个方法，前面的2歌方法是必须实现的：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (NSTimeInterval)transitionDuration:(id&lt;UIViewControllerContextTransitioning&gt;)transitionContext;
+</span><span class='line'>- (void)animateTransition:(id&lt;UIViewControllerContextTransitioning&gt;)transitionContext;
+</span><span class='line'>- (void)animationEnded:(BOOL)transitionCompleted;  </span></code></pre></td></tr></table></div></figure>
+
+
+<p>通过这些方法，我们可以获得我们所需的所有东西。当我们的视图控制器容器准备执行动画时，我们可以从动画冬至器中获取动画的持续时间，并让其去执行真正的动画。当动画执行完毕后，如果动画控制器实现了可选的 <code>animationEnded:</code>方法，我们可以调用动画控制器中的 animationEnded: 方法。</p>
+
+<p>但是，首先我们必须把一件事情搞清楚。正如你在上面的方法签名中看到的那样，上面两个必须实现的方法需要一个转场上下文参数，这是一个遵从 <code>UIViewControllerContextTransionging</code>协议的对象。通常情况下，当我们使用系统内建的类时，系统框架为我们创建了转场上下文对象，并把它传递给动画控制器。但是在我们这种情况下，我们需要自定义转场动画，所以我们需要承担系统框架的责任，自己去创建这个转场上下文对象。</p>
+
+<p>这就是大量使用协议的方便之处。我们可以不用必须复写一个私有类，而复写私有类这种方法是明显不可行的。我们可以定义自己的类，并使其遵从文档中相应的协议就可以了。</p>
+
+<p>尽管在UIViewControllerContextTransioning协议中声明了很多方法，而且他们都是必须要实现的，但是我们现在可以暂时忽略它们中的一些方法，因为我们现在仅仅支持不可交互的转场。</p>
+
+<p>同UIKit类似，我们定义了私有类<code>NSObject &lt;UIViewControllerContextTransitioning&gt;</code>.在我们的特定例子汇总，这个私有类是 PrivateTransitionContext,它的初始化方法如下实现:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (instancetype)initWithFromViewController:(UIViewController *)fromViewController toViewController:(UIViewController *)toViewController goingRight:(BOOL)goingRight {
+</span><span class='line'>    NSAssert ([fromViewController isViewLoaded] && fromViewController.view.superview, @"The fromViewController view must reside in the container view upon initializing the transition context.");
+</span><span class='line'>
+</span><span class='line'>    if ((self = [super init])) {
+</span><span class='line'>        self.presentationStyle = UIModalPresentationCustom;
+</span><span class='line'>        self.containerView = fromViewController.view.superview;
+</span><span class='line'>        self.viewControllers = @{
+</span><span class='line'>            UITransitionContextFromViewControllerKey:fromViewController,
+</span><span class='line'>            UITransitionContextToViewControllerKey:toViewController,
+</span><span class='line'>        };
+</span><span class='line'>
+</span><span class='line'>        CGFloat travelDistance = (goingRight ? -self.containerView.bounds.size.width : self.containerView.bounds.size.width);
+</span><span class='line'>        self.disappearingFromRect = self.appearingToRect = self.containerView.bounds;
+</span><span class='line'>        self.disappearingToRect = CGRectOffset (self.containerView.bounds, travelDistance, 0);
+</span><span class='line'>        self.appearingFromRect = CGRectOffset (self.containerView.bounds, -travelDistance, 0);
+</span><span class='line'>    }
+</span><span class='line'>
+</span><span class='line'>    return self;
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们把视图的出现和消失时的状态记录了下来，比如初始状态和最终状态的frame.</p>
+
+<p>请注意一点，我们的初始化方法需要我们提供我们是在向右切换还是向左切换。在我们的<code>ContainerViewController</code>中，按钮是一个接一个水平排列的，转场上下文通过设置每个frame来记录它们之间的位置关系。动画控制器或者说 animator,在生成动画时可以使用这些frame.</p>
+
+<p>我们也可以通过另外的方式去获取这些信息，但是那样的话，就会使animator和<code>ContainerViewController</code>及其视图控制器耦合在一起了，这是不好的，我们并不想这样。animator应该只关心它自己以及传递给它的上下文，因为这样，在理想的情况下，animator可以在不同的上下文中得到复用。</p>
+
+<p>在下一步实现我们自己的动画控制器时，我们应该时刻记住这一点，现在让我们来实现转场上下文吧。</p>
+
+<p>使用Animator类的实例来做转场动画的核心代码如下所示:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[fromViewController willMoveToParentViewController:nil];
+</span><span class='line'>[self addChildViewController:toViewController];
+</span><span class='line'>
+</span><span class='line'>Animator *animator = [[Animator alloc] init];
+</span><span class='line'>
+</span><span class='line'>NSUInteger fromIndex = [self.viewControllers indexOfObject:fromViewController];
+</span><span class='line'>NSUInteger toIndex = [self.viewControllers indexOfObject:toViewController];
+</span><span class='line'>PrivateTransitionContext *transitionContext = [[PrivateTransitionContext alloc] initWithFromViewController:fromViewController toViewController:toViewController goingRight:toIndex &gt; fromIndex];
+</span><span class='line'>
+</span><span class='line'>transitionContext.animated = YES;
+</span><span class='line'>transitionContext.interactive = NO;
+</span><span class='line'>transitionContext.completionBlock = ^(BOOL didComplete) {
+</span><span class='line'>    [fromViewController.view removeFromSuperview];
+</span><span class='line'>    [fromViewController removeFromParentViewController];
+</span><span class='line'>    [toViewController didMoveToParentViewController:self];
+</span><span class='line'>};
+</span><span class='line'>
+</span><span class='line'>[animator animateTransition:transitionContext];</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这其中的大部分是对视图控制器容器的操作，计算出我们是在向左切换还是向右切换，做动画的部分基本上只有3行代码：</p>
+
+<ol>
+<li>创建Animator</li>
+<li>创建转场上下文</li>
+<li>触发动画执行</li>
+</ol>
+
+
+<p>有了上面的代码，转场效果看起来如下图所示:</p>
+
+<p><img src="https://www.objccn.io/images/issues/issue-12/2014-05-01-custom-container-view-controller-transitions-stage-2.gif" alt="2" /></p>
+
+<p>非常酷，我们甚至没有写一行动画相关的代码</p>
+
+<p>你可以在<a href="https://github.com/objcio/issue-12-custom-container-transitions/tree/stage-2">阶段2</a>标签下看到这部分代码的变化。</p>
+
+<h3>阶段3：封装</h3>
+
+<p>我想我们最后要做的一件事情是封装 ContainerViewController,使其能够:</p>
+
+<ol>
+<li>提供默认的转场动画</li>
+<li>提供替换默认动画控制器的代理</li>
+</ol>
+
+
+<p>这意味着我们需要对Animator类的依赖移除，同时需要创建一个代理协议。</p>
+
+<p>我们如下定义这个协议:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>@protocol ContainerViewControllerDelegate &lt;NSObject&gt;
+</span><span class='line'>@optional
+</span><span class='line'>- (void)containerViewController:(ContainerViewController *)containerViewController didSelectViewController:(UIViewController *)viewController;
+</span><span class='line'>- (id &lt;UIViewControllerAnimatedTransitioning&gt;)containerViewController:(ContainerViewController *)containerViewController animationControllerForTransitionFromViewController:(UIViewController *)fromViewController toViewController:(UIViewController *)toViewController;
+</span><span class='line'>@end</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>containerViewController:didSelectViewController:</code>方法使<code>ContainerViewController</code>可以很容易的集成与功能齐全的应用中。</p>
+
+<p><code>containerViewController:animationControllerForTransitionFromViewController:toViewController:</code>方法挺有趣的，当然，你可以把它和下面的UIKit中的视图控制器容器的代理协议做对比:</p>
+
+<ul>
+<li>tabBarController:animationControllerForTransitionFromViewController:toViewController: (UITabBarControllerDelegate)</li>
+<li>navigationController:animationControllerForOperation:fromViewController:toViewController: (UINavigationControllerDelegate)</li>
+</ul>
+
+
+<p>所有的这些方法都返回一个id<UIViewControllerAnimatedTransitioning>对象。与之前一直使用一个 Animator 对象不同，我们现在可以从我们的代理那里获取一个动画控制器:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>id&lt;UIViewControllerAnimatedTransitioning&gt;animator = nil;
+</span><span class='line'>if ([self.delegate respondsToSelector:@selector (containerViewController:animationControllerForTransitionFromViewController:toViewController:)]) {
+</span><span class='line'>    animator = [self.delegate containerViewController:self animationControllerForTransitionFromViewController:fromViewController toViewController:toViewController];
+</span><span class='line'>}
+</span><span class='line'>animator = (animator ?: [[PrivateAnimatedTransition alloc] init]);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果我们有代理并且它返回一个Animator,那么我们就使用这个 animator.否则，我们使用内部私有类PrivateAnimatedTransition 创建一个默认的 animator.接下来我们将实现 <code>PrivateAnimatedTransition</code>类。</p>
+
+<p>尽管默认的动画和 Animator有一些不同，但是代码看起来惊人的相似，下面是完整的代码实现:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>@implementation PrivateAnimatedTransition
+</span><span class='line'>
+</span><span class='line'>static CGFloat const kChildViewPadding = 16;
+</span><span class='line'>static CGFloat const kDamping = 0.75f;
+</span><span class='line'>static CGFloat const kInitialSpringVelocity = 0.5f;
+</span><span class='line'>
+</span><span class='line'>- (NSTimeInterval)transitionDuration:(id&lt;UIViewControllerContextTransitioning&gt;)transitionContext {
+</span><span class='line'>    return 1;
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>- (void)animateTransition:(id&lt;UIViewControllerContextTransitioning&gt;)transitionContext {
+</span><span class='line'>
+</span><span class='line'>    UIViewController* toViewController = [transitionContext viewControllerForKey:UITransitionContextToViewControllerKey];
+</span><span class='line'>    UIViewController* fromViewController = [transitionContext viewControllerForKey:UITransitionContextFromViewControllerKey];
+</span><span class='line'>
+</span><span class='line'>    // When sliding the views horizontally, in and out, figure out whether we are going left or right.
+</span><span class='line'>    BOOL goingRight = ([transitionContext initialFrameForViewController:toViewController].origin.x &lt; [transitionContext finalFrameForViewController:toViewController].origin.x);
+</span><span class='line'>
+</span><span class='line'>    CGFloat travelDistance = [transitionContext containerView].bounds.size.width + kChildViewPadding;
+</span><span class='line'>    CGAffineTransform travel = CGAffineTransformMakeTranslation (goingRight ? travelDistance : -travelDistance, 0);
+</span><span class='line'>
+</span><span class='line'>    [[transitionContext containerView] addSubview:toViewController.view];
+</span><span class='line'>    toViewController.view.alpha = 0;
+</span><span class='line'>    toViewController.view.transform = CGAffineTransformInvert (travel);
+</span><span class='line'>
+</span><span class='line'>    [UIView animateWithDuration:[self transitionDuration:transitionContext] delay:0 usingSpringWithDamping:kDamping initialSpringVelocity:kInitialSpringVelocity options:0x00 animations:^{
+</span><span class='line'>        fromViewController.view.transform = travel;
+</span><span class='line'>        fromViewController.view.alpha = 0;
+</span><span class='line'>        toViewController.view.transform = CGAffineTransformIdentity;
+</span><span class='line'>        toViewController.view.alpha = 1;
+</span><span class='line'>    } completion:^(BOOL finished) {
+</span><span class='line'>        fromViewController.view.transform = CGAffineTransformIdentity;
+</span><span class='line'>        [transitionContext completeTransition:![transitionContext transitionWasCancelled]];
+</span><span class='line'>    }];
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>@end</span></code></pre></td></tr></table></div></figure>
+
+
+<p>需要注意一点的是，上面的代码没有通过设置视图的frame 来反应它们之间的位置关系，但是代码仍然可以正常工作，只不过转场总是在同一个方向上。因此，这个类也可以被其它的代码库使用。</p>
+
+<p>转场动画看起来像是这样:</p>
+
+<p><img src="https://www.objccn.io/images/issues/issue-12/2014-05-01-custom-container-view-controller-transitions-stage-3.gif" alt="2" /></p>
+
+<p>在<a href="https://github.com/objcio/issue-12-custom-container-transitions/tree/stage-3">阶段3</a>代码中，app delegate中设置代理的部分被注释掉了，这样就可以看到默认的动画效果了，你可以将其设置回再使用 Animator类，你可能想查看同<a href="https://github.com/objcio/issue-12-custom-container-transitions/compare/stage-2...stage-3">阶段2相比所有的修改</a></p>
+
+<p>我们现在有一个自包含的提供了默认转场动画的 ContainerViewController 类，这个默认的转场动画可以被开发者定义的ios7自定义动画控制器(UIViewControllerAnimatedTransitioning)的对象代替，甚至都可以不用关心我们的源代码就可以方便的替换。</p>
+
+<h2>结论</h2>
+
+<p>在本文中，我们通过使用ios7提供的自定义视图控制器转场的新特性，使得我们自定义的视图控制器容器成为了UIkit的一等公民。</p>
+
+<p>这意味着你可以把自定义的非交互的转场动画应用到自定义的视图控制器容器中。你可以看到我们把7个话题之前使用的转场类直接拿过来使用，而且没有做任何修改。</p>
+
+<p>如果你想让自己的容器视图控制器作为一个类库或者框架，或者仅仅想使你的代码得到更好的复用，这将是非常完美的。</p>
+
+<p>我们现在仅仅支持非交互式的转场，下一步就是对交互式的转场也提供支持。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[常用的第三方类库&amp;学习资料]]></title>
@@ -9891,277 +10241,6 @@ Top, Leading and Trailing 都为0</p>
 <p>你可以下载完整的工程 <a href="http://www.raywenderlich.com/wp-content/uploads/2015/09/VacationSpots_Complete.zip">完整工程</a></p>
 
 <p>希望能够帮到你~</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[UIStackView介绍]]></title>
-    <link href="http://andrew-anlu.github.io/blog/2016/04/04/uistackviewjie-shao/"/>
-    <updated>2016-04-04T15:47:37+08:00</updated>
-    <id>http://andrew-anlu.github.io/blog/2016/04/04/uistackviewjie-shao</id>
-    <content type="html"><![CDATA[<p>UIStackView类提供了一个高效的接口用于平铺一行或一列的视图组合.Stack视图使你的依靠自动布局的能力，创建用户接口使得可以动态的调整设备的朝向，屏幕尺寸以及任何可用范围内的变化。Stack视图管理着所有它的 arrageedSubviews属性中视图的布局，这些视图根据它们在arrangedSubviews数组中的顺序沿着stack视图的轴向排列，精确的布局变量根据Stack视图的 axixs,distribution,allignment,spcing,和其它属性决定。</p>
-
-<!--more-->
-
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/130054395519774.png" alt="logo" /></p>
-
-<p>使用 Stack视图，打开一个你希望编辑的storyboard,从对象库中拖出一个Horizontal Stack View或者Vertical Stack View,并放置到你希望的位置上，下一步，将控件或视图拖拽到stack中，如果需要你可以继续添加视图或者控件给指定的statck.Interface buider将根据stack内容自动调节尺寸，你可以通过修改尚需经面板中stack视图的属性调整statck的外观.</p>
-
-<h2>Stack视图与自动布局</h2>
-
-<p>Stack视图使用自动布局来定位和控制其管理的视图的尺寸，stack视图沿着它的轴向拼凑第一个和最后一个被管理的视图，使其便捷平齐。对一个月水平stack视图，这意味着第一个被管理的视图的左边界是与stack的左边界对齐的，并且最后一个被管理的视图右边界与stack右边界是平齐的。对于垂直stack,上边界和下边界格式对齐的。如果你设置了stack视图的 <code>layoutMarginsRelativeArrangement</code>为YES,stack视图将使用相关的边距与其内容对齐，而不是边界。</p>
-
-<p>对于除去<code>UIStackViewDistributionFillEqually</code>分布以外的分布方式，stack视图使用被管理视图的<code>intrinsicContentSize</code>属性来计算沿着stack轴向的视图尺寸，<code>UIStackViewDistributionFillEqually</code>分布将调节所有被管理视图的在stack轴向上拥有相同尺寸，以填充stack视图。如果可能，stack视图将拉伸所有被管理的视图，来匹配其在stack轴向上最长的原有尺寸。</p>
-
-<p>对于除去<code>UIStackViewAlignmentFill</code>对齐以外的对齐方式，stack视图使用其管理的视图的<code>intrinsicContentSize</code>属性来计算视图垂直于stack轴向的尺寸。<code>UIStackViewAlignmentFill</code>重新调节了所有其管理的视图，使这些视图填充stack视图垂直于其轴向空间。如果可能，stack视图将拉伸所有管理的视图来匹配其垂直于stack轴向的最大固有尺寸。</p>
-
-<h2>定位和调整Stack视图尺寸</h2>
-
-<p>当stack视图允许你布局其内容而不直接使用自动布局，你将仍然需要使用自动布局来定位stack视图，通常情况下，这意味着需要皮凑至少两个边界相邻的stack来定义它的位置，没有额外约束的情况下，系统会为stack视图计算一个尺寸来适应其内容:</p>
-
-<ul>
-<li>沿着stack视图轴向，其适应尺寸等于其管理的视图尺寸与间距的和</li>
-<li>垂直于stack视图轴向，其适应尺寸等于其管理的视图中最大视图的尺寸</li>
-<li>如果stack视图的<code>layoutMarginsRelativeArrangement</code>为YES,stack视图的适应尺寸会包括边距空间</li>
-</ul>
-
-
-<p>你可以提供额外的约束来具体说明stack视图的高度，宽度或者两者兼有，在这些情况下，stack视图调整了其管理的视图的布局和尺寸来填充指定区域。精确的布局变量根据stack视图的属性获得。可以通过查看<code>UIStackViewDistribution</code>和<code>UIStackViewAlignment</code>枚举，已获得一个完整的stack视图。</p>
-
-<p>你也可以根据stack视图的第一条或最后一条基线定位它，而不是使用顶部，底部或者中心Y值，类似于stack视图的适应尺寸，这些基线都是基于stack视图的内容计算得到的</p>
-
-<ul>
-<li><p>一个水平的stack视图调用 <code>viewForFirstBaselineLayout</code>方法或者 <code>viewForLastBaselineLayout</code>方法时返回它最高的视图。如果最高的视图也是一个stack视图，那么其返回的将是在嵌套的stack视图上调用<code>viewForFirstBaselineLayout</code>方法或者<code>viewForLastBaselineLayout</code>方法的结果。</p></li>
-<li><p>一个垂直的stack视图当调用 <code>viewForFirstBaselineLayout</code>方法时返回的是其管理的第一个视图，当调用<code>viewForLastBaselineLayout</code>方法时返回的是其管理的最后一个视图。如果这两个视图之一也是stack视图，那么其返回的将是在嵌套的stack视图上对应调用<code>viewForFirstBaselineLayout</code>方法或<code>viewForLastBaselineLayout</code>方法的结果。</p></li>
-</ul>
-
-
-<blockquote><p><em>注意</em>
-基线对齐方式只作用于那些高度匹配其原本内容高度的视图，如果视图被拉伸或压缩过，那么基线将出现在错误的位置上。</p></blockquote>
-
-<h2>通过Stack视图布局</h2>
-
-<p>这有一些通用方法用于stack视图。这个清单是要高亮一些有用的实例来显示 stack视图的灵活性，目前这还不是一个完整的清单。</p>
-
-<ul>
-<li>只是定义位置. 你可以通过固定两个与其父视图相邻的边界来定义stack视图的位置。在这里，stack视图的尺寸将根据其管理的视图在两个维度上自由扩展。</li>
-</ul>
-
-
-<p>举个例子，在Figure 1中，stack视图的左边界和上边界都已经相对固定于其父视图。这些标签将根据带有8个点的两者之间的空间作为第一基准线。这对于相对于其本身左对齐的stack视图内容是有效的。</p>
-
-<p>Figure1定义位置
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/140040561762600.png" alt="logo" /></p>
-
-<ul>
-<li>定义沿着 stack视图轴向的尺寸。这里，你固定了沿着stack视图轴向相对于其父视图的两个边界，定义了stack视图沿着其轴向的尺寸。你将需要固定其它边界中的一个来定义stack视图的位置。stack视图将沿着其轴向改变尺寸和位置来填充定义的空间:然而，未固定的边界将根据其管理的最大视图的尺寸自动移动。</li>
-</ul>
-
-
-<p>举例Figure 2,stack视图的左，上，右边界都已经相对于其父视图固定了。使用<code>UIStackViewDistributionFill</code>分布是的其内容重设尺寸来填充它的高度，并且从文本框有比标签更低的内容紧凑优先级开始，它将在必要的时候被拉伸。</p>
-
-<p>Figure2定义沿着stack视图轴向的尺寸</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/140059516762099.png" alt="logo" /></p>
-
-<ul>
-<li>定义垂直于stack视图轴向的尺寸。这类似于上一个实例，但是你固定了垂直于stack视图轴向的连个边界和沿着轴向的一个边界。这使得stack视图在你增加或移除其管理的视图时将沿着其轴向扩展或回缩。除非你使用了
-<code>UIStackViewDistributionFillEqually</code>分布，被管理的视图将跟根据其原有尺寸调节尺寸。垂直于其轴向的视图将根据其stack视图的对齐模式在其定义的范围内平铺。</li>
-</ul>
-
-
-<p>举例，Figure3展示了一个包含了四个标签和一个按钮的垂直stack视图。这个stack视图使用了8个点的间隙和<code>UIStackViewAlignmentCenter</code>对齐方式。stack视图的高度将根据stack内部元素的增减而增大或回缩。</p>
-
-<p>FIgure3.定义垂直于stack视图轴向的尺寸
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/140110013482874.png" alt="logo" /></p>
-
-<ul>
-<li>同时定义stack视图的位置和尺寸。这里你固定了stack视图的所有四个边界。stack视图将在提供的范围之内平铺其内容，举例，Figure4展示了一个所有四个边界都相对于其父视图固定的垂直stack视图。通过使用<code>UIStackViewAlignmentCenter</code>对齐方式和<code>UIStackViewDistributionFill</code>分布方式，stack视图确保其内容将水平和垂直居中填充屏幕，然后，获得想要的布局需要两个额外的步骤，默认情况下，stack视图会垂直拉伸标签而不是图片，要缩放图片控件，就要降低其内容紧凑优先级到低于标签，额外的，为了保持图片缩放时的长宽比，你必须设置图片视图的模式为 Aspect Fit.增加一个图片视图月stack视图间相等约束将有助于确保图片将被缩放来填充可用范围。</li>
-</ul>
-
-
-<p>Figure 4.同时定义stack视图的位置和尺寸
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/140122324105787.png" alt="logog" /></p>
-
-<h2>管理stack视图的展现</h2>
-
-<p>UistackView是UIview的非渲染型子类。它没提供其自由的任何用户接口，相反地，它只管理被其管理的视图的位置和尺寸。因此，有些属性(如backgroundCOlor)在stack视图上是无效的。类似的，你无法重写layerClass,drawRect等方法。</p>
-
-<p>这里有一系列的属性来定义stack视图如何平铺其内容。</p>
-
-<ul>
-<li>axis(轴向)属性决定了stack的朝向，只有垂直和水平</li>
-<li>distributin(分布)属性决定了其管理的视图在沿着其轴向上的布局</li>
-<li>alignment(对齐)属性决定了其管理的视图在垂直于其轴向上的布局</li>
-<li>spacing(空隙)属性决定了其管理的视图间的最小间隙</li>
-<li>baselineRelativeArragement 属性决定了其视图间的垂直间隙是否根据基线测量得到</li>
-<li>layoutMarginsRelativeArrangement 属性决定了 stack 视图平铺其管理的视图时是否要参照它的布局边距</li>
-</ul>
-
-
-<p>通常情况下，你会使用一个stack视图来布局小数量的视图，你可以通过在其他stack视图上嵌套多个stack视图的方式创建更加复杂的视图层次结构。举例：Figure5展示乐意个包含两个水平stack视图的垂直stack视图。每一个水平stack视图各包含一个标签和一个文本框.</p>
-
-<p>Figure 5.Stack 视图的嵌套
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/140146204108925.png" alt="logo" /></p>
-
-<p>你也可以通过增加被管理的视图的额外约束来完备的吊接一个被管理视图的展现，举例说明，你可以使用约束类设置视图的最小或最大的高度或宽度，或者你可以定义一个长宽比。当平铺其内容时，stack视图将使用这些约束。举例来说，在Figure4中，当图片被压缩时，图片视图的一个长宽比约束被强行赋予了一个长宽比数。</p>
-
-<blockquote><p><strong>注意</strong>
-当给一个stack视图内的视图增加约束时要特别注意避免传入冲突，作为惯例，如果一个视图的尺寸在一个指定的维度上默认回到其原本内容的尺寸，那么你可以安全的在这个维度上增加约束</p></blockquote>
-
-<h2>维护其惯例的视图与子视图之间的统一性</h2>
-
-<p>Stack视图确保它的arragedSubveiws属性将一直是其 subviews属性的子集合。明确的说，stack视图强制实施了以下规定:</p>
-
-<ul>
-<li>无论何时stack视图增加了一个视图到它的arrangedSubviews数组，其也将把这个视图作为子视图增加，如果还未增加的话。</li>
-<li>无论何时一个子视图从stack视图中移除，那么stack视图也将从从arrangedSubviews数组中移除.</li>
-<li>从arrangedSubviews移除一个视图并不会将其作为姿势图移除。stack视图将不再管理改视图的尺寸和位置，但是该视图扔将是视图结构的一部分，并且当其可见的狂下仍会被渲染到屏幕上。</li>
-</ul>
-
-
-<p>当arrangedSubviews数组一直包含着subviews数组的自己和，这些数组间的顺序仍然是独立的。</p>
-
-<ul>
-<li>arrangedSubviews数组的顺序定义了展现在stack中的视图的顺序。对于水平stack视图，这些视图将以阅读顺序平铺，即最小索引的视图在较大索引视图的左侧。对于垂直stack视图，这些视图是从上到下平铺的，及较小索引的视图在较大索引视图的上方。</li>
-<li>subviews数组中的顺序定义了子视图在z轴上的顺序。如果视图重叠，有较小索引的子视图将出现在有家多音的子视图后方。</li>
-</ul>
-
-
-<h2>动态改变stack视图内容</h2>
-
-<p>当视图被加入，移除或插入arrangedSubviews数组时，或当一个被管理的子视图的hidden属性改变时，stack视图都会自动更新它的布局。</p>
-
-<p>Oc代码如下:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>// Appears to remove the first arranged view from the stack.
-</span><span class='line'>// The view is still inside the stack, it's just no longer visible, and no longer contributes to the layout.
-</span><span class='line'>UIView * firstView = self.stackView.arrangedSubviews[0];
-</span><span class='line'>firstView.hidden = YES;</span></code></pre></td></tr></table></div></figure>
-
-
-<p>swift代码如下:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>// Appears to remove the first arranged view from the stack.
-</span><span class='line'>// The view is still inside the stack, it's just no longer visible, and no longer contributes to the layout.
-</span><span class='line'>let firstView = stackView.arrangedSubviews[0]
-</span><span class='line'>firstView.hidden = true</span></code></pre></td></tr></table></div></figure>
-
-
-<p>stack视图也会自动响应其任何属性的改变。举例，你可以更新stack视图的axis属性来动态改变朝向</p>
-
-<p>OC代码如下:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>// Toggle between a vertical and horizontal stack
-</span><span class='line'>if (self.stackView.axis == UILayoutConstraintAxisHorizontal) {
-</span><span class='line'>    self.stackView.axis = UILayoutConstraintAxisVertical;
-</span><span class='line'>}else {
-</span><span class='line'>    self.stackView.axis = UILayoutConstraintAxisHorizontal;
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Swift代码如下:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>// Toggle between a vertical and horizontal stack
-</span><span class='line'>if stackView.axis == .Horizontal {
-</span><span class='line'>    stackView.axis = .Vertical
-</span><span class='line'>}else {
-</span><span class='line'>    stackView.axis = .Horizontal
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>对于被管理的子视图的hidden属性的变化和stack视图属性的变化，你可以通过将这些改变内置到一个动画块代码的方式以动画的方式展现。</p>
-
-<p>OC代码如下:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>// Animates removing the first item in the stack.
-</span><span class='line'>[UIView animateWithDuration:0.25 animations:^{
-</span><span class='line'>    UIView * firstView = self.stackView.arrangedSubviews[0];
-</span><span class='line'>    firstView.hidden = YES;
-</span><span class='line'>}];</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Swift代码如下:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>// Animates removing the first item in the stack.
-</span><span class='line'>UIView.animateWithDuration(0.25) { () -&gt; Void in
-</span><span class='line'>    let firstView = stackView.arrangedSubviews[0]
-</span><span class='line'>    firstView.hidden = true}</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>常用方法</h2>
-
-<h3>创建Stack视图</h3>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>- initWithArrangedSubviews:  (New in iOS 9.0)</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>管理安排的子视图</h3>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>- addArrangedSubview: (New in iOS 9.0)
-</span><span class='line'>  arrangedSubviews Property (New in iOS 9.0)
-</span><span class='line'>- insertArrangedSubview:atIndex: (New in iOS 9.0)
-</span><span class='line'>- removeArrangedSubview: (New in iOS 9.0)</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>设置布局</h3>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>alignment Property  (New in iOS 9.0)
-</span><span class='line'>axis Property  (New in iOS 9.0)
-</span><span class='line'>baselineRelativeArrangement Property  (New in iOS 9.0)
-</span><span class='line'>distribution Property  (New in iOS 9.0)
-</span><span class='line'>layoutMarginsRelativeArrangement Property  (New in iOS 9.0)
-</span><span class='line'>spacing Property  (New in iOS 9.0)</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>常量</h3>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>UIStackViewDistribution
-</span><span class='line'>UIStackViewAlignment</span></code></pre></td></tr></table></div></figure>
-
 ]]></content>
   </entry>
   
