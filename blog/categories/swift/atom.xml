@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Swift | 安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/blog/categories/swift/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-07-18T18:04:46+08:00</updated>
+  <updated>2016-07-19T08:45:33+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -18,9 +18,7 @@
     <link href="http://andrew-anlu.github.io/blog/2016/07/18/chang-yong-de-di-san-fang-lei-ku-and-xue-xi-zi-liao/"/>
     <updated>2016-07-18T17:57:54+08:00</updated>
     <id>http://andrew-anlu.github.io/blog/2016/07/18/chang-yong-de-di-san-fang-lei-ku-and-xue-xi-zi-liao</id>
-    <content type="html"><![CDATA[<h1>iOS学习</h1>
-
-<hr />
+    <content type="html"><![CDATA[<hr />
 
 <p>自己总结的iOS、mac开源项目及库，持续更新。。。。
 github排名 <a href="https://github.com/trending">https://github.com/trending</a>,github搜索：<a href="https://github.com/search">https://github.com/search</a></p>
@@ -239,6 +237,19 @@ Deprecated in favor of PureLayout, which includes OS X support:<a href="https://
 <li><a href="https://github.com/xyfeng/XYPieChart">XYPieChart</a> -XYPieChart:饼状图,  饼图,  数据统计,  数据可视化,可以在图形上标注数据。效果十分漂亮，而且没有用到一张图片。</li>
 <li><a href="https://github.com/Zirkfied/ZFChart">ZFChart</a> - 模仿PNChart写的一个图表库，用法简单，暂时有柱状图，线状图，饼图三种类型，后续可能会更新新的类型。</li>
 <li><a href="https://github.com/philackm/Scrollable-GraphView">Scrollable-GraphView.swift</a> - 灵动感十足的自适应、可定制滚动曲（折）线图表库。</li>
+<li><a href="https://github.com/danielgindi/Charts">charts</a>国外人写有各种效果的图表，非常强大</li>
+<li><a href="https://github.com/xyfeng/XYPieChart">xypieChart</a>带有动画效果的饼状图</li>
+<li><a href="https://github.com/zhiyu/chartee">chartee</a>股票K线图示例</li>
+<li><a href="https://github.com/dangfm/stockChart">stockChart</a>股票K线图示例</li>
+<li><a href="https://github.com/NunchakusHuang/HYStockChart">HYStockChart</a>股票图</li>
+<li><a href="https://github.com/chenyk0317/YKLineChartView">YKLineChartView</a>iOS 股票的K线图 分时图 Kline <a href="http://chenyk.com">http://chenyk.com</a></li>
+<li><a href="https://github.com/xiaofei86/LPLineChartView">LPLineChartView</a>不错的图形报表</li>
+<li><a href="https://github.com/chenxiaoyu3/BBStockChartView">BBStockCharView</a>A full customizable iOS stock chart view, K-Line, volume graph, with gesture supported.</li>
+<li><a href="https://github.com/i-schuetz/SwiftCharts">SwiftCharts</a> Easy to use and highly customizable charts library for iOS</li>
+<li><a href="https://github.com/q946666800/DrawLineChart">drawLineChart</a>绘制简单折线图</li>
+<li><a href="https://github.com/zhmch0329/MCChartView">MCChartview</a>MCChartView is some different charts used in my project! Bar, Line, Pie, Radar, Circle and Coverage chart views.</li>
+<li><a href="Line%20and%20Bar%20of%20Chart,%20you%20can%20mark%20the%20range%20of%20value%20you%20want,%20and%20show%20the%20max%20or%20min%20values%20in%20linechart%20with%20the%20form%20style">UUChartView</a></li>
+<li><a href="https://github.com/zhuayi/ZCharts">Zcharts</a>ZCharts 是一个图表库， 能够很简单便捷的为应用程序添加有交互性的图表</li>
 </ul>
 
 
