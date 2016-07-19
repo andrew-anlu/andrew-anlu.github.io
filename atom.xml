@@ -4,7 +4,7 @@
   <title><![CDATA[安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-07-19T13:36:31+08:00</updated>
+  <updated>2016-07-19T14:26:52+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -12,6 +12,75 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[View-Layer协作]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/07/19/view-layerxie-zuo/"/>
+    <updated>2016-07-19T13:44:10+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/07/19/view-layerxie-zuo</id>
+    <content type="html"><![CDATA[<p>在ios中，所有的View都是由一个底层的layer来驱动的。View和它的layer之间有着紧密的联系，View其实直接从layer对象中获取了绝大多数它所需要的数据。在ios中也有一些单独的layer,比如<code>AVCaptureVideoPreviewLayer</code>和<code>CAShapeLayer</code>，它们不需要附加到view上就可以在屏幕上显示内容。两种情况下都是layer起决定作用。当然了，附加到view上的layer和单独的layer在行为上还是稍有不同的。</p>
+
+<p>基本上你改变一个单独的layer的任何属性的时候，都会触发一个从旧值过渡到新值的简单动画（就是所谓的动画<code>animatable</code>）。然而，如果你改变的是view中layer的同一个属性，它只会从这一帧直接跳变到下一帧。尽管两种情况中都有layer,但是当layer附加在view上时，它的默认的隐式动画的layer行为就不起作用了。</p>
+
+<blockquote><p><em>注意</em>
+animatable 几乎所有的层的属性都是隐性可动画的。你可以在文档中看到它们的简介是以'animatable'结尾的。这不仅包括了比如位置，尺寸，颜色或者透明度这样的绝大多数的数值属性，设置也囊括了像isHidden和doubleSides这样的布尔值。像paths这样的属性也是animatable的。但是它不支持隐式动画。</p></blockquote>
+
+<p>在 Core Animation 编程指南的"How to Animate Layer-Backed Views"中，对为什么会这样做出了一个解释:</p>
+
+<blockquote><p>UIView默认情况下进制了layer动画，但是在animation block中又重新启用了它们</p></blockquote>
+
+<p>这正是我们所看到的额行为，当一个属性在动画block之外被改变时，没有动画，但是当属性在动画block内改变时，就带上了动画。对于这是如何发生的这一问题的答案十分简单和优雅，它优美地阐明和揭示了view和layer之间是如何协同工作和被精心设计的。</p>
+
+<p>无论何时一个可动画的layer属性改变时，layer都会寻找并运行何时的'Action'来实行这个改变。在core Animation的专业术语中就把这样的动画统称为动作(Action,或者CAAction)</p>
+
+<blockquote><p>CAAction:从技术上来说，这是一个接口，并可以用来做各种事情，但是实际上，某种程度上你可以只把它理解为用来处理动画</p></blockquote>
+
+<p>layer将像文档中缩写的那样去寻找动作，整个过程分为5个步骤。第一步中的view和layer中交互的部分是最有意思的：</p>
+
+<p>layer通过向它的代理发送 <code>actionForLayer:forKey:</code>消息来询问提供一个对应属性变化的action.delegate可以通过返回以下三者之一来进行响应:</p>
+
+<ol>
+<li>它可以返回一个动作对象，这种情况下layer将使用这个动作</li>
+<li>它可以返回一个nil,这样layer就会到其他地方继续寻找</li>
+<li>它可以返回一个NShull对象，告诉layer这里不需要执行一个动作，搜索也会就此停止</li>
+</ol>
+
+
+<p>而让这一切变得有趣的是，当layer在背后支持一个view的时候，view就是它的delegate;</p>
+
+<blockquote><p>在ios中，如果layer与一个UIview对象关联时，这个属性必须被设置为持有这个layer的那个view</p></blockquote>
+
+<p>理解这些之后，前一分钟解释起来还复杂无比的现象瞬间就易如反掌了；属性改变时layer会向View请求一个动作，而一般情况下view将返回一个NSNull,只有当属性改变发生在动画block中时，view才会返回实际的动作。哈，但是请别轻信我的这些话，你可以非常容易地验证到底是不是这样。只要对一个一般来说可以动画的layer属性向view询问动作就可以了，比如对于'position':</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>NSLog(@"outside animation block: %@",
+</span><span class='line'>      [myView actionForLayer:myView.layer forKey:@"position"]);
+</span><span class='line'>
+</span><span class='line'>[UIView animateWithDuration:0.3 animations:^{
+</span><span class='line'>    NSLog(@"inside animation block: %@",
+</span><span class='line'>          [myView actionForLayer:myView.layer forKey:@"position"]);
+</span><span class='line'>}];</span></code></pre></td></tr></table></div></figure>
+
+
+<p>运行上面的代码，可以看到在block外view返回的是NSNull对象，而在block中时返回的是一个CABasicAnimation.很优雅，对吧?值得注意的是打印出的 NSNull 是带着一对尖括号的 (&ldquo;<null>&rdquo;)，这和其他对象一样，而打印 nil 的时候我们得到的是普通括号((null))：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>outside animation block: &lt;null&gt;
+</span><span class='line'>inside animation block: &lt;CABasicAnimation: 0x8c2ff10&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>对于view中的layer来说，对动作的搜索只会到第一步为止。对于单独的layer来说，剩余的4个步骤可以在 <a href="https://developer.apple.com/library/mac/documentation/graphicsimaging/reference/CALayer_class/Introduction/Introduction.html#//apple_ref/occ/instm/CALayer/actionForKey:">CALayer</a>actionForKey: 文档中找到。</p>
+
+<h2>从UIKit中学习</h2>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[自定义 ViewController 容器转场]]></title>
@@ -9864,383 +9933,6 @@ AsyncDisplayKit会为backgroundImageNode创建一个Layer.然而，你必须要�
 <h2>完整工程</h2>
 
 <p><a href="https://cdn3.raywenderlich.com/wp-content/uploads/2014/11/Layers-Finished-7.3.zip">完整工程</a>请在这里下载!</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[通过一个Demo详解UIStackView]]></title>
-    <link href="http://andrew-anlu.github.io/blog/2016/04/04/tong-guo-%5B%3F%5D-ge-demoxiang-jie-uistackview/"/>
-    <updated>2016-04-04T19:48:29+08:00</updated>
-    <id>http://andrew-anlu.github.io/blog/2016/04/04/tong-guo-[?]-ge-demoxiang-jie-uistackview</id>
-    <content type="html"><![CDATA[<p><a href="http://andrew-anlu.github.io/blog/2016/04/04/uistackviewjie-shao/">在上一个章节</a>我们已经介绍了什么是UIStackView了，其实它更类似于Android开发中的LinerLayer排版技术。</p>
-
-<p>这一章节，我们通过一个完整的例子来讲解UIStackView的用法</p>
-
-<!--more-->
-
-
-<h2>开始</h2>
-
-<p>下下载这个<a href="http://www.raywenderlich.com/wp-content/uploads/2015/09/VacationSpots_Starter.zip">开始工程</a>,下载完毕后，用Iphone6 模拟器运行起来，你将会看到一个度假旅游的列表</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/01-table-view-is-now-correct_750x1334-281x500.png" alt="logo" />
-点击第一行cell,咋看，这个视图没有什么问题，但是你仔细观察，就会发现有几个问题:</p>
-
-<ol>
-<li>看视图的下面的那一排按钮，它们中间都有一定间隙规则布局，但是它们并没有适配整个屏幕的布局，看着挺丑的，临时转换屏幕landscape orientation,通过 <code>Command-left</code></li>
-</ol>
-
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/02-issues-visible-in-landscape-view_1334x750-480x270.png" alt="logo" /></p>
-
-<ol>
-<li>在详情页面，点击hidden按钮，它成功地隐藏了文字，但是下面的内容并没有顶上去，中间一片空白
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/03-hide-weather-issue_750x1334-281x500.png" alt="logo" /></li>
-</ol>
-
-
-<p>现在你已经有几点好的建议去提升app的体验，现在让我们开始切入这个工程</p>
-
-<p>打开Main.storyboard然后找到 <code>Spot Info View Controller</code>,这里有一些颜色在stackView中。</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/04-colorful-scene-in-storyboard_504x636-396x500.png" alt="logo" /></p>
-
-<p>这些标签和按钮已经有几种不同颜色的背景色，但是在运行时他们的背景色就是透明的，在这个storyboard中，他们仅仅是为了帮助你展示stackView是怎么改变属性影响嵌套的子视图</p>
-
-<p>你不需要做这些，但是从另一个观点来说你实际上喜欢去看看这些背景色当运行程序的时候，你能临时做些改变在SpotInfoViewController的viewDidLoad()中:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>// Clear background colors from labels and buttons
-</span><span class='line'>for view in backgroundColoredViews {
-</span><span class='line'>  view.backgroundColor = UIColor.clearColor()
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>当然，其它标签都有占位符文字说明，他们仅仅是为了让你区分哪些是和后台连接的。哪些是描述什么内容的。例如<code>&lt;whyVisitLabel&gt;</code>是连接</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>@IBOutlet weak var whyVisitLabel: UILabel!</span></code></pre></td></tr></table></div></figure>
-
-
-<p>另外一个需要注意的是在这个storyboard中不是默认的 600 x 600,当你使用SizeClass的时候。</p>
-
-<p>SizeClass总是可用的，但是初始化Navigation Controller 默认是总是iPhone 4-inch在模拟器下，这个是容易的在storyboard中，这个模拟器在启动的时候是不受影响的，这个视图将会动态适应不同的设备。
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/05-simulated-metrics-iphone-4-inch_639x173.png" alt="logo" /></p>
-
-<h2>你的第一个StackView</h2>
-
-<p>第一件事是你将通过一个stackView修复最下面一排按钮的间距，一个stackView能描述在不不同轴向的布局（横向坐标和纵向坐标），其中之一就是子视图之间的距离设置。</p>
-
-<p>幸运的是，修改已经存在的View在一个stackView中并不复杂，选中 <code>Spot Info View Controller</code>底部的所有按钮</p>
-
-<p>检查这三个按钮是不是都选择上了，打开左边的控件面板查看，
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/08-verify-button-selection_360x90.png" alt="logo" /></p>
-
-<p>一旦选中了，在storyboard的右下角点击new Stack button
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/09-stack_button_outlined_148x52.png" alt="logo" /></p>
-
-<p>这个按钮将会变成嵌入式的在stackView中</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/10-bottom-row-is-now-in-stack-view_640x100.png" alt="logo" /></p>
-
-<p>这些按钮看起来不是平滑的，稍后我们将会修复</p>
-
-<p>当这个stackView开始嵌套这些按钮的时候，我们将要添加自动布局给这个stackView</p>
-
-<p>当你嵌套一个视图在一个stackView中，这个视图的任何约束都会被移除，例如，在嵌套到stackView之钱，在最前面的那个按钮<code>Submit Rating</code>有个垂直距离的约束和<code>Rating:</code>label之间:
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/11-prior-constraint_420x90.png" alt="logo" /></p>
-
-<p>点击<code>Submit Rating</code>按钮去看看是否还有这个约束:
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/12-no-more-constraints_400x80.png" alt="logo" /></p>
-
-<p>为了给stackView添加约束，首先你必须选中它，一个简单的方式去选择这个stackView在outline View:
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/140040561762600.png" alt="logo" />
-另外一种方式是按住 shift&amp;Right-click 在你想选择的视图上，或者按钮 <code>control</code>+<code>shift</code>+<code>左键点击</code>在你想要选择的视图上，你将会看到一个菜单视图，供你选择。
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/15-select-stack-view-in-view-hierarchy-menu_400x280.png" alt="logo" /></p>
-
-<p>现在，点击pin按钮在自动布局的工具条上  去 添加约束。</p>
-
-<p>首先检查Constrain to margins，然后添加下载的约束:</p>
-
-<pre><code>Top: 20, Leading: 0, Trailing: 0, Bottom: 0
-</code></pre>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/17-bottom-stack-view-constraints_264x364.png" alt="logo" /></p>
-
-<p>现在，这个stackVeiw是正确的尺寸，但是它有一点拉伸第一个按钮，因为它要去利用多余的空间。</p>
-
-<p>stackView有个<code>distribution</code>属性来决定子视图的布局，当前，它是fill,这意味着包含的子视图都会完全填充stackview剩下的空间，为了修补这个，这个stackView将要展开其中的一个子视图去填补这个多余的空间</p>
-
-<p>然而，你并不期望这个按钮完全填充stackView，你想让他们占用相同的空间。</p>
-
-<p>选中这个stackView,然后修改它的属性<code>Distribution</code>从<code>Fill</code>到<code>Equal Spacing:</code>
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/19-change-distribution-to-equal-spacing_640x148.png" alt="logo" /></p>
-
-<p>现在编译运行，点击这个cell.旋转屏幕，你将会看到底部的按钮平分在屏幕的底部，是不是很酷呢!
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/20-now-buttons-are-equally-spaced_1334x750-480x270.png" alt="logo" /></p>
-
-<p>如果不使用stackView来解决这个问题，你不得不使用sapce views，在没两个按钮之间，你的加入等比宽度的约束。很是麻烦。
-它看起来像是下面这样，这中间的space View看起来有点灰色</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/21-alternate-solution-1_346x76.png" alt="logo" /></p>
-
-<p>这个问题还是不是很大在一个storyboard中，但是很多视图都是动态的，这就不是一个简单的任务了，在运行时去增加一个按钮或者隐藏一个按钮，因为需要去调节视图和约束之间的关系。</p>
-
-<p>为了在一个stack view中隐藏一个视图，你不得不设置子视图的hidden属性为true.现在你将要修复之前说过的那个问题，就是当点击 hidden之后，文字消失，下面的多余空间要顶上去。</p>
-
-<h2>转换Sections</h2>
-
-<p>你将要转换所有的section用stack view中，这将要确保你容易的完成你的任务，下一步你将要转换 rating section.</p>
-
-<h3>Rating section</h3>
-
-<p>定位到你刚才的页面，然后选择<code>RATING</code>标签和 星星的视图：
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/22-select-rating-label-and-stars-label_640x74.png" alt="logo" />
-然后点击 stack按钮让其嵌套在一个stackView中。
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/23-after-clicking-stack-button_640x74.png" alt="logo" />
- 现在，点击PIN按钮，添加下面三个属性:</p>
-
-<pre><code class="`"> Top: 20, Leading: 0, Bottom: 20
-</code></pre>
-
-<p> <img src="http://7xkxhx.com1.z0.glb.clouddn.com/24-add-second-stack-view-constraints_264x171.png" alt="logo" /></p>
-
-<p> 现在切换到<code>Attributes inspector</code>，设置 spacing为8:
- <img src="http://7xkxhx.com1.z0.glb.clouddn.com/25-set-spacing-to-8_259x87.png" alt="logo" /></p>
-
-<p> 这时，你看到视图上的两个控件之间已经有些间距了，
- <img src="http://7xkxhx.com1.z0.glb.clouddn.com/26-stars-label-weirdly-stretched_640x85.png" alt="logo" />
- 有时候，xcode可能提示你stackview的位置是不正确的，但是这些警告将会消失，当你更新其它控件的时候，你通常可以忽略他们。</p>
-
-<p>为了证明这个，改变 <code>Alignment</code>从<code>Fill</code>到<code>Top</code>然后再改为Fill,你将会看到这个stars 标签变成正确的位置了。</p>
-
-<p>编译运行你的app,一切看起来还是和从前一样.</p>
-
-<h2>取消嵌套一个Stack View</h2>
-
-<p>在你深入学习之前，去进行一些"急救"训练，有时，你会发现你的视图上有一个你不再需要的stackview,或许你为了练习而导致的事故。</p>
-
-<p>幸运的是，这里有容易的方式去移除一个嵌套的view从stack view中。</p>
-
-<p>首先，你最好选择你想要删除的stack view,按住<code>Option</code>键，然后点击 <code>stack</code>按钮，点击 <code>Unembed</code>菜单就可以了:
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/28-how-to-unembed_186x71.png" alt="logo" /></p>
-
-<h2>你的第一个垂直Stack view</h2>
-
-<p>现在，你将要创建一个垂直的stack view,选中<code>WHY VISIT</code>标签和<code>&lt;whyVisitLabel&gt;</code>：
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/29-select-why-visit-labels_640x90.png" alt="logo" />
-Xcode将会正确的推断出这个视图将会需要一个垂直的stack view,点击<code>Stack</code>按钮去嵌套它们到一个stack view中。</p>
-
-<p>当stack view添加成功之后，嵌套的视图的约束将会给删除，当前的这个stack view没有任何约束，所以它会适配子视图中最大尺寸的。</p>
-
-<p>当这个stack view选中的时候，点击 Pin按钮，设置如下属性:
-Top, Leading and Trailing 都为0</p>
-
-<p>然后，点击dropdown在右下角，然后选择<code>WEATHER (current distance = 20):</code></p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/31-dont-select-nearest-neighbor-constraint_463x417.png" alt="logo" /></p>
-
-<p>最后，添加这4个约束，你将会看到如下结果：
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/32-why-visit-stack-view-stretched_640x90.png" alt="logo" />
-现在你有两个一个展开的stackview,它的右边界是定位到了视图的右边界，然而，这下面的标签依然是同样宽的，你将要修复它通过stack view的<code>alignment</code>属性</p>
-
-<h2>Alignment属性</h2>
-
-<p>这个alignment属性决定了stack view在其轴向上的布局方式，可能是Fill,Leading,Center和Trailing.</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/33-horizontal-and-vertical-alignment_594x171.png" alt="logo" /></p>
-
-<p>在垂直的stackview中，选择不同的属性，将会看到不同的布局:</p>
-
-<p>Fill:
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/34-alignment-fill_640x64.png" alt="logo" /></p>
-
-<p>Leading:
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/35-alignment-leading_640x64.png" alt="logo" /></p>
-
-<p>Center:
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/36-alignment-center_640x64.png" alt="lgo" /></p>
-
-<p>Trailing:
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/37-alignment-trailing_640x64.png" alt="lgo" /></p>
-
-<p>当你测试完每个属性值后，最后设置成Fill</p>
-
-<p>编译运行程序看起来是OK的，特别需要指出的是，<code>Fill</code>意味着你想要所有的视图都是完全占用空间在其轴向上，这将引起<code>WHY VISIT</code>标签去展开它到右边缘。</p>
-
-<p>但是如果你只想下面的label张开到右边缘，此时该怎么做呢?</p>
-
-<h2>转换"what to see"模块</h2>
-
-<p>这个转换和上面的那个很相似，介绍如下:</p>
-
-<ol>
-<li>首先，选择<code>WHAT TO SEE</code>标签和<code>&lt;whatToSeeLabel&gt;</code></li>
-<li>点击<code>Stack</code>按钮</li>
-<li>点击<code>Pin</code>按钮</li>
-<li>设置<code>margins</code>约束，添加下面4个约束</li>
-</ol>
-
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>Top: 20, Leading: 0, Trailing: 0, Bottom: 20</span></code></pre></td></tr></table></div></figure>
-
-
-<ol>
-<li>设置stack view的Alignment为FIll</li>
-</ol>
-
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/39-after-what-to-see-section_640x308.png" alt="logo" />
-编译运行你的工程，验证页面是不是看起来和之前一样。</p>
-
-<p>剩下就是这个<code>weather</code>模块了</p>
-
-<h2>转换weather模块</h2>
-
-<p>这个weather模块比其他几个稍微复杂一些，因为它包含了一个hidden按钮</p>
-
-<p>一种方法是你将会创建一个最近的stacview通过嵌套<code>WEATHER</code>标签和<code>Hide</code>按钮在一个水平的stackview中，然后嵌套水平的stackview和<code>&lt;weatherInfoLabel&gt;</code>到一个垂直的stackview中。</p>
-
-<p>看起来你像是这样:
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/40-weather-stack-in-stack_640x92.png" alt="lgo" /></p>
-
-<p>点击<code>Stack</code>按钮:
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/43-weather-click-stack-button_640x92.png" alt="logo" /></p>
-
-<p>然后点击 Pin按钮，设置margin约束,设置如下:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>Top: 20, Leading: 0, Trailing: 0, Bottom: 20</span></code></pre></td></tr></table></div></figure>
-
-
-<p>设置 stack view的Alignment为Fill
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/44-weather-alignment-fill_640x92.png" alt="logo" /></p>
-
-<p>你需要一个在hide按钮和<code>WEATHER</code>标签的右边加一个约束，因为<code>WEATHER</code>标签被加到了stack view中，它的所有约束都被自动去掉了.</p>
-
-<p>然后，你希望底部的<code>&lt;weatherInfoLabel&gt;</code>去填充整个stack view.</p>
-
-<p>你可以完成这个通过把<code>WEATHER</code>嵌套进一个垂直的stack view中，记住垂直stackview可以设置alignment为 .Leading,假如stack view是拉伸的超出了它固有的边界，它包含的子视图将会到达它的边界。</p>
-
-<p>选择<code>WEATHER</code>标签通过document outline，或者通过<code>Control-Shift-click</code>方法:
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/45-select-just-the-weather-label_640x92.png" alt="logo" /></p>
-
-<p>点击 stack按钮:
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/46-weather-in-horizontal-stack_640x92.png" alt="lgo" /></p>
-
-<p>设置Alignment为Leading,然后确保axis是垂直方向:
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/47-vertical-and-leading_640x92.png" alt="log" /></p>
-
-<p>完美！你已经完成了外部的stackview平铺，在嵌套的stackView中去填充它的宽度，但是内部的stackview允许这个标签去保持它原有的宽度。</p>
-
-<p>编译运行，为什么hide按钮现在飘到上面去了呢？
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/48-hide-label-incorrect-position_750x573-419x320.png" alt="dlo" /></p>
-
-<p>它是因为当你嵌套<code>WEATHER</code>标签到一个stackview中时，它的所有和hide按钮相关的约束都被移除掉了。</p>
-
-<p>现在你需要给hide按钮和<code>WEATHER</code>标签之间增加新的约束,按住<code>control-drag</code>从Hide按钮拖向<code>WEATHER</code>标签:
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/49-drag-to-weather-label_380x94.png" alt="logo" /></p>
-
-<p>添加两个约束:</p>
-
-<ol>
-<li>Horizontal Spacing</li>
-<li>Baseline</li>
-</ol>
-
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/50-add-multiple-constraints_380x224.png" alt="logo" />
-编译运行，这个Hide按钮看起来正常了。</p>
-
-<p>现在所有的模块都是在唯一的stackview中了，你把他们全部都嵌套进了stackview中。</p>
-
-<h2>设置第一级Stack view</h2>
-
-<p>点击 <code>command</code> 然后选择所有的5个顶级的stackview在 outline view中
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/52-select-all-stack-views-in-outline_640x260.png" alt="log" /></p>
-
-<p>然后点击stack按钮：
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/53-stack-all-the-views_640x185.png" alt="lgo" /></p>
-
-<p>点击Pin按钮，设置约束属性:
-全部都设置成0.然后设置Spacing为20, Alignment为Fill,你的storyboard看起来像是这样:
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/54-set-the-spacing-to-20-and-alignment-to-fill_640x300.png" alt="g" /></p>
-
-<p>编译运行，此时你的 hide按钮又跑偏了，和之前设置的一样，需要把hide和<code>WEATHER</code>重新建立约束:
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/56-add-constraints-to-button-again_380x223.png" alt="d" /></p>
-
-<p>编译运行，此时hide按钮在正确的位置上了。</p>
-
-<h2>重新布局视图</h2>
-
-<p>现在所有的的模块都在顶级的stackview中，你现在可以更改<code>what to see</code>模块的位置，比如和<code>weather</code>模块的位置进行互换。</p>
-
-<p>选择<code>middle stack view</code>从outline view然后拖拽它和weather的那个stackview进行互换，
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/57-drag-and-drop-to-reposition-section_639x130.png" alt="log" /></p>
-
-<p>此时，<code>weather</code>模块是第三个模块，但是这个 hide按钮不是在stackview中，它不会被移动。</p>
-
-<p>选中 Hide按钮 :
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/58-hide-button-not-moved_640x130.png" alt="logo" />
-然后点击<code>Resolve Auto Layout Issues</code>在自动布局的菜单上点击 update frame:
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/59-resolve-auto-layout-issues_356x269.png" alt="logo" /></p>
-
-<h2>Size class based configuration</h2>
-
-<p>最后，你能把你注意力集中到之前的任务清单上，在加载模式中，垂直空间是昂贵的，所以你想让stackview中的模块靠近些，为了做到这些，你将要使用size classes去设置顶部stackview的空间从20修改成10.</p>
-
-<p>选中顶部的stackview然后点击小小的<code>+</code>号，设置spacing:</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/61-select-plus-button_260x120.png" alt="log" /></p>
-
-<p>选择 Any Width > Compact Height:</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/62-anywidth-compact-height_403x108.png" alt="lgo" /></p>
-
-<p>然后设置Spacing 为10,在 new wAny hC文本框中:
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/63-set-spacing-to-10_260x160.png" alt="lgo" /></p>
-
-<h2>动画</h2>
-
-<p>打开SpotInfoViewController.swift文件，然后找到<code>updateWeatherInfoViews(hideWeatherInfo:animated:).</code>方法</p>
-
-<p>你将要替换这一行代码:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>weatherInfoLabel.hidden = shouldHideWeatherInfo</span></code></pre></td></tr></table></div></figure>
-
-
-<p>改成如下:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>if animated {
-</span><span class='line'>  UIView.animateWithDuration(0.3) {
-</span><span class='line'>    self.weatherInfoLabel.hidden = shouldHideWeatherInfo
-</span><span class='line'>  }
-</span><span class='line'>} else {
-</span><span class='line'>  weatherInfoLabel.hidden = shouldHideWeatherInfo
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>编译运行，点击<code>hide</code>和<code>show</code>按钮，会不会感觉出来有点动画效果呢?</p>
-
-<p>在stackview中增加动画效果也是很容易的，比如hidden, alignment, distribution, spacing，甚至axis。</p>
-
-<h2>完整工程下载</h2>
-
-<p>你可以下载完整的工程 <a href="http://www.raywenderlich.com/wp-content/uploads/2015/09/VacationSpots_Complete.zip">完整工程</a></p>
-
-<p>希望能够帮到你~</p>
 ]]></content>
   </entry>
   
