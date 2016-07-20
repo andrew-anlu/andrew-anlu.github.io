@@ -90,6 +90,9 @@
 
 <div class="entry-content"><p>在ios中，所有的View都是由一个底层的layer来驱动的。View和它的layer之间有着紧密的联系，View其实直接从layer对象中获取了绝大多数它所需要的数据。在ios中也有一些单独的layer,比如<code>AVCaptureVideoPreviewLayer</code>和<code>CAShapeLayer</code>，它们不需要附加到view上就可以在屏幕上显示内容。两种情况下都是layer起决定作用。当然了，附加到view上的layer和单独的layer在行为上还是稍有不同的。</p>
 
+<!--more-->
+
+
 <p>基本上你改变一个单独的layer的任何属性的时候，都会触发一个从旧值过渡到新值的简单动画（就是所谓的动画<code>animatable</code>）。然而，如果你改变的是view中layer的同一个属性，它只会从这一帧直接跳变到下一帧。尽管两种情况中都有layer,但是当layer附加在view上时，它的默认的隐式动画的layer行为就不起作用了。</p>
 
 <blockquote><p><em>注意</em>
@@ -149,6 +152,312 @@ animatable 几乎所有的层的属性都是隐性可动画的。你可以在文
 <p>对于view中的layer来说，对动作的搜索只会到第一步为止。对于单独的layer来说，剩余的4个步骤可以在 <a href="https://developer.apple.com/library/mac/documentation/graphicsimaging/reference/CALayer_class/Introduction/Introduction.html#//apple_ref/occ/instm/CALayer/actionForKey:">CALayer</a>actionForKey: 文档中找到。</p>
 
 <h2>从UIKit中学习</h2>
+
+<p>我很确定我们都会同意UIview动画是一组非常优秀的API,它简洁明确，实际上，它使用了Core Animation来执行动画，这给了我们一个绝佳的积水来深入研究UIKit是如何使用Core Animation的。在这里甚至还有很多非常棒的实践和技巧可以让我们借鉴.</p>
+
+<p>当属性在动画block中改变时，view将向layer返回一个基本的动画，然后动画通过通常的addAnimation:forKey:方法将添加到layer中，就像显示地添加动画那样。再一次，别直接相信我，让我们实践检验一下</p>
+
+<p>归功于UIview的layerClass 类方法，View和layer之间的交互很容易被观测到。通过这个方法我们可以在为View创建layer时为其指定要使用的类。通过子类一个UIView,以及用这个方法返回一个自定义的layer类，我们就可以重写layer子类中的 <code>addAnimaiton:ForKey:</code>并输出一些东西来验证它是佛确实被调用。唯一要记住的是我们需要调用super方法，不然的话我们就把要观测的行为完全改变了：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>@interface DRInspectionLayer : CALayer
+</span><span class='line'>@end
+</span><span class='line'>
+</span><span class='line'>@implementation DRInspectionLayer
+</span><span class='line'>- (void)addAnimation:(CAAnimation *)anim forKey:(NSString *)key
+</span><span class='line'>{
+</span><span class='line'>    NSLog(@"adding animation: %@", [anim debugDescription]);
+</span><span class='line'>    [super addAnimation:anim forKey:key];
+</span><span class='line'>}
+</span><span class='line'>@end
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>@interface DRInspectionView : UIView
+</span><span class='line'>@end
+</span><span class='line'>
+</span><span class='line'>@implementation DRInspectionView
+</span><span class='line'>+ (Class)layerClass
+</span><span class='line'>{
+</span><span class='line'>    return [DRInspectionLayer class];
+</span><span class='line'>}
+</span><span class='line'>@end</span></code></pre></td></tr></table></div></figure>
+
+
+<p>通过输出动画的debug信息，我们不仅可以验证它确实如逾期一样被调用了，还可以看到动画是如何组织构建的：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;CABasicAnimation:0x8c73680; 
+</span><span class='line'>    delegate = &lt;UIViewAnimationState: 0x8e91fa0&gt;;
+</span><span class='line'>    fillMode = both; 
+</span><span class='line'>    timingFunction = easeInEaseOut; 
+</span><span class='line'>    duration = 0.3; 
+</span><span class='line'>    fromValue = NSPoint: {5, 5}; 
+</span><span class='line'>    keyPath = position
+</span><span class='line'>&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>当动画被添加到layer时，属性的新值还没有被改变。在构建动画时，只有fromValue(也就是当前值)被显式地指定了。<a href="https://developer.apple.com/library/ios/documentation/GraphicsImaging/Reference/CABasicAnimation_class/Introduction/Introduction.html">CABasicAnimation 的文档</a>向我们简单介绍了这么做对于动画的插值来说的行为应该是:</p>
+
+<blockquote><p>只有FromValue不是nil时，在fromvalue和属性当前显示层的值之间进行插值</p></blockquote>
+
+<p>这也是我在处理显式动画时选择的做法，将一个属性改变为新的值，然后将动画对象添加到layer上：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>CABasicAnimation *fadeIn = [CABasicAnimation animationWithKeyPath:@"opacity"];
+</span><span class='line'>fadeIn.duration  = 0.75;
+</span><span class='line'>fadeIn.fromValue = @0;
+</span><span class='line'>
+</span><span class='line'>myLayer.opacity = 1.0; // 更改 model 的值 ...
+</span><span class='line'>// ... 然后添加动画对象
+</span><span class='line'>[myLayer addAnimation:fadeIn forKey:@"fade in slowly"];</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这很简洁，你也不需要再动画被移除的时候做什么额外的操作，如果动画是在一段延迟后才开始的话，你可以使用backward填充模式(或者'both'填充模式)，就像UIKit所创建的动画那样</p>
+
+<p>可能你看见上面输出中的动画的delegate了，想知道这个类是用来做什么的呢？我们可以来看看 <a href="https://github.com/rpetrich/iphoneheaders/blob/master/UIKit/UIViewAnimationState.h">dump出来的头文件</a>,它主要用来维护动画的一些状态(持续时间，延时，重复次数等等)，它还负责对一个栈做push和pop,这是为了在多个动画block嵌套时能够获取正确的动画状态。这些都是事先细节，除非你想要写一套自己的基于block的动画API,否则可能你不会用到它们</p>
+
+<p>然后真正有意思的是这个delegate事先了 animationDidStart: 和 animationDidStop:finished: 并将信息传给了它自己的delegate</p>
+
+<blockquote><p>这里不太容易理解，加以说明:从上面的头文件可以看出，作为CAAnimation的delegate的私有类UIViewAnimationState中还有个<code>_delegate</code>成员，并且<code>animationDidStart</code>和<code>animationDidStop:finished:</code>也是典型的delegate的实现方法.</p></blockquote>
+
+<p>通过打印这个delegate的delegate,我们可以发现它也是一个私有类：<code>UIViewAnimationBlockDelegate</code>。同样进行<a href="https://github.com/EthanArbuckle/IOS-7-Headers/blob/master/Frameworks/UIKit.framework/UIViewAnimationBlockDelegate.h">class dump 得到它的头文件</a>，这是一个很小的类，只负责一件事情：响应动画的delegate回调并且进行相应的block.如果我们使用自己的Core Animation代码，并且选阿泽block而不是delegate做回调的话，添加这个是很容易的：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>@interface DRAnimationBlockDelegate : NSObject
+</span><span class='line'>
+</span><span class='line'>@property (copy) void(^start)(void);
+</span><span class='line'>@property (copy) void(^stop)(BOOL);
+</span><span class='line'>
+</span><span class='line'>+(instancetype)animationDelegateWithBeginning:(void(^)(void))beginning
+</span><span class='line'>                                   completion:(void(^)(BOOL finished))completion;
+</span><span class='line'>
+</span><span class='line'>@end
+</span><span class='line'>
+</span><span class='line'>@implementation DRAnimationBlockDelegate
+</span><span class='line'>
+</span><span class='line'>+ (instancetype)animationDelegateWithBeginning:(void (^)(void))beginning
+</span><span class='line'>                                    completion:(void (^)(BOOL))completion
+</span><span class='line'>{
+</span><span class='line'>    DRAnimationBlockDelegate *result = [DRAnimationBlockDelegate new];
+</span><span class='line'>    result.start = beginning;
+</span><span class='line'>    result.stop  = completion;
+</span><span class='line'>    return result;
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>- (void)animationDidStart:(CAAnimation *)anim
+</span><span class='line'>{
+</span><span class='line'>    if (self.start) {
+</span><span class='line'>        self.start();
+</span><span class='line'>    }
+</span><span class='line'>    self.start = nil;
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>- (void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag
+</span><span class='line'>{
+</span><span class='line'>    if (self.stop) {
+</span><span class='line'>        self.stop(flag);
+</span><span class='line'>    }
+</span><span class='line'>    self.stop = nil;
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>@end</span></code></pre></td></tr></table></div></figure>
+
+
+<p>虽然是我的个人喜好，但是我觉得像这样的基于block的回调风格可能会比实现一个delegate回调更适合你的代码:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>fadeIn.delegate = [DRAnimationBlockDelegate animationDelegateWithBeginning:^{
+</span><span class='line'>    NSLog(@"beginning to fade in");
+</span><span class='line'>} completion:^(BOOL finished) {
+</span><span class='line'>    NSLog(@"did fade %@", finished ? @"to the end" : @"but was cancelled");
+</span><span class='line'>}];</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>自定义基于block的动画APIS</h2>
+
+<p>一旦你知道了<code>actionForKey:</code>的原理之后，UIview就远没有它一开始看起来那么神秘了。实际上我们完全可以按照我们的需求量身定制地写出一套自己的基于block的动画Apis。我所设计的动画将通过block中用一个很激进的时间曲线来做动画，以吸引用户对该View的注意，之后做一个缓慢的动画回到原始状态。你可以把它看做一种类似pop的行为。与一般使用<code>UIViewAnimationOptionAutoreverse</code>的动画block不同，因为动画设计和概念上的需要，我自己实现了将model值改变回原始值的过程。自定义的动画API的使用方法就像这样:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[UIView DR_popAnimationWithDuration:0.7
+</span><span class='line'>                             animations:^{
+</span><span class='line'>                                 myView.transform = CGAffineTransformMakeRotation(M_PI_2);
+</span><span class='line'>                                }];</span></code></pre></td></tr></table></div></figure>
+
+
+<p>当我们完成后，效果是这样样子的(对四个不同的View为位置，尺寸，颜色和旋转进行动画)</p>
+
+<p><img src="http://7xsn4e.com1.z0.glb.clouddn.com/2014-05-01-view-layer-synergy-custom-block-animations.gif" alt="1" /></p>
+
+<p>要开始实现它，我们首先要做的是当一个layer属性变化时获取delegate的回调，因为我们无法实现预测layer要改变什么，所以我选择在一个UIView的category中的swizzle<code>actionForLayer:forKey:</code>方法:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>@implementation UIView (DR_CustomBlockAnimations)
+</span><span class='line'>
+</span><span class='line'>+ (void)load
+</span><span class='line'>{        
+</span><span class='line'>    SEL originalSelector = @selector(actionForLayer:forKey:);
+</span><span class='line'>    SEL extendedSelector = @selector(DR_actionForLayer:forKey:);
+</span><span class='line'>
+</span><span class='line'>    Method originalMethod = class_getInstanceMethod(self, originalSelector);
+</span><span class='line'>    Method extendedMethod = class_getInstanceMethod(self, extendedSelector);
+</span><span class='line'>
+</span><span class='line'>    NSAssert(originalMethod, @"original method should exist");
+</span><span class='line'>    NSAssert(extendedMethod, @"exchanged method should exist");
+</span><span class='line'>
+</span><span class='line'>    if(class_addMethod(self, originalSelector, method_getImplementation(extendedMethod), method_getTypeEncoding(extendedMethod))) {
+</span><span class='line'>        class_replaceMethod(self, extendedSelector, method_getImplementation(originalMethod), method_getTypeEncoding(originalMethod));
+</span><span class='line'>    } else {
+</span><span class='line'>        method_exchangeImplementations(originalMethod, extendedMethod);
+</span><span class='line'>    }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>为了保证我们不破坏其他依赖于<code>actionForLayer:forKey:</code>的回调代码，我们使用一个静态变量来判断现在是不是处于我们自己定义的上下文中。对于这个例子莱索一个简单的Bool其实就够了，但是如果我们之后要写更多内容的话，上下文的话要灵活得多了：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>static void *DR_currentAnimationContext = NULL;
+</span><span class='line'>static void *DR_popAnimationContext     = &DR_popAnimationContext;
+</span><span class='line'>
+</span><span class='line'>- (id&lt;CAAction&gt;)DR_actionForLayer:(CALayer *)layer forKey:(NSString *)event
+</span><span class='line'>{
+</span><span class='line'>    if (DR_currentAnimationContext == DR_popAnimationContext) {
+</span><span class='line'>        // 这里写我们自定义的代码...
+</span><span class='line'>    }
+</span><span class='line'>
+</span><span class='line'>    // 调用原始方法
+</span><span class='line'>    return [self DR_actionForLayer:layer forKey:event]; // 没错，你没看错。因为它们已经被交换了
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在我们的实现中，我们要确保在执行动画block之前设置动画的上下文，并且在执行后恢复上下文：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'> + (void)DR_popAnimationWithDuration:(NSTimeInterval)duration
+</span><span class='line'>                          animations:(void (^)(void))animations
+</span><span class='line'> {
+</span><span class='line'>     DR_currentAnimationContext = DR_popAnimationContext;
+</span><span class='line'>     // 执行动画 (它将触发交换后的 delegate 方法)
+</span><span class='line'>     animations();
+</span><span class='line'>     /* 一会儿再添加 */
+</span><span class='line'>     DR_currentAnimationContext = NULL;
+</span><span class='line'> }</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果我们想要做的不过是添加一个从旧值向新值过渡的动画的话，我们可以直接在delegate的回调中来做。然后因为我们想要更精确的控制动画，我们需要用一个帧动画来实现。帧动画需要所有的值都是已知的，而对我们的情况来说，新的值还没有被设定，因此我们也就无从知晓</p>
 </div>
 
 
