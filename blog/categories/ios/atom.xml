@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Ios | 安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/blog/categories/ios/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-09-10T09:20:18+08:00</updated>
+  <updated>2016-09-10T17:05:06+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -55,6 +55,95 @@
 </code></pre>
 
 <p>事实上可能这两个类并没有太多共用的代码，它们只不过具有相同的接口。如果这样的话，使用协议可能会是更好的昂奋。可以这样用协议来写你的代码：</p>
+
+<pre><code>@protocol VideoPlayer &lt;NSObject&gt;
+
+- (void)play;
+- (void)pause;
+
+@end
+
+
+@class Player : NSObject &lt;VideoPlayer&gt;
+
+@end
+
+
+@class YouTubePlayer : NSObject &lt;VideoPlayer&gt;
+
+@end
+</code></pre>
+
+<p>这样，<code>YouTubePlayer</code>类就不必知道<code>Player</code>类内部实现了</p>
+
+<h2>替代方案:代理(delegate)</h2>
+
+<p>再一次假设你有一个像上面例子中的<code>Player</code>类，现在，你想在开始播放的时候在某个地方执行一个自定的函数。这么做相对容易一些：创建一个自定义的子类，重写<code>play</code>方法，调用<code>[super play]</code>，然后开始做你自定义的工作。这么做是一种方法，另外一种方法是，改动你的<code>Player</code>对象，然后给它设置一个代理。如下：</p>
+
+<pre><code>@class Player;
+
+@protocol PlayerDelegate
+
+- (void)playerDidStartPlaying:(Player *)player;
+
+@end
+
+
+@class Player : NSObject
+
+@property (nonatomic,weak) id&lt;PlayerDelegate&gt; delegate;
+
+- (void)play;
+- (void)pause;
+
+@end
+</code></pre>
+
+<p>现在，在播放器的<code>play</code>方法里，就可以给代理发<code>playerDidStartPlaying :</code>消息了。这个<code>Player</code>类的任何使用者都可以仅仅实现这个代理协议，而不用继承该类，<code>Player</code>类也能够保持通用性。这是个强大有效的技术，苹果在自己的框架里大量地使用它。你想想像<code>UITextField</code>这样的类，还有<code>NSLayoutManager</code>。有时候你还会想把几个不同的方法打包分组到几个单独的协议里，比如<code>UITableView</code>,它不仅有个一个代理(delegate),还有一个数据源(dataSource)</p>
+
+<h2>替代方案：类别(Categories)</h2>
+
+<p>有时候，你可能会想给你一个对象增加一点点额外的功能，比如你想给NSArray增加一个方法<code>arrayByRemovingFirstObject</code>.不用子类，你可以把这个函数放到一个类别里。像这样：</p>
+
+<pre><code>@interface NSArray (OBJExtras)
+
+- (void)obj_arrayByRemovingFirstObject;
+
+@end
+</code></pre>
+
+<p>在用类别扩展一个不是你自己的类的时候，在方法前欠佳前缀是个比较好的习惯做法。如果不这么做，有可能别人也用类别对此类添加了相同名字的函数。那时候程序的行为可能跟你想要的并不一样，未预期的事情可能会发生。</p>
+
+<p>使用类别还有一个另外一个风险，那就是，到最后你可能会使用一大堆的类别，连你自己都会失去对代码全局的认识。假如那样的话，创建自定义的类可能更简单一些。</p>
+
+<h2>替代方案:配置对象(Configuration Objects)</h2>
+
+<p>在我经常犯的错误中，其中一条就是：使用一个含有几个抽象方法的类并让很多子类来重写某个方法。假如，在一个幻灯片应用里，你有一个主题类<code>Theme</code>,它含有几个属性，比如<code>backgroundColor</code>和<code>Font</code>，还有一些在一张幻灯片上如何布局的逻辑函数</p>
+
+<p>然后，对每种主题，你都创建一个<code>Theme</code>的子类，重写某个函数(例如 <code>setup</code>)并且配置其属性。直接使用父类对此做不了什么事。在这种情况下，你可以使用配置对象来让代码更简单些。你可以把共有的逻辑（比如 幻灯片布局）放在<code>Theme</code>类中，把属性的配置放到比较简单的对象中，这些对象中只包含有这些属性。</p>
+
+<p>例如，类<code>ThemeConfiguration</code>具有<code>backgroundColor</code>和<code>font</code>属性，而类<code>Theme</code>在其初始化函数中获取一个配置类<code>ThemeConfiguration</code>的值</p>
+
+<h2>替代方案:组合</h2>
+
+<p>组合是代替子类化的最强大有效的方案。如果你想重用已有代码而不像共享同样的接口，组合就是你的首选武器，例如，假设你要设计一个缓存类:</p>
+
+<pre><code>@interface OBJCache : NSObject
+
+- (void)cacheValue:(id)value forKey:(NSString *)key;
+- (void)removeCachedValueForKey:(NSString *)key;
+
+@end
+</code></pre>
+
+<p>简单点的做法是直接继承<code>NSDictionary</code>，通过调用字典的函数来实现上面的两个方法.</p>
+
+<pre><code>@interface OBJCache : NSDictionary
+</code></pre>
+
+<p>但是这么做有几个弊端，它本来是应该被详细实现的，但只是通过字典来实现，现在，在任何需要一个<code>NSDictionary</code>参数的时候，你可以直接提供一个<code>OBJCache</code>值。但如果你想把它转为其它完全不同的东西，你就可能需要重构很多代码了。</p>
+
+<p>更好的方式是，将这个字典存在一个私有属性(或者实例变量)中，对外仅仅暴露这两个<code>cache</code>方法。现在，当你有了更深入想法的时候，你可以在灵活地修改其实现，而该类的使用者们不用进行重构。</p>
 ]]></content>
   </entry>
   
