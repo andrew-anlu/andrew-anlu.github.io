@@ -9,7 +9,7 @@
   <meta name="author" content="安路">
 
   
-  <meta name="description" content="何时使用子类 首先，我们讨论几种使用子类比较合适的场景。如果你要写一个自定义布局的UITableViewCell,那就创建一个子类。这同样适用于几乎每个视图。一旦你开始布局，把这块代码放入子类就更合理一些，不管代码得到了更好的封装，你也能得到一个可在工程之间重用的组件。 &hellip;">
+  <meta name="description" content="何时使用子类 首先，我们讨论几种使用子类比较合适的场景。如果你要写一个自定义布局的UITableViewCell,那就创建一个子类。这同样适用于几乎每个视图。一旦你开始布局，把这块代码放入子类就更合理一些，不管代码得到了更好的封装，你也能得到一个可在工程之间重用的组件。 ">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -95,49 +95,12 @@
 
 <p>首先，我们讨论几种使用子类比较合适的场景。如果你要写一个自定义布局的UITableViewCell,那就创建一个子类。这同样适用于几乎每个视图。一旦你开始布局，把这块代码放入子类就更合理一些，不管代码得到了更好的封装，你也能得到一个可在工程之间重用的组件。</p>
 
-<p>假设你的代码是针对多平台多版本的，并且你需要针对每个平台每个版本写一些代码。这时候更合理的做法可能是创建一个<code>OBJDevice</code>类，让一些子类如 <code>OBJIPhoneDevice</code>和<code>OBJIPadDevice</code>,甚至更深层次的子类如<code>OBJIPhone5Device</code>来继承，并让这些子类重写特定的方法，例如，你的<code>OBJDevice</code>类可能包含了函数<code>applyRoundedCornersToView:withRadius</code>,它有一个默认的实现，但是也能被特定的子类重写。</p>
-
-<p>另一个子类可能很有用的场景是模型对象（model object）.绝大多数情况下，我的模型对象继承自一个实现了 <code>isEqual:</code>,<code>hash</code>,<code>copyWithzone:</code>,和<code>description</code>等方法的类。这些方法只被实现一次，并且迭代循环遍历所有属性，所以极不容易出错。（如果你也想找这样的一个基类，可以考虑使用<a href="https://github.com/mantle/mantle">Mantle</a>,它就是这么做的，并且做的更多）</p>
-
-<h2>何时不适用子类</h2>
-
-<p>在以往工作过得很多工程中，我见过很多继承层次很深的子类。当我也这么干的时候，总会感到内疚。除非继承的层次非常浅，否则你会很快发现它的局限性。</p>
-
-<p>幸运的是，如果你发现自己正在使用深层次的继承，还有很多替代的方案可选。在下面的章节中，我们会逐个进行更详细的描述。如果你的子类只是使用相同的接口，协议会是非常好的替代方案。如果你知道某个对象需要大量的修改，你可能会使用代理来动态改变和配置它。当你想给已有的对象增加一些简单功能时，类别可能是个选择。当你有一堆重写了相同方法的子类时，你可以使用配置对象来代替。最后，当你想重用某些功能时，组合多个对象而不是扩展它们可能会更好。</p>
-
-<h1>替代方案</h1>
-
-<h2>协议(Protocols)</h2>
-
-<p>很多时候，使用子类的原因是你想保证某个对象可以响应某些消息。假设在app中你有一个播放器对象，它可以播放视频。现在你想添加对YouTube的支持，使用相同的接口，但是具体实现不同。你可以像这样用子类来实现:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>@class Player : NSObject
-</span><span class='line'>
-</span><span class='line'>- (void)play;
-</span><span class='line'>- (void)pause;
-</span><span class='line'>
-</span><span class='line'>@end
-</span><span class='line'>
-</span><span class='line'>
-</span><span class='line'>@class YouTubePlayer : Player
-</span><span class='line'>
-</span><span class='line'>@end</span></code></pre></td></tr></table></div></figure>
-
-
-<p>事实上可能这两个类并没有太多共用的代码，它们只不过具有相同的接口。如果这样的话，使用协议可能会是更好的昂奋。可以这样用协议来写你的代码：</p>
 </div>
   
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/09/10/zu-he-yu-ji-cheng/">阅读全文 &rarr;</a>
+    </footer>
   
 
 

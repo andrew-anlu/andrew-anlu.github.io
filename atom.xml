@@ -4,7 +4,7 @@
   <title><![CDATA[安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-09-10T09:18:35+08:00</updated>
+  <updated>2016-09-10T09:20:18+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -21,6 +21,9 @@
     <content type="html"><![CDATA[<h2>何时使用子类</h2>
 
 <p>首先，我们讨论几种使用子类比较合适的场景。如果你要写一个自定义布局的UITableViewCell,那就创建一个子类。这同样适用于几乎每个视图。一旦你开始布局，把这块代码放入子类就更合理一些，不管代码得到了更好的封装，你也能得到一个可在工程之间重用的组件。</p>
+
+<!--more-->
+
 
 <p>假设你的代码是针对多平台多版本的，并且你需要针对每个平台每个版本写一些代码。这时候更合理的做法可能是创建一个<code>OBJDevice</code>类，让一些子类如 <code>OBJIPhoneDevice</code>和<code>OBJIPadDevice</code>,甚至更深层次的子类如<code>OBJIPhone5Device</code>来继承，并让这些子类重写特定的方法，例如，你的<code>OBJDevice</code>类可能包含了函数<code>applyRoundedCornersToView:withRadius</code>,它有一个默认的实现，但是也能被特定的子类重写。</p>
 
