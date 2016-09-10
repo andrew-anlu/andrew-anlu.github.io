@@ -9,7 +9,14 @@
   <meta name="author" content="安路">
 
   
-  <meta name="description" content="什么是Rumtime 我们写的代码在程序运行过程中都会被转化成runtime的C代码执行，例如[target dosomething]会被转化成 objc_msgSend(target,@selector(doSomething));. ">
+  <meta name="description" content="本章包含的内容的如下: 存储属性的初始赋值
+自定义构造过程
+默认构造器
+值类型的构造器代理
+类的集成和构造过程
+可失败构造器
+必要构造器
+通过闭包或函数设置属性的默认值 ">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -66,6 +73,94 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/05/16/swift-gou-zao-han-shu/">Swift-构造函数</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-05-16T15:38:28+08:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>16</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>3:38 pm</span></time>
+        
+           | <a href="/blog/2016/05/16/swift-gou-zao-han-shu/#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/05/16/swift-gou-zao-han-shu/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>本章包含的内容的如下:</p>
+
+<ul>
+<li><a href="#%E5%AD%98%E5%82%A8%E5%B1%9E%E6%80%A7%E7%9A%84%E5%88%9D%E5%A7%8B%E8%B5%8B%E5%80%BC">存储属性的初始赋值</a></li>
+<li><a href="#%E8%87%AA%E5%AE%9A%E4%B9%89%E6%9E%84%E9%80%A0%E8%BF%87%E7%A8%8B">自定义构造过程</a></li>
+<li><a href="#%E9%BB%98%E8%AE%A4%E6%9E%84%E9%80%A0%E5%99%A8">默认构造器</a></li>
+<li><a href="#%E5%80%BC%E7%B1%BB%E5%9E%8B%E7%9A%84%E6%9E%84%E9%80%A0%E5%99%A8%E4%BB%A3%E7%90%86">值类型的构造器代理</a></li>
+<li><a href="#%E7%B1%BB%E7%9A%84%E9%9B%86%E6%88%90%E5%92%8C%E6%9E%84%E9%80%A0%E8%BF%87%E7%A8%8B">类的集成和构造过程</a></li>
+<li><a href="#%E5%8F%AF%E5%A4%B1%E8%B4%A5%E6%9E%84%E9%80%A0%E5%99%A8">可失败构造器</a></li>
+<li><a href="#%E5%BF%85%E8%A6%81%E6%9E%84%E9%80%A0%E5%99%A8">必要构造器</a></li>
+<li><a href="#%E9%80%9A%E8%BF%87%E9%97%AD%E5%8C%85%E6%88%96%E5%87%BD%E6%95%B0%E8%AE%BE%E7%BD%AE%E5%B1%9E%E6%80%A7%E7%9A%84%E9%BB%98%E8%AE%A4%E5%80%BC">通过闭包或函数设置属性的默认值</a></li>
+</ul>
+
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/05/16/swift-gou-zao-han-shu/">阅读全文 &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/05/04/catransform3d/">CATransform3D</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-05-04T17:25:54+08:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>4</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>5:25 pm</span></time>
+        
+           | <a href="/blog/2016/05/04/catransform3d/#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/05/04/catransform3d/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h1>图层的几个坐标系</h1>
+
+<p>对于ios来说，坐标系的(0,0)点在左下角，就是越往下，Y值越大。越向右，X值就越大.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/05/04/catransform3d/">阅读全文 &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -374,82 +469,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/04/19/ioszhong-de-duo-ren-wu/">Ios中的多任务</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-04-19T10:17:49+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>10:17 am</span></time>
-        
-           | <a href="/blog/2016/04/19/ioszhong-de-duo-ren-wu/#disqus_thread"
-             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/04/19/ioszhong-de-duo-ren-wu/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>在ios7之前，当程序置于后台之后开发者们对他们程序所能做的事情非常有限，除了VOIP和基于地理位置特性之外，唯一能做的地方就是后台任务(background tasks)让代码可以执行几分钟。如果你想下载比较大的视频文件以便离线浏览，或者备份用户的照片到你的服务器上，你都仅能完成一部分工作.</p>
-
-<p> </div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/04/19/ioszhong-de-duo-ren-wu/">阅读全文 &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/04/15/asyndisplaykitru-men-pian/">AsynDisplayKit入门篇</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-04-15T10:22:30+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>15</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>10:22 am</span></time>
-        
-           | <a href="/blog/2016/04/15/asyndisplaykitru-men-pian/#disqus_thread"
-             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/04/15/asyndisplaykitru-men-pian/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>前言</h2>
-
-<p>FaceBook的Paper团队给我们开源了一个很棒的库:<a href="https://github.com/facebook/AsyncDisplayKit">AsynDisplayKit</a>,这个库能让你通过将图像解码，布局以及渲染操作都放到后台线程处理，从而带来了快速响应的用户界面，也就是说不再会因为界面卡顿尔阻断用户交互。</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/04/15/asyndisplaykitru-men-pian/">阅读全文 &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/3">&larr; Older</a>
@@ -474,6 +493,14 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/09/10/zu-he-yu-ji-cheng/">组合与继承</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/09/10/zu-he-ji-cheng/">组合继承</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/07/19/view-layerxie-zuo/">View-Layer协作</a>
       </li>
     
@@ -485,14 +512,6 @@
         <a href="/blog/2016/07/18/chang-yong-de-di-san-fang-lei-ku-and-xue-xi-zi-liao/">常用的第三方类库&amp;学习资料</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2016/05/30/iosdong-hua/">Ios动画</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/05/26/swiftyu-fa-xiao-ji-qiao/">Swift语法小技巧</a>
-      </li>
-    
   </ul>
 </section>
 <section>
@@ -500,7 +519,7 @@
 	<ul id="categories">
 		<li class='category'><a href='/blog/categories/cocoapods/'>cocoapods (1)</a></li>
 <li class='category'><a href='/blog/categories/git/'>git (3)</a></li>
-<li class='category'><a href='/blog/categories/ios/'>ios (23)</a></li>
+<li class='category'><a href='/blog/categories/ios/'>ios (24)</a></li>
 <li class='category'><a href='/blog/categories/life/'>life (1)</a></li>
 <li class='category'><a href='/blog/categories/mac/'>mac (2)</a></li>
 <li class='category'><a href='/blog/categories/nodejs/'>nodejs (2)</a></li>

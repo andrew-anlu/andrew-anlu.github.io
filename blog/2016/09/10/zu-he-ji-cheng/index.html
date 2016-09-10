@@ -5,11 +5,12 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Swift中的数据存储 - 安路的技术博客</title>
+  <title>组合继承 - 安路的技术博客</title>
   <meta name="author" content="安路">
 
   
-  <meta name="description" content="程序就是对数据进行处理的，存储数据在app端也是很有必要的。本章将学习如何使用文件系统在磁盘上存储信息，如何在内置的用户偏好设置数据库中存储简单数据。 NSuserDefaults NSUserDefaults类允许以"键值"形式保存设置信息。我们不需要加载和读取设置文件，偏好设置会被自动保存。 &hellip;">
+  <meta name="description" content="
+">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +19,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://andrew-anlu.github.io/blog/2016/03/01/swiftzhong-de-shu-ju-cun-chu/">
+  <link rel="canonical" href="http://andrew-anlu.github.io/blog/2016/09/10/zu-he-ji-cheng/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="安路的技术博客" type="application/atom+xml">
@@ -69,7 +70,7 @@
   
   <header>
     
-      <h1 class="entry-title">Swift中的数据存储</h1>
+      <h1 class="entry-title">组合继承</h1>
     
     
       <p class="meta">
@@ -78,7 +79,7 @@
 
 
 
-<time class='entry-date' datetime='2016-03-01T10:52:34+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>1</span><span class='date-suffix'>st</span>, <span class='date-year'>2016</span></span> <span class='time'>10:52 am</span></time>
+<time class='entry-date' datetime='2016-09-10T08:45:05+08:00'><span class='date'><span class='date-month'>Sep</span> <span class='date-day'>10</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>8:45 am</span></time>
         
            | <a href="#disqus_thread"
              data-disqus-identifier="http://andrew-anlu.github.io">Comments</a>
@@ -88,122 +89,7 @@
   </header>
 
 
-<div class="entry-content"><p>程序就是对数据进行处理的，存储数据在app端也是很有必要的。本章将学习如何使用文件系统在磁盘上存储信息，如何在内置的用户偏好设置数据库中存储简单数据。</p>
-
-<!--more-->
-
-
-<h2>NSuserDefaults</h2>
-
-<p>NSUserDefaults类允许以"键值"形式保存设置信息。我们不需要加载和读取设置文件，偏好设置会被自动保存。</p>
-
-<p>要访问存储在NSuserDefaults中的偏好设置，需要NSuserDefaults类的一个实例。为得到这样的一个实例，必须使用NSUserdefaults类额standardUserDefaults:</p>
-
-<pre><code>let defaults=NSUserDefaults.standardUserDefaults()
-</code></pre>
-
-<p>要在默认对象中注册默认值，首先需要创建一个字典。这个字典的键与偏好设置的名字相同，与这些键关联的值就是这些设置的默认值。一旦有个这个字典，就用registerDefaults方法将它提供给默认对象</p>
-
-<pre><code>let meDefaults=["greeting":"hello",
-            "numberOfItems":1]
-defaults.registerDefaults(meDefaults)
-</code></pre>
-
-<p>完成这一工作后，就可以使用默认对象的值了</p>
-
-<p>用reigisterDefaults方法注册的"默认设置"并不是村村在磁盘上，也就是说在应用程序每次启动时都需要调用它。但在应用程序中设定的“默认设置”会被保存。</p>
-
-<p>有了对一个NSuserdefaults对象的引用，就可以向对待字典一样对待NSUserdaults对象，我们可以使用ObjectForkey方法从默认对象中提取一个值</p>
-
-<pre><code>let greeting=defaults.objectForKey("greeting") as? String
-</code></pre>
-
-<p>只有少数对象可以村村在默认对象中。可以存储在默认对象中的对象只有属性列表对象。</p>
-
-<ul>
-<li>字符串</li>
-<li>数字</li>
-<li>NSData</li>
-<li>NSdate</li>
-<li>数组和字典</li>
-</ul>
-
-
-<p> 如果需要在默认对象中存储任何其他类型的对象，应当首先对其存档(archive),转换为NSData</p>
-
-<p>除了从默认对象中提取值之外，还可以设定值。在NSUserDefaults对象中设定值时，这个值将被永远保存
-要在NSUserDefaults对象中设定一个对象，可以使用SetObject(_,forKey)</p>
-
-<pre><code>let newGreeting="hi ,there";
-defaults.setObject(newGreeting, forKey: "greeting")  
-</code></pre>
-
-<h2>使用NSFileManager</h2>
-
-<p>应用程序与文件系统的界面是NSFileManager对象，利用它可以列出文件夹的内容，创建和重命名和删除文件，要访问NSFilemanager类，可以使用共享管理器对象</p>
-
-<pre><code>let fileManager=NSFileManager.defaultManager()
-</code></pre>
-
-<h3>注意</h3>
-
-<p>NSFileManager允许我们对其设定一个委托，在文件管理器完成诸如复制或移动文件之类的操作时，它会受到消息。在使用这一功能时，应当创建你自己的NSFileManager实例，而不是使用共享对象</p>
-
-<pre><code>let fileManager=NSFileManager()
-fileManager.delegate=self;
-</code></pre>
-
-<ul>
-<li><p>获取一个临时目录</p>
-
-<p>  //获取临时目录
-  let tempraryDirectoryPath=NSTemporaryDirectory()
-这个函数会返回一个字符串，它包含了可以在其中存储文件的目录路径。如果希望以NSURL形式使用它，就需要用fileURLWithPath方法进行转换。</p></li>
-<li><p>创建目录</p></li>
-</ul>
-
-
-<p>利用NSFileManager，可以在文件系统上创建和删除项目。比如，要创建一个新目录，可以利用:</p>
-
-<ul>
-<li>创建文件
-创建文件的过程也是一样的，我们在NSString中提供一个路径，文件应当包含的NSData,以及一个可选的字典，其中列出此文件应当拥有的属性：</li>
-</ul>
-
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>fileManager.createFileAtPath(newFilePath!,
-</span><span class='line'>      contents:NewFileData,
-</span><span class='line'>      attributes:nil)</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>删除文件</li>
-</ul>
-
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>fileManager.reomveItemAtURL(newFileURL!,error:&error)</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>移动和复制文件</li>
-</ul>
-
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>fileManager.moveItemAtURL(sourceURL!,toURL:destinationURL,error:nil)</span></code></pre></td></tr></table></div></figure>
-
-
-<p>要复制一个项目，可以这样做</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>fileManager.copyItemAtURL(sourceURL!,toURL:destinationURL,error:nil)</span></code></pre></td></tr></table></div></figure>
-
-
-
+<div class="entry-content">
 </div>
 
 
@@ -219,14 +105,8 @@ fileManager.delegate=self;
 
 
 
-<time class='entry-date' datetime='2016-03-01T10:52:34+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>1</span><span class='date-suffix'>st</span>, <span class='date-year'>2016</span></span> <span class='time'>10:52 am</span></time>
+<time class='entry-date' datetime='2016-09-10T08:45:05+08:00'><span class='date'><span class='date-month'>Sep</span> <span class='date-day'>10</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>8:45 am</span></time>
       
-
-<span class="categories">
-  
-    <a class='category' href='/blog/categories/swift/'>swift</a>
-  
-</span>
 
 
     </p>
@@ -259,10 +139,10 @@ fileManager.delegate=self;
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2016/02/26/swiftji-chu-zhi-shi/" title="Previous Post: swift基础知识">&laquo; swift基础知识</a>
+        <a class="basic-alignment left" href="/blog/2016/07/19/view-layerxie-zuo/" title="Previous Post: View-Layer协作">&laquo; View-Layer协作</a>
       
       
-        <a class="basic-alignment right" href="/blog/2016/03/01/xcodechang-jian-wen-ti-jie-xi/" title="Next Post: xcode常见问题解析">xcode常见问题解析 &raquo;</a>
+        <a class="basic-alignment right" href="/blog/2016/09/10/zu-he-yu-ji-cheng/" title="Next Post: 组合与继承">组合与继承 &raquo;</a>
       
     </p>
   </footer>
@@ -398,8 +278,8 @@ fileManager.delegate=self;
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://andrew-anlu.github.io/blog/2016/03/01/swiftzhong-de-shu-ju-cun-chu/';
-        var disqus_url = 'http://andrew-anlu.github.io/blog/2016/03/01/swiftzhong-de-shu-ju-cun-chu/';
+        var disqus_identifier = 'http://andrew-anlu.github.io/blog/2016/09/10/zu-he-ji-cheng/';
+        var disqus_url = 'http://andrew-anlu.github.io/blog/2016/09/10/zu-he-ji-cheng/';
         var disqus_script = 'embed.js';
       
     (function () {

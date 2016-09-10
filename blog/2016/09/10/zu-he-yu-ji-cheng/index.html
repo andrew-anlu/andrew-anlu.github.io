@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Swift中的数据存储 - 安路的技术博客</title>
+  <title>组合与继承 - 安路的技术博客</title>
   <meta name="author" content="安路">
 
   
-  <meta name="description" content="程序就是对数据进行处理的，存储数据在app端也是很有必要的。本章将学习如何使用文件系统在磁盘上存储信息，如何在内置的用户偏好设置数据库中存储简单数据。 NSuserDefaults NSUserDefaults类允许以"键值"形式保存设置信息。我们不需要加载和读取设置文件，偏好设置会被自动保存。 &hellip;">
+  <meta name="description" content="何时使用子类 首先，我们讨论几种使用子类比较合适的场景。如果你要写一个自定义布局的UITableViewCell,那就创建一个子类。这同样适用于几乎每个视图。一旦你开始布局，把这块代码放入子类就更合理一些，不管代码得到了更好的封装，你也能得到一个可在工程之间重用的组件。 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://andrew-anlu.github.io/blog/2016/03/01/swiftzhong-de-shu-ju-cun-chu/">
+  <link rel="canonical" href="http://andrew-anlu.github.io/blog/2016/09/10/zu-he-yu-ji-cheng/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="安路的技术博客" type="application/atom+xml">
@@ -69,7 +69,7 @@
   
   <header>
     
-      <h1 class="entry-title">Swift中的数据存储</h1>
+      <h1 class="entry-title">组合与继承</h1>
     
     
       <p class="meta">
@@ -78,7 +78,7 @@
 
 
 
-<time class='entry-date' datetime='2016-03-01T10:52:34+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>1</span><span class='date-suffix'>st</span>, <span class='date-year'>2016</span></span> <span class='time'>10:52 am</span></time>
+<time class='entry-date' datetime='2016-09-10T08:45:55+08:00'><span class='date'><span class='date-month'>Sep</span> <span class='date-day'>10</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>8:45 am</span></time>
         
            | <a href="#disqus_thread"
              data-disqus-identifier="http://andrew-anlu.github.io">Comments</a>
@@ -88,122 +88,51 @@
   </header>
 
 
-<div class="entry-content"><p>程序就是对数据进行处理的，存储数据在app端也是很有必要的。本章将学习如何使用文件系统在磁盘上存储信息，如何在内置的用户偏好设置数据库中存储简单数据。</p>
+<div class="entry-content"><h2>何时使用子类</h2>
 
-<!--more-->
+<p>首先，我们讨论几种使用子类比较合适的场景。如果你要写一个自定义布局的UITableViewCell,那就创建一个子类。这同样适用于几乎每个视图。一旦你开始布局，把这块代码放入子类就更合理一些，不管代码得到了更好的封装，你也能得到一个可在工程之间重用的组件。</p>
 
+<p>假设你的代码是针对多平台多版本的，并且你需要针对每个平台每个版本写一些代码。这时候更合理的做法可能是创建一个<code>OBJDevice</code>类，让一些子类如 <code>OBJIPhoneDevice</code>和<code>OBJIPadDevice</code>,甚至更深层次的子类如<code>OBJIPhone5Device</code>来继承，并让这些子类重写特定的方法，例如，你的<code>OBJDevice</code>类可能包含了函数<code>applyRoundedCornersToView:withRadius</code>,它有一个默认的实现，但是也能被特定的子类重写。</p>
 
-<h2>NSuserDefaults</h2>
+<p>另一个子类可能很有用的场景是模型对象（model object）.绝大多数情况下，我的模型对象继承自一个实现了 <code>isEqual:</code>,<code>hash</code>,<code>copyWithzone:</code>,和<code>description</code>等方法的类。这些方法只被实现一次，并且迭代循环遍历所有属性，所以极不容易出错。（如果你也想找这样的一个基类，可以考虑使用<a href="https://github.com/mantle/mantle">Mantle</a>,它就是这么做的，并且做的更多）</p>
 
-<p>NSUserDefaults类允许以"键值"形式保存设置信息。我们不需要加载和读取设置文件，偏好设置会被自动保存。</p>
+<h2>何时不适用子类</h2>
 
-<p>要访问存储在NSuserDefaults中的偏好设置，需要NSuserDefaults类的一个实例。为得到这样的一个实例，必须使用NSUserdefaults类额standardUserDefaults:</p>
+<p>在以往工作过得很多工程中，我见过很多继承层次很深的子类。当我也这么干的时候，总会感到内疚。除非继承的层次非常浅，否则你会很快发现它的局限性。</p>
 
-<pre><code>let defaults=NSUserDefaults.standardUserDefaults()
-</code></pre>
+<p>幸运的是，如果你发现自己正在使用深层次的继承，还有很多替代的方案可选。在下面的章节中，我们会逐个进行更详细的描述。如果你的子类只是使用相同的接口，协议会是非常好的替代方案。如果你知道某个对象需要大量的修改，你可能会使用代理来动态改变和配置它。当你想给已有的对象增加一些简单功能时，类别可能是个选择。当你有一堆重写了相同方法的子类时，你可以使用配置对象来代替。最后，当你想重用某些功能时，组合多个对象而不是扩展它们可能会更好。</p>
 
-<p>要在默认对象中注册默认值，首先需要创建一个字典。这个字典的键与偏好设置的名字相同，与这些键关联的值就是这些设置的默认值。一旦有个这个字典，就用registerDefaults方法将它提供给默认对象</p>
+<h1>替代方案</h1>
 
-<pre><code>let meDefaults=["greeting":"hello",
-            "numberOfItems":1]
-defaults.registerDefaults(meDefaults)
-</code></pre>
+<h2>协议(Protocols)</h2>
 
-<p>完成这一工作后，就可以使用默认对象的值了</p>
-
-<p>用reigisterDefaults方法注册的"默认设置"并不是村村在磁盘上，也就是说在应用程序每次启动时都需要调用它。但在应用程序中设定的“默认设置”会被保存。</p>
-
-<p>有了对一个NSuserdefaults对象的引用，就可以向对待字典一样对待NSUserdaults对象，我们可以使用ObjectForkey方法从默认对象中提取一个值</p>
-
-<pre><code>let greeting=defaults.objectForKey("greeting") as? String
-</code></pre>
-
-<p>只有少数对象可以村村在默认对象中。可以存储在默认对象中的对象只有属性列表对象。</p>
-
-<ul>
-<li>字符串</li>
-<li>数字</li>
-<li>NSData</li>
-<li>NSdate</li>
-<li>数组和字典</li>
-</ul>
-
-
-<p> 如果需要在默认对象中存储任何其他类型的对象，应当首先对其存档(archive),转换为NSData</p>
-
-<p>除了从默认对象中提取值之外，还可以设定值。在NSUserDefaults对象中设定值时，这个值将被永远保存
-要在NSUserDefaults对象中设定一个对象，可以使用SetObject(_,forKey)</p>
-
-<pre><code>let newGreeting="hi ,there";
-defaults.setObject(newGreeting, forKey: "greeting")  
-</code></pre>
-
-<h2>使用NSFileManager</h2>
-
-<p>应用程序与文件系统的界面是NSFileManager对象，利用它可以列出文件夹的内容，创建和重命名和删除文件，要访问NSFilemanager类，可以使用共享管理器对象</p>
-
-<pre><code>let fileManager=NSFileManager.defaultManager()
-</code></pre>
-
-<h3>注意</h3>
-
-<p>NSFileManager允许我们对其设定一个委托，在文件管理器完成诸如复制或移动文件之类的操作时，它会受到消息。在使用这一功能时，应当创建你自己的NSFileManager实例，而不是使用共享对象</p>
-
-<pre><code>let fileManager=NSFileManager()
-fileManager.delegate=self;
-</code></pre>
-
-<ul>
-<li><p>获取一个临时目录</p>
-
-<p>  //获取临时目录
-  let tempraryDirectoryPath=NSTemporaryDirectory()
-这个函数会返回一个字符串，它包含了可以在其中存储文件的目录路径。如果希望以NSURL形式使用它，就需要用fileURLWithPath方法进行转换。</p></li>
-<li><p>创建目录</p></li>
-</ul>
-
-
-<p>利用NSFileManager，可以在文件系统上创建和删除项目。比如，要创建一个新目录，可以利用:</p>
-
-<ul>
-<li>创建文件
-创建文件的过程也是一样的，我们在NSString中提供一个路径，文件应当包含的NSData,以及一个可选的字典，其中列出此文件应当拥有的属性：</li>
-</ul>
-
+<p>很多时候，使用子类的原因是你想保证某个对象可以响应某些消息。假设在app中你有一个播放器对象，它可以播放视频。现在你想添加对YouTube的支持，使用相同的接口，但是具体实现不同。你可以像这样用子类来实现:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>fileManager.createFileAtPath(newFilePath!,
-</span><span class='line'>      contents:NewFileData,
-</span><span class='line'>      attributes:nil)</span></code></pre></td></tr></table></div></figure>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>@class Player : NSObject
+</span><span class='line'>
+</span><span class='line'>- (void)play;
+</span><span class='line'>- (void)pause;
+</span><span class='line'>
+</span><span class='line'>@end
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>@class YouTubePlayer : Player
+</span><span class='line'>
+</span><span class='line'>@end</span></code></pre></td></tr></table></div></figure>
 
 
-<ul>
-<li>删除文件</li>
-</ul>
-
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>fileManager.reomveItemAtURL(newFileURL!,error:&error)</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>移动和复制文件</li>
-</ul>
-
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>fileManager.moveItemAtURL(sourceURL!,toURL:destinationURL,error:nil)</span></code></pre></td></tr></table></div></figure>
-
-
-<p>要复制一个项目，可以这样做</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>fileManager.copyItemAtURL(sourceURL!,toURL:destinationURL,error:nil)</span></code></pre></td></tr></table></div></figure>
-
-
-
+<p>事实上可能这两个类并没有太多共用的代码，它们只不过具有相同的接口。如果这样的话，使用协议可能会是更好的昂奋。可以这样用协议来写你的代码：</p>
 </div>
 
 
@@ -219,12 +148,12 @@ fileManager.delegate=self;
 
 
 
-<time class='entry-date' datetime='2016-03-01T10:52:34+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>1</span><span class='date-suffix'>st</span>, <span class='date-year'>2016</span></span> <span class='time'>10:52 am</span></time>
+<time class='entry-date' datetime='2016-09-10T08:45:55+08:00'><span class='date'><span class='date-month'>Sep</span> <span class='date-day'>10</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>8:45 am</span></time>
       
 
 <span class="categories">
   
-    <a class='category' href='/blog/categories/swift/'>swift</a>
+    <a class='category' href='/blog/categories/ios/'>ios</a>
   
 </span>
 
@@ -259,10 +188,8 @@ fileManager.delegate=self;
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2016/02/26/swiftji-chu-zhi-shi/" title="Previous Post: swift基础知识">&laquo; swift基础知识</a>
+        <a class="basic-alignment left" href="/blog/2016/09/10/zu-he-ji-cheng/" title="Previous Post: 组合继承">&laquo; 组合继承</a>
       
-      
-        <a class="basic-alignment right" href="/blog/2016/03/01/xcodechang-jian-wen-ti-jie-xi/" title="Next Post: xcode常见问题解析">xcode常见问题解析 &raquo;</a>
       
     </p>
   </footer>
@@ -398,8 +325,8 @@ fileManager.delegate=self;
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://andrew-anlu.github.io/blog/2016/03/01/swiftzhong-de-shu-ju-cun-chu/';
-        var disqus_url = 'http://andrew-anlu.github.io/blog/2016/03/01/swiftzhong-de-shu-ju-cun-chu/';
+        var disqus_identifier = 'http://andrew-anlu.github.io/blog/2016/09/10/zu-he-yu-ji-cheng/';
+        var disqus_url = 'http://andrew-anlu.github.io/blog/2016/09/10/zu-he-yu-ji-cheng/';
         var disqus_script = 'embed.js';
       
     (function () {
