@@ -1,0 +1,439 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>iOS推送 - 安路的技术博客</title>
+  <meta name="author" content="安路">
+
+  
+  <meta name="description" content="推送服务可以说是所有App的标配，不论是那种类型的App,推送都从很大程度上决定了App的打开率，使用率，存活率。因此熟知并掌握推送原理及方法,对每一个开发者来说都是必备技能，对每一个依赖App的公司都至关重要 从ios10新增的UserNotifications Framework可以发现， &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://andrew-anlu.github.io/blog/2016/09/21/iostui-song/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="安路的技术博客" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//libs.baidu.com/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">安路的技术博客</a></h1>
+  
+    <h2>Nothing in life is to be feared. It is only to be understood</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://andrew-anlu.github.io" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="andrew-anlu.github.io">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/blog/">About me</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">iOS推送</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-09-21T16:25:58+08:00'><span class='date'><span class='date-month'>Sep</span> <span class='date-day'>21</span><span class='date-suffix'>st</span>, <span class='date-year'>2016</span></span> <span class='time'>4:25 pm</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>推送服务可以说是所有App的标配，不论是那种类型的App,推送都从很大程度上决定了App的打开率，使用率，存活率。因此熟知并掌握推送原理及方法,对每一个开发者来说都是必备技能，对每一个依赖App的公司都至关重要</p>
+
+<p>从ios10新增的<code>UserNotifications Framework</code>可以发现，Apple整合了原有散乱的API,并且增加了很多强大的功能。以Apple官方的角度来看，也必然是相当重视推送服务对App的影响，以及对Apple生态圈长远发展的影响。</p>
+
+<!--more-->
+
+
+<h2>准备</h2>
+
+<h3>Tip 1：推送通知（Push Notification）必须购买Apple开发者账号，并使用特定的推送证书</h3>
+
+<ul>
+<li>使用免费账号不能推送</li>
+<li>如果我们使用的是第三方推送服务，比如 &lt;极光推送>,也必须购买开发者账号，因为所有的第三方都会将推送请求发至 <code>APNS</code>(Apple push Notification service，苹果推送通知服务)，所有的推送都是由Apns发送的</li>
+<li>如果注册及正确的配置证书，参考这里<a href="http://docs.jiguang.cn/client/ios_tutorials/#ios_1">ios证书设置指南</a></li>
+</ul>
+
+
+<h2>原理</h2>
+
+<h3>Tip2:推送通知本身是iOS系统的行为，所以在App没有运行的时候：</h3>
+
+<ul>
+<li>仍然能够推送及接收(通知中心通知，顶部横幅，刷新App右上角小圆点等都会由系统控制和展示)</li>
+<li>收到推送时，是无法再App的代码中获取到通知内容的。因为沙盒机制，此时App的任何代码都不可能被执行</li>
+</ul>
+
+
+<h3>Tip3:手机向APNS注册推送服务</h3>
+
+<ol>
+<li>在代码中注册推送服务:</li>
+</ol>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'> #ifdef __IPHONE_8_0
+</span><span class='line'> if ([[UIApplication sharedApplication] respondsToSelector:@selector(registerUserNotificationSettings:)]) {
+</span><span class='line'>     UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:UIUserNotificationTypeBadge| UIUserNotificationTypeSound|UIUserNotificationTypeAlert categories:nil];
+</span><span class='line'>     [[UIApplication sharedApplication] registerUserNotificationSettings:settings];
+</span><span class='line'> } else {
+</span><span class='line'>     UIRemoteNotificationType myTypes = UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeSound;
+</span><span class='line'>     [[UIApplication sharedApplication] registerForRemoteNotificationTypes:myTypes];
+</span><span class='line'>}
+</span><span class='line'> #else
+</span><span class='line'>     UIRemoteNotificationType myTypes = UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeSound;
+</span><span class='line'>     [[UIApplication sharedApplication] registerForRemoteNotificationTypes:myTypes];
+</span><span class='line'> #endif</span></code></pre></td></tr></table></div></figure>
+
+
+<ol>
+<li>在第一次触发这段代码的时候，会有一个系统弹窗，询问你是否允许该App要给你推送信息。当你选择允许时，系统会打包App+手机唯一标识+证书信息 发送至Apns服务器注册推送服务，APNs系统会对该手机安装的该App是否有推送权限进行验证，所以必须要加入了Apple Device的手机，使用对应App的推送证书才能够成功注册。</li>
+<li>如果注册成功，则可以在<code>AppDelegate.swift</code>的如下方法中获取到<code>deviceToken</code>,它是对该手机+该App组合的一个唯一标识，当使用远程推送时，只需将推送消息发给指定的<code>deviceToken</code>即可使推送消息传达给指定手机的指定App上。因此如果你使用第三方，就需要在这里将<code>deviceToken</code>传给第三方。（在ios9为了更好的保护用户隐私，会出现多次重复删除/安装App导致<code>deviceToken</code>不断变化的情况。有时会出现一条推送手机会受到2次的问题，属于iOS9系统问题）</li>
+</ol>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'> -(void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {  
+</span><span class='line'>     [JPUSHService registerDeviceToken:deviceToken];//将 deviceToken 传给极光推送
+</span><span class='line'> }</span></code></pre></td></tr></table></div></figure>
+
+
+<ol>
+<li><p>如果以上步骤都成功，此时你能够获取到第三方提供的设备注册的id，能够获取到该id值，可以作为判断设备是否能够成功推送的标准，因此当你获取到该值时：</p></li>
+<li><p>推送证书配置正确（你拥有了推送权限）</p></li>
+<li>设备成功在Apns注册并返回了<code>deviceToken</code>（Apns能识别你的设备了）</li>
+<li><p>返回的<code>deviceTOken</code>传给第三方，成功在第三方生成了唯一标识注册id（第三方能将你的设备信息传给APNS了）</p></li>
+<li><p>综上，注册及接受推送必须使用真机，必须连网</p></li>
+</ol>
+
+
+<h3>Tip4:推送通知从服务端->App代码的过程</h3>
+
+<ol>
+<li>使用你们公司或第三方的服务端向APNs发送推送请求（请参考苹果APNS相关资料，或者使用第三方提供的Rest Api）</li>
+<li>APNS接受并验证推送请求</li>
+<li>APNS找到设备下发推送</li>
+<li><p>手机收到推送通知，系统根据App状态进行处理：</p></li>
+<li><p>前台收到：</p>
+
+<ul>
+<li>系统会将通知内容传到 <code>didReceiveRemoteNotification</code></li>
+</ul>
+</li>
+<li><p>后台收到:</p>
+
+<ul>
+<li>如果开启了<code>Remote Notification</code>,系统将推送传到<code>didReceiveRemoteNotification:fetchCompletionHandler:</code>,否则此时代码中收不到推送</li>
+<li>展示横幅，通知中心，声音，角标</li>
+</ul>
+</li>
+<li><p>退出收到:</p>
+
+<ul>
+<li>如果点击推送横幅/通知中心而启动App,系统将通知传到<code>didFinishLaunchingWithOptions</code></li>
+<li>展示横幅，通知中心，声音，角标</li>
+</ul>
+</li>
+</ol>
+
+
+<h2>推送通知内容篇</h2>
+
+<h3>Tip5:推送通知分为本地/远程 2种类型:</h3>
+
+<ul>
+<li>本地通知，可指定推送时间，在该时间准时弹出推送通知。</li>
+<li><p>远程推送通知，分为普通推送/后台推送/静默推送3种类型。存在延迟问题（由于Tip1的第2点，APNS的不稳定及高峰时段的巨量请求所致）</p>
+
+<ul>
+<li><p>普通推送</p>
+
+<ul>
+<li>就是我们在手机上平时见到的推送通知</li>
+<li>包括声音，横幅，角标，自定义字段</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">安路</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2016-09-21T16:25:58+08:00'><span class='date'><span class='date-month'>Sep</span> <span class='date-day'>21</span><span class='date-suffix'>st</span>, <span class='date-year'>2016</span></span> <span class='time'>4:25 pm</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/ios/'>ios</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+
+<!-- JiaThis Button BEGIN -->
+<div class="jiathis_style_32x32">
+	<a class="jiathis_button_qzone"></a>
+	<a class="jiathis_button_tsina"></a>
+	<a class="jiathis_button_tqq"></a>
+	<a class="jiathis_button_weixin"></a>
+	<a class="jiathis_button_renren"></a>
+	<a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank"></a>
+	<a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+<br><br>
+<!-- UY BEGIN -->
+<div id="uyan_frame"></div>
+<script type="text/javascript" src="http://v2.uyan.cc/code/uyan.js?uid=2052593"></script>
+<!-- UY END -->
+
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2016/09/10/zu-he-yu-ji-cheng/" title="Previous Post: 组合与继承">&laquo; 组合与继承</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+<h1>
+	QQ群
+</h1>
+   <br/>
+	<p>欢迎加入swift学习交流群:252710124</p>
+</section>
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/09/21/iostui-song/">iOS推送</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/09/10/zu-he-yu-ji-cheng/">组合与继承</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/09/10/zu-he-ji-cheng/">组合继承</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/07/19/view-layerxie-zuo/">View-Layer协作</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/07/19/zi-ding-yi-viewcontroller-rong-qi-zhuan-chang/">自定义 ViewController 容器转场</a>
+      </li>
+    
+  </ul>
+</section>
+<section>
+	<h1>文章分类</h1>
+	<ul id="categories">
+		<li class='category'><a href='/blog/categories/cocoapods/'>cocoapods (1)</a></li>
+<li class='category'><a href='/blog/categories/git/'>git (3)</a></li>
+<li class='category'><a href='/blog/categories/ios/'>ios (25)</a></li>
+<li class='category'><a href='/blog/categories/life/'>life (1)</a></li>
+<li class='category'><a href='/blog/categories/mac/'>mac (2)</a></li>
+<li class='category'><a href='/blog/categories/nodejs/'>nodejs (2)</a></li>
+<li class='category'><a href='/blog/categories/octopress/'>octopress (2)</a></li>
+<li class='category'><a href='/blog/categories/swift/'>swift (13)</a></li>
+<li class='category'><a href='/blog/categories/xcode/'>xcode (1)</a></li>
+
+	</ul>
+</section>
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/andrew-anlu">@andrew-anlu</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'andrew-anlu',
+            count: 3,
+            skip_forks: false,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+<section>
+  <h1>On Delicious</h1>
+  <div id="delicious"></div>
+  <script type="text/javascript" src="http://feeds.delicious.com/v2/json/Andrewswift1987?count=3&amp;sort=date&amp;callback=renderDeliciousLinks"></script>
+  <p><a href="http://delicious.com/Andrewswift1987">My Delicious Bookmarks &raquo;</a></p>
+</section>
+
+ <section>
+      <h1>访客统计</h1>
+      <br/>
+    <a href="http://info.flagcounter.com/Bkif"><img src="http://s01.flagcounter.com/count2/Bkif/bg_ffffff/txt_000000/border_CCCCCC/columns_3/maxflags_10/viewers_0/labels_1/pageviews_1/flags_1/percent_0/" alt="Free counters!" border="0"></a>
+    </section>
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><!--返回顶部开始-->
+<div id="full" style="width:0px; height:0px; position:fixed; right:180px; bottom:150px; z-index:100; text-align:center; background-color:transparent; cursor:pointer;">
+  <a href="#" onclick="goTop();return false;"><img src="http://7xsn4e.com2.z0.glb.clouddn.com/top.png" border=0 alt="返回顶部" width="50" height="50"></a>
+</div>
+<script src="/javascripts/top.js" type="text/javascript"></script>
+<!--返回顶部结束-->
+
+
+<p>
+  Copyright &copy; 2016 - 安路 -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'Andrewswift1987';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://andrew-anlu.github.io/blog/2016/09/21/iostui-song/';
+        var disqus_url = 'http://andrew-anlu.github.io/blog/2016/09/21/iostui-song/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
