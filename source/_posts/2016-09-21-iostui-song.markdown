@@ -99,8 +99,164 @@ categories: iOS
 	
 		* 就是我们在手机上平时见到的推送通知
 		* 包括声音，横幅，角标，自定义字段
+		* App:
+			
+			* 处于前台，不会显示横幅，可通过 `didReceiveRemoteNotification `（ios7 before）,`didReceiveRemoteNotification:fetchCompletionHandler:`(ios7 after)获取通知内容
+			* 处于后台，会展示横幅，无法获取通知内容
+			* 处于退出，会展示横幅，无法获取通知内容
+			* 点击图标启动，无法获取通知内容
+			* 点击通知横幅启动，在`didFinishLaunchingWithOptions `获取通知内容
+	* 通知内容类似如下:
+
+	```
+	{
+  "_j_msgid" = 200806057;  // 第三方附带的 id，用于统计点击
+  aps =     {
+    alert = "显示内容";
+    badge = 1;  // App 角标，可推送 n、+n、-n 来实现角标的固定、增加、减少
+    sound = default;  // 推送声音，默认系统三全音，如需使用自己的声音，需要将声音文件拖拽&拷贝至 Xcode 工程目录任意位置，并在推送时指定其文件名
+  };
+  key1 = value1;  // 自定义字段，可设置多组，用于处理内部逻辑
+  key2 = value2;
+}
+	```
 
 
+* 后台推送
+
+ 	* 各种显示效果跟普通推送完全一样
+ 	* 必须携带`content-available` = 1
+ 	* 必须携带 alter ,badge ,sound 至少一个字段
+ 	* 仅 ios7以后支持
+ 	* 必须在Xcode工程中 `TARGETS – Capabilities – Background Modes – Remote notifications `开启该功能，具体可参照 [ iOS 7 Background Remote Notification](http://docs.jiguang.cn/client/ios_tutorials/#ios-7-background-remote-notification)
+
+
+### App
+
+* 处于前台，可通过`didReceiveRemoteNotification `(iOS7 before) ，didReceiveRemoteNotification:fetchCompletionHandler: （iOS 7 after）获取通知内容
+* 处于后台，可通过` didReceiveRemoteNotification:fetchCompletion Handler:`获取通知内容，获取情况中于普通推送的唯一不同点，此时iOS系统允许开发者在App处于后台的情况下没执行一些代码，大概提供几分钟的时间，可以用来偷偷地刷新UI，切换页面，下载更新包等等操作
+* 处于退出，无法获取通知内容
+* 点击图标启动，无法获取通知内容
+* 点击推送横幅启动，在`didFinishLaunchingWithOptions `获取通知内容
+
+*通知内容类似如下:*
+
+```
+{
+  "_j_msgid" = 2090737306;
+  aps =     {
+    alert = "显示内容";
+    badge = 1;
+    "content-available" = 1;  // 必带字段
+    sound = default;
+  };
+  key1 = value1;
+}
+```
+
+
+### 静默推送
+
+* 没有任何展示效果
+* 必须携带`"content-available" = 1`，因此静默必然是后台的
+* 必须不携带 alert,badge,sound
+* 可携带自定义字段
+
+*App:*
+
+* 处于前台，可以通过`didReceiveRemoteNotification `(iOS7 before),`didReceiveRemoteNotification:fetchCompletionHandler:` (ios 7 after)获取通知内容
+* 处于后台，可通过`didReceiveRemoteNotification:fetchCompletion Handler:`获取通知内容，获取情况中与普通推送的唯一不同点，此时iOS系统允许开发者在App处于后台的情况下，执行一些代码，大概提供几分钟的时间，可以用来偷偷的刷新UI,切换页面，下载更新包等等操作
+* 处于退出，无法获取通知内容
+
+*通知内容类似如下:*
+
+```
+{
+    "_j_msgid" = 3938587719;
+    aps =     {
+        alert = "";
+        "content-available" = 1;  // 必带字段
+    };
+    key1 = value1;
+}
+```
+
+
+
+## 推送目标篇
+
+别名，标签，RegistrationID均是第三方提供的用于更方便地指定推送目标的功能
+
+### Tip6:推送根据目标的不同可以分为:
+
+* 广播
+	* 无差别发送给所有用户
+* 别名alias推送	
+	* 第三方提供的功能
+	* 一个手机的一款App只能设置一个 alias(可修改)
+	* 建议对每一个用户都取不同的别名，以此来确定唯一的用户
+	* 推送时可指定多个alias来发送同一内容
+	* 仅指定alias的用户能够收到推送
+
+* 标签tag推送
+	* 第三方提供的功能
+	* 可以设置多个，可增加，清空
+	* 用于指定多样的属性，如 『1000』+『daily』+『discount』 可用于表示月消费超过 1k、喜欢购买日用品、偏好折扣商品的用户
+	* 如果要删除，需要在上次设置时，将设置的tags保存至`NSUserDefaults`，本次剔除不需要的tag后，再重新设置
+	* 推送时可指定多个tag来发同一个内容
+	* 手机如果设置了推送指定的多个 tag 中任一个tag，都能够收到推送消息。如指定 『1000』+『globe』+『original』 （千元级消费者、全球购、原价），那么设置了 『100』+『globe』+『discount』（百元级消费者、全球购、折扣价）的用户可以收到该推送消息。
+* Registration ID 推送
+
+	* 第三方提供的功能
+	* 在Tip 3的第三步时将`deviceToken `提供给第三方之后，其服务器会自动生成的指向该手机的唯一id
+	* 可在推送时指定多个id来下发消息
+	* 可用于对核心用户，旗舰用户的精准推送
+
+	
+## 应用消息篇
+
+### Tip 7:应用内消息和推送通知的区别，消息:
+
+* 不需要Apple推送证书
+* 由第三方服务器下发，而不是APNS
+* 相比通知，更快速，几乎没有延迟，可用于IM消息的即使传达
+* 能够长时间保留离线消息，可获取所有历史消息内容
+* 通过长连接技术下发消息，因此：
+	* 手机必须启动并与第三方服务器简历连接
+	* 如果手机启动立刻切换到后台，很可能连接没有建立
+	* 手机必须处于前台才能收到消息
+	* 手机从后台切回前台，会自动重新简历连接，并收到离线消息
+* 没有任何展示（横幅，通知中心，角标，声音），因此可以：
+	* 完全自定义字段实现UI效果
+	* 完全在静默的情况下处理App内部逻辑
+	* 使用一些App Store审核不会通过的功能，在审核时关闭功能，上架后通过接收消息，开启相关功能
+
+## 组合大招
+
+### Tip 8:tags的组合技巧
+
+* 见 Tip5 - 标签tag 推送
+* 可以再服务器端来统计分析用户行为，然后将指定的tags发送至手机，手机接收后再为用户打上对应的tags
+
+
+### Tip 9:通知 + 消息的组合技巧
+
+* 首先来看通知和消息的特性对比
+
+XX |  通知  | 			消息
+------------- |------------- | -------------
+送达时间 | 可能存在几秒延迟  | 几乎没延迟
+获取时机  | 处于前台或后台 能获取内容|仅处于前台能获取内容
+离线内容| 保留一段时间，过期会抛弃，无法查询历史内容|始终保留，可查询全部历史内容
+系统展示|会展示（静默推送或App处于前台不展示）|不展示
+
+
+
+*由于各自的特性都存在差异，因此二者结合使用使得App推送性能最大化的必然选择：*
+
+* 情景一
+
+QQ/微信聊天，会同时下发一组通知+消息，如果用户没有启动QQ,虽有延迟但必须能够先收到通知，在收到通知的提醒之后，用户打开App,此时收到了离线消息，即使更新UI，与好友即使地发送/接收消息，（在收到通知后，断网，然后启动APP，你会发现此时手机里并不会显示刚刚通知的内容，因为它是依靠拉取消息来刷新页面的，而不是不够稳定的通知）
 
 
 
