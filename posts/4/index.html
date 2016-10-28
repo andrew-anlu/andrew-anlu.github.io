@@ -9,8 +9,7 @@
   <meta name="author" content="安路">
 
   
-  <meta name="description" content="swift使用自动引用计数(ARC)机制来跟踪和管理你的应用程序的内存。通常情况，Swift内存管理机制会一直起作用，你无需自己来考虑内存的管理。ARC会在类的实例不再需要时，自动释放其占用的内存。
-然后在少数的情况下，为了能帮助你管理内存，ARC需要更多的代码之间关系的信息。 ">
+  <meta name="description" content="UIStackView类提供了一个高效的接口用于平铺一行或一列的视图组合.Stack视图使你的依靠自动布局的能力，创建用户接口使得可以动态的调整设备的朝向，屏幕尺寸以及任何可用范围内的变化。Stack视图管理着所有它的 arrageedSubviews属性中视图的布局， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -67,6 +66,253 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/04/04/uistackviewjie-shao/">UIStackView介绍</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-04-04T15:47:37+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>4</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>3:47 pm</span></time>
+        
+           | <a href="/blog/2016/04/04/uistackviewjie-shao/#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/04/04/uistackviewjie-shao/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>UIStackView类提供了一个高效的接口用于平铺一行或一列的视图组合.Stack视图使你的依靠自动布局的能力，创建用户接口使得可以动态的调整设备的朝向，屏幕尺寸以及任何可用范围内的变化。Stack视图管理着所有它的 arrageedSubviews属性中视图的布局，这些视图根据它们在arrangedSubviews数组中的顺序沿着stack视图的轴向排列，精确的布局变量根据Stack视图的 axixs,distribution,allignment,spcing,和其它属性决定。</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/04/04/uistackviewjie-shao/">阅读全文 &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/03/29/shen-ru-li-jie-runloop/">深入理解RunLoop</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-03-29T17:29:43+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>29</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>5:29 pm</span></time>
+        
+           | <a href="/blog/2016/03/29/shen-ru-li-jie-runloop/#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/03/29/shen-ru-li-jie-runloop/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/1432799466416554.jpeg" alt="runloop" /></p>
+
+<p>RunLoop是ios和OSX开发中非常基础的一个概念，本章将会介绍一下在ios中，苹果是利用RunLoop实现自动释放池，延迟回调，触摸事件，屏幕刷新等.</p>
+
+<h2>RunLoop的概念</h2>
+
+<p>一般来讲，一个线程一次只能执行一个任务，执行完成之后线程就会退出。如果我们需要一个机制，让线程能随时处理事件但并不退出，通常的代码逻辑是这样的:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>function loop() {
+</span><span class='line'>    initialize();
+</span><span class='line'>    do {
+</span><span class='line'>        var message = get_next_message();
+</span><span class='line'>        process_message(message);
+</span><span class='line'>    } while (message != quit);
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/03/29/shen-ru-li-jie-runloop/">阅读全文 &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/03/27/nsurlsessionxiang-jie/">NSUrlSession详解</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-03-27T18:48:28+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>27</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>6:48 pm</span></time>
+        
+           | <a href="/blog/2016/03/27/nsurlsessionxiang-jie/#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/03/27/nsurlsessionxiang-jie/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>NSUrlSession是NSUrlConnection的替代品。</p>
+
+<p>NSUrlConennection指的是一组构成 Foundation框架中URL加载系统的相互关联的组件:NSURLRequest,NSUrlResponse,NSURlProtocol等,在协商发送一个请求到服务器的过程中，该服务器可发出验证质询，这可以由共享的cookie，证书存储（credential storage）或通过连接委托自动处理。必要的时候，为了无缝地改变装载行为，传出请求也可以被注册的NSURLProtocol对象截获.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/03/27/nsurlsessionxiang-jie/">阅读全文 &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/03/26/nsoperationqueuejian-dan-jie-shao/">NSOperationQueue简单介绍</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-03-26T08:11:55+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>26</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>8:11 am</span></time>
+        
+           | <a href="/blog/2016/03/26/nsoperationqueuejian-dan-jie-shao/#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/03/26/nsoperationqueuejian-dan-jie-shao/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>在iOS中有两种方式来实现多线程:NSOperation和GCD.
+其中GCD是基于C的底层的API,而NSOperation则是GCD实现的Object-c的API,随让NSOPeration是基于GCD实现的，但是并不意味着它是一个GCD的重复版本，相反，我们可以用NSOperation轻易的实现一些GCD要写大量代码的事情，因此，NSOperation是被推荐使用的.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/03/26/nsoperationqueuejian-dan-jie-shao/">阅读全文 &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/03/24/swift-fan-xing/">Swift-泛型</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-03-24T10:11:56+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>24</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>10:11 am</span></time>
+        
+           | <a href="/blog/2016/03/24/swift-fan-xing/#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/03/24/swift-fan-xing/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>泛型代码可以让你编写使用自定义需求以及任意类型的灵活可冲中的函数和类型，它可以让你避免重复的代码，用一种清晰和抽象的方式来表达代码的意图。</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/03/24/swift-fan-xing/">阅读全文 &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/03/22/swift-ke-xuan-lian/">Swift-可选链</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-03-22T09:35:29+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>22</span><span class='date-suffix'>nd</span>, <span class='date-year'>2016</span></span> <span class='time'>9:35 am</span></time>
+        
+           | <a href="/blog/2016/03/22/swift-ke-xuan-lian/#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/03/22/swift-ke-xuan-lian/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>可选链式调用(Optional Chaining)是一种可以在当前值可能为<code>nil</code>的可选值上请求和调用属性，方法及下标的方法。如果可选值有值，那么调用就会成功；如果可选值为nil,那么调用将返回<code>nil</code>.多个调用可以连接在一起形成一个链，如果其中任何一个点为<code>nil</code>,整个调用链就会失败，即返回nil.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/03/22/swift-ke-xuan-lian/">阅读全文 &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -230,244 +476,6 @@ swift会为您管理在捕获过程中涉及到所有内存操作。</p>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/03/04/iosde-blockxun-huan-yin-yong/">ios的Block循环引用</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-03-04T13:22:36+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>4</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>1:22 pm</span></time>
-        
-           | <a href="/blog/2016/03/04/iosde-blockxun-huan-yin-yong/#disqus_thread"
-             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/03/04/iosde-blockxun-huan-yin-yong/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>ios在开发的过程中，很容易引发内存泄露问题。也很容易造成循环引用，之前使用block的时候也没有过多注意，其实坑很多。
-对于新手来说，出现循环引用的时候，很难去排查。</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/03/04/iosde-blockxun-huan-yin-yong/">阅读全文 &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/03/03/xue-xi-uibezierpath/">学习UIBezierPath</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-03-03T14:05:08+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>3</span><span class='date-suffix'>rd</span>, <span class='date-year'>2016</span></span> <span class='time'>2:05 pm</span></time>
-        
-           | <a href="/blog/2016/03/03/xue-xi-uibezierpath/#disqus_thread"
-             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/03/03/xue-xi-uibezierpath/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>前言</h2>
-
-<p>之前就看到很多关于<code>UIBezierPath</code>的介绍，但是平常开发的时候一直没怎么用过，但是这个<code>UIBezierPath</code>对于开发画图是很有用的。故在此整理出来，方便以后使用和查阅。</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/03/03/xue-xi-uibezierpath/">阅读全文 &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/03/01/xcodechang-jian-wen-ti-jie-xi/">Xcode常见问题解析</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-03-01T16:05:46+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>1</span><span class='date-suffix'>st</span>, <span class='date-year'>2016</span></span> <span class='time'>4:05 pm</span></time>
-        
-           | <a href="/blog/2016/03/01/xcodechang-jian-wen-ti-jie-xi/#disqus_thread"
-             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/03/01/xcodechang-jian-wen-ti-jie-xi/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>启动项目或者编译的时候，xcode总是有一些莫名的错误，现在我把遇到的问题和异常信息都记录下来，以此共勉</p>
-
-<h3>CodeSign error: code signing is required for product type &lsquo;Application&rsquo; in SDK &lsquo;iOS 9.2&rsquo;</h3>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/03/01/xcodechang-jian-wen-ti-jie-xi/">阅读全文 &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/03/01/swiftzhong-de-shu-ju-cun-chu/">Swift中的数据存储</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-03-01T10:52:34+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>1</span><span class='date-suffix'>st</span>, <span class='date-year'>2016</span></span> <span class='time'>10:52 am</span></time>
-        
-           | <a href="/blog/2016/03/01/swiftzhong-de-shu-ju-cun-chu/#disqus_thread"
-             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/03/01/swiftzhong-de-shu-ju-cun-chu/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>程序就是对数据进行处理的，存储数据在app端也是很有必要的。本章将学习如何使用文件系统在磁盘上存储信息，如何在内置的用户偏好设置数据库中存储简单数据。</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/03/01/swiftzhong-de-shu-ju-cun-chu/">阅读全文 &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/02/26/swiftji-chu-zhi-shi/">Swift基础知识</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-02-26T14:37:36+08:00'><span class='date'><span class='date-month'>Feb</span> <span class='date-day'>26</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>2:37 pm</span></time>
-        
-           | <a href="/blog/2016/02/26/swiftji-chu-zhi-shi/#disqus_thread"
-             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/02/26/swiftji-chu-zhi-shi/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>swift充分利用了语言设计的悠久历史，拥有非常多的设计特性，使得软件开发变得更容易，更简单，更安全。</p>
-
-<ul>
-<li>安全</li>
-</ul>
-
-
-<p>swift设计的初衷就是一门安全的语言，c语言中有许多缺陷，比如意外使用null指针，这些很难在swift中遇到。swift非常重视强类型化，除了一些极为特殊的情况下，它是不允许为空的。</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/02/26/swiftji-chu-zhi-shi/">阅读全文 &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/02/26/li-yong-afnetworkingshang-chuan-tu-pian-he-shi-pin/">利用AFNetworking上传图片和视频</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-02-26T09:15:43+08:00'><span class='date'><span class='date-month'>Feb</span> <span class='date-day'>26</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>9:15 am</span></time>
-        
-           | <a href="/blog/2016/02/26/li-yong-afnetworkingshang-chuan-tu-pian-he-shi-pin/#disqus_thread"
-             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/02/26/li-yong-afnetworkingshang-chuan-tu-pian-he-shi-pin/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>前言</h2>
-
-<p>之前尝试过用原生的上传代码，但是比较麻烦，利用afnetworking进行上传还是很方便的。</p>
-
-<p>文件上传后台服务器必须要有相应的代码支持，我们后台使用java做的，首先ios客户端要把上传的图片或者视频转换成标准的文件流，然后传给后台，才能顺利实现上传功能。</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/02/26/li-yong-afnetworkingshang-chuan-tu-pian-he-shi-pin/">阅读全文 &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/5">&larr; Older</a>
@@ -492,23 +500,23 @@ swift会为您管理在捕获过程中涉及到所有内存操作。</p>
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2016/09/21/iostui-song/">iOS推送</a>
+        <a href="/blog/2016/10/28/zi-ding-yi-uicollectionviewlayout/">自定义UICollectionViewLayout</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/09/10/zu-he-yu-ji-cheng/">组合与继承</a>
+        <a href="/blog/2016/10/24/ios10-uicollectionview-xin-te-xing/">Ios10 UICollectionView 新特性</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/09/10/zu-he-ji-cheng/">组合继承</a>
+        <a href="/blog/2016/10/17/ios10-usernotifications/">Ios10 UserNotifications</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/07/19/view-layerxie-zuo/">View-Layer协作</a>
+        <a href="/blog/2016/10/10/gua-pei-ios10/">适配iOS10</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/07/19/zi-ding-yi-viewcontroller-rong-qi-zhuan-chang/">自定义 ViewController 容器转场</a>
+        <a href="/blog/2016/10/09/ioszhong-de-nei-cun-fen-pei/">IOS中的内存分配</a>
       </li>
     
   </ul>
@@ -518,12 +526,12 @@ swift会为您管理在捕获过程中涉及到所有内存操作。</p>
 	<ul id="categories">
 		<li class='category'><a href='/blog/categories/cocoapods/'>cocoapods (1)</a></li>
 <li class='category'><a href='/blog/categories/git/'>git (3)</a></li>
-<li class='category'><a href='/blog/categories/ios/'>ios (25)</a></li>
+<li class='category'><a href='/blog/categories/ios/'>ios (27)</a></li>
 <li class='category'><a href='/blog/categories/life/'>life (1)</a></li>
 <li class='category'><a href='/blog/categories/mac/'>mac (2)</a></li>
 <li class='category'><a href='/blog/categories/nodejs/'>nodejs (2)</a></li>
 <li class='category'><a href='/blog/categories/octopress/'>octopress (2)</a></li>
-<li class='category'><a href='/blog/categories/swift/'>swift (13)</a></li>
+<li class='category'><a href='/blog/categories/swift/'>swift (16)</a></li>
 <li class='category'><a href='/blog/categories/xcode/'>xcode (1)</a></li>
 
 	</ul>

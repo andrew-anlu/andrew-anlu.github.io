@@ -9,7 +9,7 @@
   <meta name="author" content="安路">
 
   
-  <meta name="description" content="推送服务可以说是所有App的标配，不论是那种类型的App,推送都从很大程度上决定了App的打开率，使用率，存活率。因此熟知并掌握推送原理及方法,对每一个开发者来说都是必备技能，对每一个依赖App的公司都至关重要 从ios10新增的UserNotifications Framework可以发现， &hellip;">
+  <meta name="description" content="UICollectionView，自从ios6之后就被引入到开发中，现在已经变成了最流程的UI元素之一，它最吸引人的特性就是将数据和布局进行分离，依靠分离的数据元素去处理布局，这个布局对象是决定占位元素和视图的元素。 你可能已经习惯了默认的flow layout布局，它是一个默认实现的被UIKit &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -66,6 +66,1664 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/10/28/zi-ding-yi-uicollectionviewlayout/">自定义UICollectionViewLayout</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-10-28T14:34:50+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>28</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>2:34 pm</span></time>
+        
+           | <a href="/blog/2016/10/28/zi-ding-yi-uicollectionviewlayout/#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/10/28/zi-ding-yi-uicollectionviewlayout/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>UICollectionView，自从ios6之后就被引入到开发中，现在已经变成了最流程的UI元素之一，它最吸引人的特性就是将数据和布局进行分离，依靠分离的数据元素去处理布局，这个布局对象是决定占位元素和视图的元素。</p>
+
+<p>你可能已经习惯了默认的flow layout布局，它是一个默认实现的被UIKit,它是由基本的表格布局组成的。当然你也可以自定义布局，你可以按照自己的喜好来对视图进行重排。自定义布局是非常强大和灵活的。</p>
+
+<p>通过本章，你将学会如何自定义的布局，怎么去计算layout Attributes,怎么去处理动态的cell。</p>
+
+<h2>Getting Started</h2>
+
+<p><a href="https://koenig-media.raywenderlich.com/uploads/2015/05/Pinterest-starterproject.zip">Download the started project</a>，下载后打开</p>
+
+<p>编译运行，效果如图：</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2015/05/build_and_run_starter_project.png" alt="1" /></p>
+
+<h2>创建自定义的布局类</h2>
+
+<p>你第一步就是创建一个自定义的布局类，UICollectionView有一个抽象类是<code>UIcollectionViewLayout</code>,它定义了你的Collection View 的每个cell的属性集合-<code>UICollectionViewLayoutAttributes</code>，它包含了你的CollectionView中每个item的属性，比如frame,透明度等</p>
+
+<p>创建一个类继承自<code>UICollectionViewLayout</code>,确保选中的是swift语言，然后创建。</p>
+
+<p>下一步，在你的storyboard中配置下你的自定义布局对象类。</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2015/07/storyboard_select_collection_view.png" alt="1" /></p>
+
+<p>然后打开<code>Attributes Inspector</code>面板，选中<code>Custom</code>，在下一个<code>class</code>框中选中你刚才创建的新类<code>PinterestLayout</code>：</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2015/07/storyboard_change_layout.png" alt="1" /></p>
+
+<p>好了，编译运行：</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2015/05/build_and_run_empty_collection.png" alt="3" /></p>
+
+<p>why?</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2015/05/meme-nopictures.jpg" alt="1" /></p>
+
+<p>不要慌张！因为你还没有在自定义布局类中写入方法，所以这里什么都不显示。</p>
+
+<h2>核心布局对象</h2>
+
+<p>让我们先看看Collection View的布局调用流程，当Collection View 需要显示一些布局信息的时候，它会询问layout object 去提供一些防范去实现。</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2015/05/layout-lifecycle.png" alt="1" /></p>
+
+<p>你自定义的布局必须实现如下方法:</p>
+
+<ul>
+<li><code>prepareLayout()</code>，在cell将要进入屏幕的时候，这个方法将会被调用，这是一个机会当你去准备展示和计算CollectionView size和坐标的地方</li>
+<li><code>collectionViewContentSize()</code>：在这个方法中，你将会返回CollectionView的高度和宽度-不仅仅是可视的内容，Collection View 将会用这些信息去配置ScrollView的内容尺寸</li>
+<li><code>layoutAttributesForElementsInRect(_:):</code>在这个方法中，你需要返回所有的嵌套在矩形区域中的布局属性，你将要返回一个包含<code>UICollectionViewLayoutAttributes</code>属性的集合</li>
+</ul>
+
+
+<p>ok，现在你知道需要去实现什么方法了-但是如何去计算attributes？</p>
+
+<h2>计算布局属性</h2>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/10/24/ios10-uicollectionview-xin-te-xing/">Ios10 UICollectionView 新特性</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-10-24T10:35:36+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>24</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>10:35 am</span></time>
+        
+           | <a href="/blog/2016/10/24/ios10-uicollectionview-xin-te-xing/#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/10/24/ios10-uicollectionview-xin-te-xing/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>关于ios 10 UIcolelctionView的新特性，主要还是体现在如下三个方面</p>
+
+<ol>
+<li>顺滑的滑动体验</li>
+<li>针对self=sizing的改进</li>
+<li>Interactive recording重排</li>
+</ol>
+
+
+<p>这个功能在iOS9的时候介绍过了，苹果在iOS10的API里面大大增强了这一个功能</p>
+
+<h2>目录</h2>
+
+<h3><a href="#1">UICollectionViewCell顺滑的滑动体验</a></h3>
+
+<h3><a href="#2">UICollectionViewCell的预加载</a></h3>
+
+<h3><a href="#3">UITableViewCell的预加载</a></h3>
+
+<h3><a href="#4">针对self-sizing的改进</a></h3>
+
+<h3><a href="#5">Interactive Recordering</a></h3>
+
+<h3><a href="#6">UIRefreshControl的改进</a></h3>
+
+<h2><a name="1"></a>UICollectionViewCell顺滑的滑动体验</h2>
+
+<p>众所周知，iOS设备已良好的用户体验赢得了广大的用户群，iOS系统在用户点击屏幕会立即做出响应。而且很大一部分的操作是来自用户的滑动操作，所以滑动的顺滑性是使用用户沉浸在App中享受的必要条件，接下来我们就谈谈iOS10中增加了那些新特性。</p>
+
+<p>我们先来看一下之前UIcollectionView的体验，假设我们每个cell都是简单的蓝色，实际开发app中，cell会比较复杂，我们先生成100cell.当用户滑动不是很快的时候，还感觉不出来卡顿，当用户大幅度滑动，整个UIcollectionView的卡顿就很明显了。如果整个cell的dataSource又是从网络加载的，那就更加卡顿了，如果如下图</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467784344928825.gif" alt="1" /></p>
+
+<p>如果这种app上架，用户使用过后，很可能就直接给1星评价了，但是为什么会造成这种问题呢？我们来分析一下，我们模拟一下系统是如果处理重用机制的，效果如下图：</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467784355209022.gif" alt="2" /></p>
+
+<p>在上图中，我们可以看出，当cell准备进入屏幕的时候，整个cell都已经加载完成，等待在屏幕外面了。而且更重要的是，在屏幕外面等待加载的cell是整整一行！这一行的cell都已经加载完数据。这是UICollectionView在用户大幅度滑动时卡顿的根本原因。用专业术语来说就是掉帧</p>
+
+<p>接下来我们来详细说说掉帧的问题</p>
+
+<p>当今的用户是很挑剔的，用户需要一个很顺滑的体验，只要有一点卡顿，很可能一言不合就卸载app了。要想用户感觉不到卡顿，那么我们的app就必须达到每秒60帧，用数学换算一下就是每帧16毫秒就必须刷新一次。</p>
+
+<p>我们用图标来分析一下掉帧的问题，下面会出现两种不同的帧</p>
+
+<ul>
+<li>第一种情况，下图是当用户轻微的上下小幅度滑动，这个时候每个cell的加载压力都不打，ios针对这种情况，已经做了很好的优化了，所以用户感觉不到任何卡顿，这种情况下不会掉帧，用户也希望能使用如此顺滑的app</li>
+</ul>
+
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467784433822879.jpg" alt="1" /></p>
+
+<ul>
+<li>第二种情况，当用户大幅度滑动，每个cell加载的压力很大， 也许需要网络请求，也许需要读取数据库，而且每次都加载一行cell出来，这样每个cell的加载时间都增加了，加载一行的总时间也就大大增加了，如下图所示，这样，不仅仅当前帧在加载cell，总的时间还会挤压到下一帧的时间里面去。这种情况下，用户就感觉到卡顿了。</li>
+</ul>
+
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467784459878847.jpg" alt="2" /></p>
+
+<p>我们换种方式在说明一下2种情况下掉帧的情况。我们用下图的标准来衡量一下上面2中情况。下图分为2部分，上面红色的区域，就是表示掉帧的区域，因为高于16ms。红色和绿色区域的分界线就在16ms处，Y轴我们表示的是CPU在主线程中花费的时间，X轴表示对额就是在用户滑动中发生的刷新事件。</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467784491910972.jpg" alt="1" /></p>
+
+<p>针对上述掉帧的情况，绘制出实验数据，如下图，值得我们关注的是，曲线是很曲折的，非常的不平滑，当用户大幅度滑动的时候，峰值超过了16 ms ，当用户慢速滑动的时候，帧率又能保持在比较顺滑的区域，处于绿色区域内的cell加载压力都是很小的。这就是时而掉帧时而顺滑的场景。这种场景下，用户体验是很糟糕的。</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467784519648239.jpg" alt="2" /></p>
+
+<p>那怎么解决这个问题呢？我们来看下图：</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467784547235875.jpg" alt="2" /></p>
+
+<p>上图中的曲线我们看着就很平缓了，而且这种情况也不会出现掉帧的情况了，每个滑动中的时间都能达到60帧了，这是怎样做到的呢？因为把每个cell的加载事件都评分了，每个cell不会再出现很忙和很闲的两个极端，这样我们就取消了之前的波峰和波谷。从而让该曲线达到了近乎水平的直线。</p>
+
+<p>如何让每个cell都分摊加载任务的压力？这就要谈到新的cell的生命周期了。</p>
+
+<p>先来看看老的UICollectionViewCell的声明周期，当用户滑动屏幕，屏幕外有一个cell准备加载显示进来。</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467784605179969.jpg" alt="1" />
+这个时候我们把这个cell从reuse队列里面拿出来，然后调用<code>prepareForReuse</code>方法。这个方法就给了cell时间，用来重置cell,重置转台，刷新cell,加载新数据。</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467784613342397.jpg" alt="2" /></p>
+
+<p>再滑动，我们就会调用<code>cellForItemAtIndexPath</code>方法了，这个方法里面就是我们开发者自定义的填充cell的方式了。这里会填充data model,然后赋值给cell,再把cell返回给iOS系统。</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467784643684182.jpg" alt="1" /></p>
+
+<p>当cell马上要进入屏幕的时候，就会调用willDisplayCell的方法，这个方法给了我们app最后一次机会，为cell进入屏幕做最后的准备工作。执行完willDisplayCell之后，cell就进入屏幕了。</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467784674667370.jpg" alt="2" /></p>
+
+<p>当cell完全离开屏幕之后，就会调用<code>didEndDisplayingCell</code>方法，以上就是在iOS10之前的整个UICollectionViewCell的生命周期。</p>
+
+<p>接下来我们看看iOS10 的UICollectionViewCell的生命周期是怎么样的。</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467784919171617.jpg" alt="1" /></p>
+
+<p>这里还是和iOS9一样的。当用户滑动UICollectionView的时候，需要一个cell,我们就从reuse队列中拿出一个cell，并调用<code>prepareForReuse</code>方法，注意调用这个方法的时间，当cell还没有进入屏幕的时候，就已经提前调用这个方法了。注意对比和iOS9的区别，iOS9是在cell上边缘马上进入屏幕的时候才调用方法， 而这里，cell整个生命周期都被提前了，提前到cell还在设备外面的时候。</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467784950618167.jpg" alt="2" /></p>
+
+<p>这里还是和之前一样，在<code>cellForItemAtIndexPath</code>中创建cell，填充数据，刷新状态等操作，注意，这里的生命周期也比iOS9提前了。</p>
+
+<p>用户继续滑动，这个时候就有不同了。</p>
+
+<p>这个时候我们并不去调用<code>willDisplayCell</code>方法了，这里遵循的原则是，何时去显示，何时再去调用<code>willDisplayCell</code>.</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467785001420508.jpg" alt="1" /></p>
+
+<p>当cell要马上就需要显示的时候，我们再调用<code>willDisplayCell</code>方法。</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467785009176155.jpg" alt="2" /></p>
+
+<p>当整个cell要从UICollectionView的可见区域消失的时候，这个时候回调用<code>didEndDisplayingCell</code>方法，接下来发生的事情和iOS9一样，cell会进入重用队列中。</p>
+
+<p>如果用户想要显示某个cell,在iOS9中，cell只能从重用队列里面取出，再次走一遍生命周期，并调用<code>cellForItemAtIndexPath</code>去创建或者生成一个cell.</p>
+
+<p>在iOS10当中，系统会把cell保持一段时间，在iOS中，如果用户把cell滑出屏幕后，如果突然又想回来，这个时候cell并不需要再走一遍生命周期了，只需要直接调用<code>willDisplayCell</code>就可以了。cell就又会重新出现在屏幕中了。这就是iOS10的整个UICollectionView的生命周期</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467785140434098.jpg" alt="1" /></p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467785147242971.jpg" alt="2" /></p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467785156440182.jpg" alt="3" /></p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467785162269537.jpg" alt="4" /></p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467785168247905.jpg" alt="5" /></p>
+
+<p>上面说的iOS10里面的场景同样适用于多列的情况，这时我们每次只加载一个cell,而不是每次加载一行的cell.当第一个cell准备好之后再叫第二个cell准备。当2个cell都准本号之后，接着我们再调用<code>willDisplayCell</code>给每个cell,发送完这个消息之后，cell就会出现在屏幕上了。</p>
+
+<p>这虽然看起来是一个很小的改动，但是这小小的改动就提升了很多用户体验</p>
+
+<p>让我们来看看上述的改动对滑动的影响！</p>
+
+<p><a href="http://cc.cocimg.com/api/uploads/20160706/1467785199429168.gif">1</a></p>
+
+<p>滑动比iOS9流畅很多，这里可以看到整个过程都很平缓，不卡顿。</p>
+
+<p>还是和iOS9一样，我们来模拟一下系统是如果加载cell的情况。</p>
+
+<p><a href="http://cc.cocimg.com/api/uploads/20160706/1467785382812684.gif">2</a></p>
+
+<p>我们可以很明显的的看到，iOS系统是一个一个的加载cell的，一个cell加载完之后再去加载下一个cell,这里和iOS9的有很大的不同，ios9是记载整整一行的cell</p>
+
+<p>这是因为我们用了新的UICollectionViewCell的生命周期，整个App完全没有加一行代码，现在iOS10是丝滑般的体验，是在是太棒了。</p>
+
+<h2><a name = "2"></a>UICollectionViewCell的Pre-Fetching预加载</h2>
+
+<p>当我们编译iOS10的APP的时候，这个Pre-Fetching默认是enable的。当然，如果有一些原因导致你必须用到iOS10之前的老的生命周期，你只需要给collectioView加入新的<code>isPrefetchingEnabled</code>属性即可。如果你不想用到<code>Pre-Fetching</code>，那么把这个属性变成false即可。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>collectionView.isPrefetchingEnabled = false</span></code></pre></td></tr></table></div></figure>
+
+
+<p>为了最佳实践一下这个新特性，我们先改变一下我们加载cell的方式，我们把很重的读取数据的操作，所有内容的创建都放到<code>cellForItemAtIndexPath</code>方法里面去完成。保证我们在<code>willDisplayCell</code>和<code>didEndDisplayCell</code>这两个方法里面基本不做其他事情。最后，保证<code>cellForItemAtIndexPath</code>加载的cell都不是从重用队列里面拿出来的。</p>
+
+<p>如果这个时候你用ios10编译出你的app,那么非常顺滑的用户体验就会自动的优化出来</p>
+
+<p>UICollectionView的流畅滑动解决了，那么在UICollectionViewCell在加载的时候所花费的时候，怎么解决呢？</p>
+
+<p>UICollectionViewCell加载的时候取决于DataMOdel,DataMOdel很可能回去加载图片，来自于网络或者来自于本地的数据库，这些操作大多数都是异步操作，为了使data加载更快，iOS10引入了新的Apil来解决这个问题。</p>
+
+<p>UICollectionView有两个小伙伴，那就是dataSource和delegate,在iOS10中，将会迎来第三个小伙伴，这个小伙伴就是<code>prefetchDataSource</code></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>protocol UICollectionViewDataSourcePrefetching {
+</span><span class='line'>    func collectionView(_ collectionView: UICollectionView,
+</span><span class='line'>                        prefetchItemsAt indexPaths: [NSIndexPath])
+</span><span class='line'>    optional func collectionView(_ collectionView: UICollectionView,
+</span><span class='line'>                                 cancelPrefetchingForItemsAt indexPaths: [NSIndexPath])
+</span><span class='line'>}
+</span><span class='line'>class UICollectionView : UIScrollView {
+</span><span class='line'>    weak var prefetchDataSource: UICollectionViewDataSourcePrefetching?
+</span><span class='line'>    var isPrefetchingEnabled: Bool
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这个协议连只有一个必须要实现的方法-<code>ColletionView prefetchItemsAt indexPaths</code>，这个方法会在<code>prefetchDataSource</code>里面被调用，用来给你异步的预加载数据的。indexPaths数组是有序的，就是接下来item接收数据的顺序，让我们model异步处理数据更加方便。</p>
+
+<p>在这个协议里面患有第二个方法<code>CollectionView cancelPrefetcingForItemsAt indexPaths</code>，不过这个方法是可选的，我们可以利用这个方法来处理在滑动中取消或者降低提前加载数据的优先级。</p>
+
+<p>值得说明的是，新增加的这个小伙伴<code>prefetchDataSource</code>，并不能取代原来的读取数据的方法，这个预加载仅仅只是辅助加载数据，并不能删除原来我们读取数据的方法。</p>
+
+<p>至此，我们来看看从文章开始到现在，UICollectionView的性能提升了多少，我们还是用掉帧的方法来看看UICollectionView的性能。</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467785413182613.jpg" alt="1" /></p>
+
+<p>上面是iOS9 UICollectionView的性能，很明显的看见，波峰波谷很明显，并且还掉了8帧，有明显的卡顿现象。</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467785449871270.jpg" alt="2" />
+上图是iOS10 UICollectionView的性能，我们可以明显的看到，经过ios10的优化，整个曲线很明显的平缓了一些，没有极端的波峰掉帧现象。但是依旧存在少量的波峰快到了16ms分界线了。</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467785482131029.jpg" alt="1" /></p>
+
+<p>上图是iOS10 + pre-Fetching Api之后的性能，已经优化的效果很明显了，整条曲线基本上都水平了。近乎完美，但是还是能发现有个别波峰特别高，波峰特别高的地方就是那个cell加载压力大， 时间花的比较长导致的。接下来我们继续优化！</p>
+
+<p>先来总结一下使用Pre-Fetching API 需要注意的地方。</p>
+
+<ul>
+<li>在我们使用Pre-Fetching API的时候，我们一定要保证整个预加载过程都放在后台线程中进行。合理使用GCD和NSOperationQueue处理好多线程</li>
+<li>请切记，Pre-Fetching API 是一种自适应的技术，何为自适应技术呢？当我们滑动速度很慢的时候，在这种“安静”的时期，Pre-Fetching API会默默的再后台预加载数据，但是一旦我们快速滑动，我们需要频繁的刷新，我们不会去执行pre-fetching API</li>
+<li>最后，用<code>cancelPrefetchingAPI</code>去迎合用户的滑动动作的变换，比如说用户在快速滑动发现了有趣的感兴趣的事情，这个时候停下来，甚至快速反向滑动了，或者点击了事件，进去看详情了，这些时刻我们都应该开启<code>cancelPrefetchingAPI</code></li>
+</ul>
+
+
+<p>综合所述，Pre-Fetching API对于提高UICOllectionView的性能提升是很有帮助的，而且并不需要加入太多的代码，加入少量的代码就可以获得巨大的额性能提升！</p>
+
+<h2><a name="3"></a>UITableViewCell的Pre-Fetching预加载</h2>
+
+<p>在iOS10中，UITableViewCell也跟着UICollectionView一起得到了性能的提升，一样拥有了Pre-Fetching API</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>protocol UITableViewDataSourcePrefetching {
+</span><span class='line'>    func tableView(_ tableView: UITableView, prefetchRowsAt indexPaths: [NSIndexPath])
+</span><span class='line'>    optional func tableView(_ tableView: UITableView, cancelPrefetchingForRowsAt indexPaths:
+</span><span class='line'>                            [NSIndexPath])
+</span><span class='line'>}
+</span><span class='line'>class UITableView : UIScrollView {
+</span><span class='line'>    weak var prefetchDataSource: UITableViewDataSourcePrefetching?
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这里和上面的UICollectionView一样，会调用<code>TableView prefetchRowsAt indexPaths</code>方法，indexPaths还是一个有序数字，顺序就是列表上可见的顺序，第二个可选的API还是<code>TableView cancelPrefetchingForRowsAt indexPaths</code>，和之前的提到的一样，也是用来取消预加载的，性能的提升和UIcollectionView一样的，对于UITableView 的性能提升很大！</p>
+
+<h2><a name="4"></a>针对self-sizing的改进</h2>
+
+<p>self-sizing API 第一次被引入是在ios8中，然而现在在iOS10中得到了一些改进。</p>
+
+<p>在UICollectionView中有个固定的类，叫UICollectionViewFlowlayout,iOS已经在这个类中完全支持了self-sizing.为了能开启这一特性，需要我们开发者为一些不能为0的 CGSize的cell设置一下estimated item size.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>layout.estimatedItemSize = CGSize(width:50,height:50)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这会告诉UICOllectionView我们想要开启动态计算内容的布局。</p>
+
+<p>至今，我们有三种方法来动态的布局：</p>
+
+<ul>
+<li>第一种方法是使用autolayout，当我们合理的加入约束，当cell加载的时候，就会根据内容动态的加载布局</li>
+<li>第二种方法，如果你不想使用autolayout的方法，想更加手动的控制它，那么我们就需要重写sizeThatFits()方法</li>
+<li>第三种方法，终极的方法是重写<code>preferredLayoutAttributesFittingAttributes()</code>方法，在这个方法里面不仅仅可以提供size的信息，更可以得到alpha和transform的信息。</li>
+</ul>
+
+
+<p>所以想指定cell的大小，就可以用上面的三个方法之一</p>
+
+<p>但是实际的操作中，我们可以发现，有时候设置一个合适的estimated item size，对于我们来说是很困难的事情，如果flow layout可以用数学的方法动态的计算布局，而不是根据我们给的size去布局，那回事很酷的事情。</p>
+
+<p>iOS10中就引入了新的API来解决上述问题。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>layout.estimatedItemSize = UICollectionViewFlowLayoutAutomaticSize</span></code></pre></td></tr></table></div></figure>
+
+
+<p>对于开发者，我们需要做的事情，仅仅就是设置好flow layout,然后给<code>estimatedItemSize</code>设定一个新的常数，最后<code>UICollectionViewFlowLayout</code>就会自动计算高度了。</p>
+
+<p>系统会自动计算好所有的布局，包括已经定下来的size的cell,并且还会动态的给出接下来的cell的大小的预测。</p>
+
+<p>接下来看2个例子就可以很明显看出iOS10针对self-sizing的改进了。</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467785547586106.gif" alt="1" />
+上图可以看到，iOS 9的布局是针对单个cell计算的，当改变了单个cell,其它的cell依旧没有变化，还是需要重新计算</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467785653922069.gif" alt="2" /></p>
+
+<p>这里例子就可以很明显的看出差别了，当我们改变了第一个cell的size之后，系统会自动计算出所有的cell的size，并且每一行，每一个section的size都会被动态的计算出来，并且刷新界面！</p>
+
+<p>以上就是iOS 10 针对 self-sizing的改进。</p>
+
+<h2><a name="5"></a>Interactive Reordering</h2>
+
+<p>谈到重新排列，这是我们就需要类比一下UITableview了，UICollectioNView重新排列就如同UITableview把cell上下移动，只不过UITableView的重新排列是针对垂直方向的。</p>
+
+<p>在IOS 9 中，引入了UICollectionView的Interactive Reordering，在今年的iOS 10中，又加入了新的API</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467785697559422.gif" alt="1" /></p>
+
+<p>在上图中，我们可以看到，我们即使任意拖动cell,整个界面也会重新排列，并且我们改变了cell的大小，整个UICollectionView也会重新动态的布局。</p>
+
+<p>我们先来看看iOS 9 里面的API</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>class UICollectionView : UIScrollView {
+</span><span class='line'>    func beginInteractiveMovementForItem(at indexPath: NSIndexPath) -&gt; Bool
+</span><span class='line'>    func updateInteractiveMovementTargetPosition(_ targetPosition: CGPoint)
+</span><span class='line'>    func endInteractiveMovement()
+</span><span class='line'>    func cancelInteractiveMovement()
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>要想开启interactive movement,我们就需要调用<code>beginInteractiveMovementForItem()</code>方法，其中indexPath代表了我们将要移动的cell.接着每次手势的刷新，我们都需要刷新cell的位置，去响应我们手指的移动操作，这时我们就需要调用<code>updateInteractiveMovementTargetPosition()</code>方法，我们通过手势来传递坐标的变化。当我们移动结束之后，就会调用<code>endInteractiveMovement()</code>方法。UICollectionView就会放下cell,处理完整个layout，此时你也可以重新刷新model或者处理数据model.如果中间突然手势取消了，那么这个时候就应该调用<code>cancelInteractiveMovement()</code>方法，如果我们重新把cell对应一圈之后有放回原位了，其实就是取消了移动，那这个时候就应该在<code>cancelInteractiveMovement()</code>方法里面不用取刷新data Source.</p>
+
+<p>在iOS10中，如果你使用UICollectionViewController,那么这个重排对于你来说更加简单、</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>class UICollectionViewController : UIViewController {
+</span><span class='line'>    var installsStandardGestureForInteractiveMovement: Bool
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>你只需要把installsStandardGestureForInteractiveMovement这个属性设置为true就可以了。CollectionViewController会自动为你加入手势，并且自定为你调用上面的方法。</p>
+
+<p>以上就是去年ios 9 为我们增加的API</p>
+
+<p>今年的ios 10 新加入的API是在iOS9的基础上增加了翻页的功能。</p>
+
+<p>UICollectionView继承自UIScrollView,所以只需要你做的是把 isPagingEnable设置为true，即可开启分页的功能。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>collectionView.isPagingEnabled = true</span></code></pre></td></tr></table></div></figure>
+
+
+<p>开启分页之前:
+<img src="http://cc.cocimg.com/api/uploads/20160706/1467785741500789.gif" alt="1" /></p>
+
+<p>开启分页之后就长这样子:</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467785759631412.gif" alt="2" /></p>
+
+<p>每次移动一次就会以页为单位的翻页、</p>
+
+<h2><a name="6"></a>UIRefreshControl的改进</h2>
+
+<p>UIRefreshControl现在可以直接在CollectionView里面使用了，同样的，也可以直接在UITableView里面使用，并且可以脱离UITableViewController.因为现在RefreshCOntrol成为了ScrollView的一个属性了。</p>
+
+<p>UIRefreshControl的使用方法很简单，就三步:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>let refreshControl = UIRefreshControl()
+</span><span class='line'>refreshControl.addTarget(self, action: #selector(refreshControlDidFire(_:)),
+</span><span class='line'>                         for: .valueChanged)
+</span><span class='line'>collectionView.refreshControl = refreshControl</span></code></pre></td></tr></table></div></figure>
+
+
+<p>先创建一个refreshCOntroler,再关联一个action事件，最后把这个新的refreshControl赋给想要的控件的对应的属性就可以了。</p>
+
+<h2>Summary</h2>
+
+<ul>
+<li>UICollectionview cell Pre-fetching预加载的机制</li>
+<li>UICollectionView And UITableView prefetch DataSource新增的API</li>
+<li>针对self-sizing cell改进</li>
+<li>Interactive recordering 重排</li>
+</ul>
+
+
+<p>最后，原来有些地方用到 AsyncDispatchKit优化的UICollectioView速度的，现在可以考虑不用第三方库了，系统自带的方法可以解决一般性的卡顿问题了。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/10/17/ios10-usernotifications/">Ios10 UserNotifications</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-10-17T09:53:08+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>17</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>9:53 am</span></time>
+        
+           | <a href="/blog/2016/10/17/ios10-usernotifications/#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/10/17/ios10-usernotifications/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>ios10以前杂乱的和通知相关的API都被统一了，现在开发者可以使用独立的UserNotificaitons.framework来集中管理和使用iOS系统中通知的功能。在此基础上，Apple还增加了撤回单条通知，更新已展示通知，中途修改通知内容，在通知中展示图片视频，自定义通知UI等一系列功能。</p>
+
+<p>对于开发者来说，想比较于之前版本，iOS10提供了一套非常易用通知处理接口，是SDK的一次重大重构，而之前的绝大部分通知相关API都已经被标为弃用(deprecated)</p>
+
+<p>您可以在WWDC16的 <a href="https://developer.apple.com/videos/play/wwdc2016/707/">introducaion to Notifications</a>和<a href="https://developer.apple.com/videos/play/wwdc2016/708/">Advanced Notifications</a>这两个Session中找到详细信息；另外也不要忘了参考<a href="https://developer.apple.com/reference/usernotifications">UserNotifications官方文档</a></p>
+
+<h2>UserNOtifications框架解析</h2>
+
+<h3>基本流程</h3>
+
+<p>iOS10中通知相关的操作遵循下面的流程:</p>
+
+<p><code>审核和注册</code>-><code>创建和发起</code>-><code>展示和处理</code></p>
+
+<p>首先你需要向用户请求推送权限，然后发送通知。对于发送出的通知，如果你的应用位于后台或者没有运行的话，系统将通过用户允许的方法（弹窗，横幅，或者是在通知中心）进行展示。如果你的应用已经位于前台正在运行，你可以自行决定要不要显示这个通知。最后，如果你希望用户点击通知能有打开应用以外的额外功能的话，你也需要进行处理。</p>
+
+<h2>权限申请</h2>
+
+<p>iOS8之前，本地推送和远程推送（Remote Notificaiton）是区分对待的，应用只需要在进行远程推送是获取用户同意。iOS8对这一行为进行了规范，因为无论是本地推送还是远程推送，其实在用户看来表现是一致的，都是打断用户的行为。因此从iOS8开始，这两种通知都需要申请权限。ios10里进一步消除了本地通知和推送通知的区别。向用户申请通知权限非常简单：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) {
+</span><span class='line'>    granted, error in
+</span><span class='line'>    if granted {
+</span><span class='line'>        // 用户允许进行通知
+</span><span class='line'>    }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>当然，在使用UN开头的API的时候，不要忘记导入<code>UserNotifications</code>框架：</p>
+
+<p><code>import UserNotifications</code></p>
+
+<p>第一次调用这个方法时，会弹出一个系统弹窗.</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20161017-0.png" alt="1" /></p>
+
+<p>要注意的是，一旦用户拒绝了这个请求，再次调用该方法时也不会进行弹窗，想要应用有机会接收到通知的话，用户必须自行前往系统的设置中为你的应用打开通知，而这往往是不可能的。因此，在合适的是偶弹出请求窗，在请求权限前预先进行说明，而不是直接粗暴地在启动的时候就进行弹窗，会是更明智的选择。</p>
+
+<h2>远程推送</h2>
+
+<p>一旦用户同意后，你就可以再应用中发送本地通知了。不过如果你通过服务器发送远程通知的话，还需要多一个获取用户token的操作，你的服务器可以使用这个token将用向Apple push Notification的服务器提交请求，然后APNS通过token识别设备和应用，将通知推给用户。</p>
+
+<p>提交token请求和获得token的回调是现在"唯一"不在新框架中的API,我们使用<code>UIApplication</code>的<code>registerForRemoteNotifications</code>来注册远程通知，在<code>AppDelegate</code>的<code>application(_:didRegisterForRemoteNotificationsWithDeviceToken)</code>中获取用户token:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>// 向 APNs 请求 token：
+</span><span class='line'>UIApplication.shared.registerForRemoteNotifications()
+</span><span class='line'>
+</span><span class='line'>// AppDelegate.swift
+</span><span class='line'> func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+</span><span class='line'>    let tokenString = deviceToken.hexString
+</span><span class='line'>    print("Get Push token: \(tokenString)")
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>获取得到的<code>deviceToken</code>是一个<code>Data</code>类型，为了方便使用和传递，我们一般会选择将它转换为一个字符串。swift3中可以使用下面的<code>data</code>扩展来构造适合传递给Apple的字符串：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>extension Data {
+</span><span class='line'>    var hexString: String {
+</span><span class='line'>        return withUnsafeBytes {(bytes: UnsafePointer&lt;UInt8&gt;) -&gt; String in
+</span><span class='line'>            let buffer = UnsafeBufferPointer(start: bytes, count: count)
+</span><span class='line'>            return buffer.map {String(format: "%02hhx", $0)}.reduce("", { $0 + $1 })
+</span><span class='line'>        }
+</span><span class='line'>    }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>权限设置</h3>
+
+<p>用户可以再系统设置中修改你的应用的通知权限，除了打开和关闭全部通知权限外，用户也可以限制你的应用智能进行某种形式的通知显示，比如值允许横幅而不允许弹窗及通知中心显示灯。一般来说你不应该对用户的选择进行干涉，但是如果你的应用确实需要某种特定场景的推送的话，你可以对当前用户进行的设置进行检查:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>UNUserNotificationCenter.current().getNotificationSettings {
+</span><span class='line'>    settings in 
+</span><span class='line'>    print(settings.authorizationStatus) // .authorized | .denied | .notDetermined
+</span><span class='line'>    print(settings.badgeSetting) // .enabled | .disabled | .notSupported
+</span><span class='line'>    // etc...
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>发送通知</h2>
+
+<p>UserNOtifications中对通知进行了统一。我们通过通知的内容（<code>UNNotificaitonsContent</code>）,发送的时机<code>UNNotifiationTrigger</code>以及一个发送通知的<code>String</code>类型的标识符，来生成一个<code>UNNotificationRequest</code>类型的发送请求。最后，我们将这个请求添加到<code>UNUserNotificationCenter.current()</code>中，就可以等待通知到达了：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>// 1. 创建通知内容
+</span><span class='line'>let content = UNMutableNotificationContent()
+</span><span class='line'>content.title = "Time Interval Notification"
+</span><span class='line'>content.body = "My first notification"
+</span><span class='line'>
+</span><span class='line'>// 2. 创建发送触发
+</span><span class='line'>let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
+</span><span class='line'>
+</span><span class='line'>// 3. 发送请求标识符
+</span><span class='line'>let requestIdentifier = "com.onevcat.usernotification.myFirstNotification"
+</span><span class='line'>
+</span><span class='line'>// 4. 创建一个发送请求
+</span><span class='line'>let request = UNNotificationRequest(identifier: requestIdentifier, content: content, trigger: trigger)
+</span><span class='line'>
+</span><span class='line'>// 将请求添加到发送中心
+</span><span class='line'>UNUserNotificationCenter.current().add(request) { error in
+</span><span class='line'>    if error == nil {
+</span><span class='line'>        print("Time Interval Notification scheduled: \(requestIdentifier)")
+</span><span class='line'>    }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<ol>
+<li>iOS10中通知不仅支持简单的一行文字，你还可以添加<code>title</code>和 <code>subtitle</code>,来用粗体字的形式强调通知的目的。对于远程推送，iOS10之前一般只含有消息的推送；payload是这样的：</li>
+</ol>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{
+</span><span class='line'>  "aps":{
+</span><span class='line'>    "alert":"Test",
+</span><span class='line'>    "sound":"default",
+</span><span class='line'>    "badge":1
+</span><span class='line'>  }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果我们想要加入<code>title</code>和<code>subtitle</code>的话，则需要将<code>alert</code>从字符串换为字典，新的payload是:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>
+</span><span class='line'>  "aps":{
+</span><span class='line'>    "alert":{
+</span><span class='line'>      "title":"I am title",
+</span><span class='line'>      "subtitle":"I am subtitle",
+</span><span class='line'>      "body":"I am body"
+</span><span class='line'>    },
+</span><span class='line'>    "sound":"default",
+</span><span class='line'>    "badge":1
+</span><span class='line'>  }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>好消息是，后一种字典的方法其实在iOS8.2的时候就已经存在了，虽然当时<code>title</code>只是用在Apple Watch上的，但是设置好<code>body</code>的话在iOS上还是可以显示的，所以针对iOS10添加标题时是可以保证向前兼容的。</p>
+
+<p>另外，如果要进行本地化对应，在设置这些内容文本时，本地可以使用<code>String.localizedUserNotificationString(forKey: "your_key", arguments: [])</code>的方式来从<code>Localizable.strings</code>文件中取出本地化字符串，而远程推送的话，也可以再payload的alert中使用<code>loc-key</code>或者<code>title-loc-key</code>来进行指定</p>
+
+<ol>
+<li><p>触发器是只对本地通知而言的，远程推送的通知的话默认会在收到后立即显示。现在<code>UserNotifications</code>框架中提供了三种触发器，分别是：在一定时间后触发<code>UNTimeIntervalNotificationTrigger</code>,在某月某日某时触发<code>UNCalendarNotificationTrigger</code>,以及在用户进入或者离开某个区域时触发<code>UNLocationNotificationTrigger</code></p></li>
+<li><p>请求标识符可以用来区分不同的通知请求，在将一个通知请求提交后，通过特定的API我们能够使用这个标识符来取消或者更新这个通知。我们将在稍后提到具体方法</p></li>
+<li><p>在新版本的通知框架中，Apple借用了一部分网络请求的概念，我们组织并发送一个通知请求，然后将这个请求提交给<code>UNUserNotificationCenter</code>进行处理。我们会在delegate中接收到这个通知请求对应的responst,另外我们也有机会再应用的extension中对request进行处理</p></li>
+</ol>
+
+
+<p>在提交请求后，我们锁屏或者将应用切到后台，并等待设定的时间后，就能看到我们的通知出现在通知中心或者屏幕横幅了:
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20161017-1.png" alt="1" /></p>
+
+<h2>取消和更新</h2>
+
+<p>在创建通知请求时，我们已经制定了标识符。这个标识符可以用来管理通知，在iOS10之前，我们很难取消掉某一个特定的通知，也不能主动移除或者更新已经展示的通知。</p>
+
+<p>iOS10中，UserNotifications框架提供了一系列管理通知的API,你可以做到:</p>
+
+<ul>
+<li>取消还未展示的通知</li>
+<li>更新还未展示的通知</li>
+<li>移除已经展示过的通知</li>
+<li>更新已经展示过的通知</li>
+</ul>
+
+
+<p>其中关键就是创建请求时使用同样的标识符：</p>
+
+<p>比如，从通知中心移除一个展示过得通知：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 3, repeats: false)
+</span><span class='line'>let identifier = "com.onevcat.usernotification.notificationWillBeRemovedAfterDisplayed"
+</span><span class='line'>let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
+</span><span class='line'>
+</span><span class='line'>UNUserNotificationCenter.current().add(request) { error in
+</span><span class='line'>    if error != nil {
+</span><span class='line'>        print("Notification request added: \(identifier)")
+</span><span class='line'>    }
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>delay(4) {
+</span><span class='line'>    print("Notification request removed: \(identifier)")
+</span><span class='line'>    UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [identifier])
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>类似的，我们可以使用<code>removePendingNotificationRequests</code>，来取消还未展示的通知请求。对于更新通知，不论是否已经展示，都和一开始添加请求时一样，再次将请求提交给<code>UNUserNotificationCenter</code>即可：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>// let request: UNNotificationRequest = ...
+</span><span class='line'>UNUserNotificationCenter.current().add(request) { error in
+</span><span class='line'>    if error != nil {
+</span><span class='line'>        print("Notification request added: \(identifier)")
+</span><span class='line'>    }
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>delay(2) {
+</span><span class='line'>    let newTrigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+</span><span class='line'>
+</span><span class='line'>    // Add new request with the same identifier to update a notification.
+</span><span class='line'>    let newRequest = UNNotificationRequest(identifier: identifier, content:newContent, trigger: newTrigger)
+</span><span class='line'>    UNUserNotificationCenter.current().add(newRequest) { error in
+</span><span class='line'>        if error != nil {
+</span><span class='line'>            print("Notification request updated: \(identifier)")
+</span><span class='line'>        }
+</span><span class='line'>    }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>远程推送可以进行通知的更新，在使用Provider API向APNS提交请求时，在HTTP2的header中<code>apns-collapse-id</code>key的内容将被作为该推送的标识符进行使用。多次推送同一标识符的通知即可进行更新</p>
+
+<h2>处理通知</h2>
+
+<h3>应用内展示通知</h3>
+
+<p>现在系统可以在应用处于后台或者退出的时候向用户展示通知了。不过，当应用处于前台时，收到的通知是无法进行展示的。如果我们希望在应用内也能显示通知的话，需要额外的工作。</p>
+
+<p><code>UNUserNotificationCenterDelegate</code>提供了两个方法，分别对应如何在应用内展示通知，和收到通知响应时要如何处理的工作。我们可以实现这个借口中的对应方法来在应用内展示通知：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>class NotificationHandler: NSObject, UNUserNotificationCenterDelegate {
+</span><span class='line'>    func userNotificationCenter(_ center: UNUserNotificationCenter, 
+</span><span class='line'>                       willPresent notification: UNNotification, 
+</span><span class='line'>                       withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -&gt; Void) 
+</span><span class='line'>    {
+</span><span class='line'>        completionHandler([.alert, .sound])
+</span><span class='line'>
+</span><span class='line'>        // 如果不想显示某个通知，可以直接用空 options 调用 completionHandler:
+</span><span class='line'>        // completionHandler([])
+</span><span class='line'>    }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>实现后，将<code>NotificationHandler</code>的实例赋值给<code>UNUserNotificationCenter</code>的<code>delegate</code>属性就可以了。没有特殊理由的话，AppDelegate的<code>application(_:didFinishLaunchingWithOptions:)</code>就是一个不错的选择：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>class AppDelegate: UIResponder, UIApplicationDelegate {
+</span><span class='line'>    let notificationHandler = NotificationHandler()
+</span><span class='line'>    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -&gt; Bool {
+</span><span class='line'>        UNUserNotificationCenter.current().delegate = notificationHandler
+</span><span class='line'>        return true
+</span><span class='line'>    }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>对通知进行响应</h2>
+
+<p><code>UNUserNotificationCenterDelegate</code>中还有一个方法,<code>userNotificationCenter(_:didReceive:withCompletionHandler:)</code>这个代理方法会在用户与你推送的通知进行交互时被调用，包括用户通过通知打开了你的应用，或者点击或者触发了某个Action。因为涉及到打开应用的行为，所以事先了这个方法的delegate必须在<code>applicationDidFinishLaunching:</code>返回前就完成设置，这也是我们之前推荐将<code>NotificationHandler</code>今早进行赋值的理由。</p>
+
+<p>一个最简单的事先自然什么也不错，直接告诉系统你已经完成了所有工作。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -&gt; Void) {
+</span><span class='line'>    completionHandler()
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在该方法里，我们将获取到这个推送请求对应的response,<code>UNNotificationResponse</code>是一个几乎包括了通知的所有信息的对象，从中我们可以再次获取到<code>userInfo</code>中的信息:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -&gt; Void) {
+</span><span class='line'>    if let name = response.notification.request.content.userInfo["name"] as? String {
+</span><span class='line'>        print("I know it's you! \(name)")
+</span><span class='line'>    }
+</span><span class='line'>    completionHandler()
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>更好的消息是，远程推送的payload内的内容也会出现在这个<code>userInfo</code>中，这样一来，不论是本地推送还是远程推送，处理的路径得到了统一。通过<code>userInfo</code>的内容来决定页面跳转或者是进行其他操作，都会有很大空间。</p>
+
+<h2>Actionable通知发送和处理</h2>
+
+<h3>注册Category</h3>
+
+<p>iOS8和9中Apple引入了可以交互的通知，这是通过将一簇action放到了一个category中，将这个category进行注册，最后在发送通知时将通知的category设置为要使用的category来实现的。</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20161017-2.png" alt="1" /></p>
+
+<p>注册一个category非常容易：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>private func registerNotificationCategory() {
+</span><span class='line'>    let saySomethingCategory: UNNotificationCategory = {
+</span><span class='line'>        // 1
+</span><span class='line'>        let inputAction = UNTextInputNotificationAction(
+</span><span class='line'>            identifier: "action.input",
+</span><span class='line'>            title: "Input",
+</span><span class='line'>            options: [.foreground],
+</span><span class='line'>            textInputButtonTitle: "Send",
+</span><span class='line'>            textInputPlaceholder: "What do you want to say...")
+</span><span class='line'>
+</span><span class='line'>        // 2
+</span><span class='line'>        let goodbyeAction = UNNotificationAction(
+</span><span class='line'>            identifier: "action.goodbye",
+</span><span class='line'>            title: "Goodbye",
+</span><span class='line'>            options: [.foreground])
+</span><span class='line'>
+</span><span class='line'>        let cancelAction = UNNotificationAction(
+</span><span class='line'>            identifier: "action.cancel",
+</span><span class='line'>            title: "Cancel",
+</span><span class='line'>            options: [.destructive])
+</span><span class='line'>
+</span><span class='line'>        // 3
+</span><span class='line'>        return UNNotificationCategory(identifier:"saySomethingCategory", actions: [inputAction, goodbyeAction, cancelAction], intentIdentifiers: [], options: [.customDismissAction])
+</span><span class='line'>    }()
+</span><span class='line'>
+</span><span class='line'>    UNUserNotificationCenter.current().setNotificationCategories([saySomethingCategory])
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<ol>
+<li><code>UNTextInputNotificationAction</code>代表一个输入文本的action,你可以自定义框的按钮title和placeholder,你稍后会使用<code>identifier</code>来对action进行区分。</li>
+<li>普通的<code>UNNotificationAction</code>对应标准的按钮</li>
+<li>为category指定一个<code>identifier</code>,我们将在实际发送通知的时候用这个标识符进行设置，这样系统就知道对应哪个category了。</li>
+</ol>
+
+
+<p>当然，不要忘了在程序启动时调用这个方法进行注册</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -&gt; Bool {
+</span><span class='line'>    registerNotificationCategory()
+</span><span class='line'>    UNUserNotificationCenter.current().delegate = notificationHandler
+</span><span class='line'>    return true
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>发送一个带有action的通知</h3>
+
+<p>在完成category注册后，发送一个actionable通知就非常简单了，只需要在创建<code>UNNotificationContent</code>时把<code>categoryIdentifier</code>设置为需要的categoryId即可：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>content.categoryIdentifier = "saySomethingCategory"</span></code></pre></td></tr></table></div></figure>
+
+
+<p>尝试展示这个通知，在下拉或者使用3D touch展开通知后，就可以看到对应的action了：</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20161017-3.png" alt="1" /></p>
+
+<p>远程推送也可以使用category,只需要在payload中添加<code>category</code>字段，并指定预先定义的category id 就可以了:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{
+</span><span class='line'>  "aps":{
+</span><span class='line'>    "alert":"Please say something",
+</span><span class='line'>    "category":"saySomething"
+</span><span class='line'>  }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>处理actionable通知</h3>
+
+<p>和普通的通知并无二致力，actionable通知也会走到<code>didReceive</code>的delegate方法，我们通过request中包含的<code>categoryIdentifier</code>和response里的<code>actionIdentifier</code>就可以轻易判定是那个通知的那个操作被执行了。对于<code>UNTextInputNotificationAction</code>触发的response,直接将它转换为一个<code>UNTextInputNotificationResponse</code>，就可以拿到其中的用户输入了：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -&gt; Void) {
+</span><span class='line'>
+</span><span class='line'>    if let category = UserNotificationCategoryType(rawValue: response.notification.request.content.categoryIdentifier) {
+</span><span class='line'>        switch category {
+</span><span class='line'>        case .saySomething:
+</span><span class='line'>            handleSaySomthing(response: response)
+</span><span class='line'>        }
+</span><span class='line'>    }
+</span><span class='line'>    completionHandler()
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>private func handleSaySomthing(response: UNNotificationResponse) {
+</span><span class='line'>    let text: String
+</span><span class='line'>
+</span><span class='line'>    if let actionType = SaySomethingCategoryAction(rawValue: response.actionIdentifier) {
+</span><span class='line'>        switch actionType {
+</span><span class='line'>        case .input: text = (response as! UNTextInputNotificationResponse).userText
+</span><span class='line'>        case .goodbye: text = "Goodbye"
+</span><span class='line'>        case .none: text = ""
+</span><span class='line'>        }
+</span><span class='line'>    } else {
+</span><span class='line'>        // Only tap or clear. (You will not receive this callback when user clear your notification unless you set .customDismissAction as the option of category)
+</span><span class='line'>        text = ""
+</span><span class='line'>    }
+</span><span class='line'>
+</span><span class='line'>    if !text.isEmpty {
+</span><span class='line'>        UIAlertController.showConfirmAlertFromTopViewController(message: "You just said \(text)")
+</span><span class='line'>    }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上面的代码先判断通知响应是否属于<code>saySomething</code>，然后从用户输入或者是选择中提取字符串，并且弹出一个alert作为响应结果。当然，更多请苦情下我们会发送一个网络请求，或者是根据用户操作更新一些UI等。</p>
+
+<h2>Notificiaton Extension</h2>
+
+<p>iOS10中添加了很多extention,作为应用与系统整合的入口。与通知相关的extension有两个：Service Extension和Content Extension.前者可以让我们有机会在收到远程推送的通知后，展示之前对通知内容进行修改：后者可以用来自定义通知视图的样式。</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/notification-extensions.png" alt="1" /></p>
+
+<h3>截取并修改通知内容</h3>
+
+<p><code>NotificationService</code>的模板已经为我们进行了基本的实现:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>class NotificationService: UNNotificationServiceExtension {
+</span><span class='line'>
+</span><span class='line'>    var contentHandler: ((UNNotificationContent) -&gt; Void)?
+</span><span class='line'>    var bestAttemptContent: UNMutableNotificationContent?
+</span><span class='line'>
+</span><span class='line'>    // 1
+</span><span class='line'>    override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -&gt; Void) {
+</span><span class='line'>        self.contentHandler = contentHandler
+</span><span class='line'>        bestAttemptContent = (request.content.mutableCopy() as? UNMutableNotificationContent)
+</span><span class='line'>
+</span><span class='line'>        if let bestAttemptContent = bestAttemptContent {
+</span><span class='line'>            if request.identifier == "mutableContent" {
+</span><span class='line'>                bestAttemptContent.body = "\(bestAttemptContent.body), Andrew"
+</span><span class='line'>            }
+</span><span class='line'>            contentHandler(bestAttemptContent)
+</span><span class='line'>        }
+</span><span class='line'>    }
+</span><span class='line'>
+</span><span class='line'>    // 2
+</span><span class='line'>    override func serviceExtensionTimeWillExpire() {
+</span><span class='line'>        // Called just before the extension will be terminated by the system.
+</span><span class='line'>        // Use this as an opportunity to deliver your "best attempt" at modified content, otherwise the original push payload will be used.
+</span><span class='line'>        if let contentHandler = contentHandler, let bestAttemptContent =  bestAttemptContent {
+</span><span class='line'>            contentHandler(bestAttemptContent)
+</span><span class='line'>        }
+</span><span class='line'>    }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<ol>
+<li><code>didReceive:</code>方法中有一个等待发送的通知请求，我们通过修改这个请求中的content内容，然后在限制的时间内将修改后的内容调用通过<code>contentHandler</code>返还给系统，就可以显示这个修改过得通知了</li>
+<li>在一定时间内没有调用<code>contentHandler</code>的话，系统会调用这个方法，来告诉你大限已到。你可以选择什么都不做，这样的话系统将当做什么都没发生，简单地显示原来的通知，可能你其实已经设置好了绝大部分内容，只是有很少一部分没有完成，这时你也可以像例子中这样调用<code>contentHandler</code>来显示一个变更"中途"的通知</li>
+</ol>
+
+
+<p>Service Extentsion现在只对远程推送的通知起效，你可以在推送payload中增加一个<code>mutable-content</code>的值为1的项来启用内容修改：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{
+</span><span class='line'>  "aps":{
+</span><span class='line'>    "alert":{
+</span><span class='line'>      "title":"Greetings",
+</span><span class='line'>      "body":"Long time no see"
+</span><span class='line'>    },
+</span><span class='line'>    "mutable-content":1
+</span><span class='line'>  }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这个payload的推送得到的结果就是推送的内容+“Andrew”</p>
+
+<p>使用在本机截取推送并替换内容的方式，可以完成端到端(end-to-end)的推送加密。你在服务器推送payload中加入加密过得文本，在客户端接到通知后使用预先定义或者获取过得秘钥进行解密，然后立即显示。这样一来，即使推送信道被第三方截取，其中所传递的内容也还是安全的。使用这种方式来发送密码或者敏感信息，对于一些金融业务应用和聊天应用来说，应该是必备的特性。</p>
+
+<h2>在通知中展示图片/视频</h2>
+
+<p>相比于旧版本的通知，iOS10中另一个亮眼功能室多媒体的推送，开发者现在可以在通知中嵌入图片或者视频，这极大丰富了推送内容的可读性和趣味性。</p>
+
+<p>为本地通知添加多媒体内容十分简单，只需要通过本地磁盘上的文件URL创建一个<code>UNNotificationAttachment</code>对象，然后将这个对象放到数组中赋值给<code>content</code>的<code>attachments</code>属性就行了：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>let content = UNMutableNotificationContent()
+</span><span class='line'>content.title = "Image Notification"
+</span><span class='line'>content.body = "Show me an image!"
+</span><span class='line'>
+</span><span class='line'>if let imageURL = Bundle.main.url(forResource: "image", withExtension: "jpg"),
+</span><span class='line'>   let attachment = try? UNNotificationAttachment(identifier: "imageAttachment", url: imageURL, options: nil)
+</span><span class='line'>{
+</span><span class='line'>    content.attachments = [attachment]
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在显示时，横幅或者弹窗将附带设置的图片，使用3D Touch pop通知或者下拉通知显示详细内容时，图片也会被放大显示：</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20161017-4.png" alt="2" /></p>
+
+<p>除了图片之外，通知还支持音频以及视频。你可以将MP3或者MP4这样的文件提供给系统来在通知中进行展示和播放，不过，这些文件都有尺寸的限制，比如图片不能超过5MB,视频不能超过50MB,不过对于一般的能在通知中展示的内容来说，这个尺寸应该是绰绰有余了。关于支持的文件格式和尺寸，可以在文档中进行确认。在创建<code>UNNotificationAttachment</code>时，如果遇到了不支持的格式，SDK也会抛出错误。</p>
+
+<p>通过远程推送的方式，你也可以显示图片等多媒体内容，这要借助于上一节所提到的通过<code>Notification Service Extension</code>来修改涂松通知内容的技术。一般做法是，我们在推送payload中指定需要加载的图片资源地址，这个地址可以是应用bundle内已经存在的资源，也可以是网络的资源。不过因为在创建<code>UNNotificationAttachment</code>时偶们只能使用本地资源，所以如果多媒体还不在本地的话，我们需要先将其下载到本地，在完成<code>UNNotificationAttachment</code>创建后，我们就可以和本地通知一样，将它设置给<code>attachments</code>属性，然后调用<code>contentHandler</code>了。</p>
+
+<p>简单的实例 payload如下：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{
+</span><span class='line'>  "aps":{
+</span><span class='line'>    "alert":{
+</span><span class='line'>      "title":"Image Notification",
+</span><span class='line'>      "body":"Show me an image from web!"
+</span><span class='line'>    },
+</span><span class='line'>    "mutable-content":1
+</span><span class='line'>  },
+</span><span class='line'>  "image": "https://onevcat.com/assets/images/background-cover.jpg"
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>mutable-content</code>表示偶们会在接收到通知时对内容进行更改，<code>image</code>指明了目标图片的地址。</p>
+
+<p>在<code>NotificationService</code>里，加入如下代码来下载图片，并将其保存到磁盘缓存中：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>private func downloadAndSave(url: URL, handler: @escaping (_ localURL: URL?) -&gt; Void) {
+</span><span class='line'>    let task = URLSession.shared.dataTask(with: url, completionHandler: {
+</span><span class='line'>        data, res, error in
+</span><span class='line'>
+</span><span class='line'>        var localURL: URL? = nil
+</span><span class='line'>
+</span><span class='line'>        if let data = data {
+</span><span class='line'>            let ext = (url.absoluteString as NSString).pathExtension
+</span><span class='line'>            let cacheURL = URL(fileURLWithPath: FileManager.default.cachesDirectory)
+</span><span class='line'>            let url = cacheURL.appendingPathComponent(url.absoluteString.md5).appendingPathExtension(ext)
+</span><span class='line'>
+</span><span class='line'>            if let _ = try? data.write(to: url) {
+</span><span class='line'>                localURL = url
+</span><span class='line'>            }
+</span><span class='line'>        }
+</span><span class='line'>
+</span><span class='line'>        handler(localURL)
+</span><span class='line'>    })
+</span><span class='line'>
+</span><span class='line'>    task.resume()
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>然后再<code>didReceive:</code>中，接收到这类通知时提取图片地址，下载，并生成attachment,进行通知展示：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>if let imageURLString = bestAttemptContent.userInfo["image"] as? String,
+</span><span class='line'>   let URL = URL(string: imageURLString)
+</span><span class='line'>{
+</span><span class='line'>    downloadAndSave(url: URL) { localURL in
+</span><span class='line'>        if let localURL = localURL {
+</span><span class='line'>            do {
+</span><span class='line'>                let attachment = try UNNotificationAttachment(identifier: "image_downloaded", url: localURL, options: nil)
+</span><span class='line'>                bestAttemptContent.attachments = [attachment]
+</span><span class='line'>            } catch {
+</span><span class='line'>                print(error)
+</span><span class='line'>            }
+</span><span class='line'>        }
+</span><span class='line'>        contentHandler(bestAttemptContent)
+</span><span class='line'>    }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>关于在通知中展示图案品或者视频，有几点想补充说明：</p>
+
+<ol>
+<li><code>UNNotificationContent</code>的<code>attachments</code>虽然是一个数组，但是系统只会展示第一个attachmen对象的内容。不过你依然可以发送多个<code>attachments</code>,然后再要展示的时候再重新安排他们的顺序，以显示最符合情景的图片或者视频。另外，你也可能会在自定义通知展示UI时用到多个<code>attachment</code>,我们接下来一节中会看到一个相关的例子。</li>
+<li>在当前iOS10中，<code>serviceExtensionTimeWillExpire</code>被条用之前，你有30秒时间来处理和更改通知内容，对于一般的图片来说，这个时间是足够的，但是如果你推送的体积较大的视频内容，用户又恰巧在糟糕的网络环境的话，很有可能无法及时下载完成。</li>
+<li>如果你想在远程推送来的通知中显示应用bundle内的资源的话，要注意extension的bundle和app main bundle并不是一回事，你可以选择将图片资源放到extension bundle中，也可以选择放在main bundle里，总之，你需要保证能够获取到正确的，并且你具有读取权限的url</li>
+<li>系统在创建<code>attachement</code>时会根据提供的url后缀确定文件类型，如果没有后缀，或者后缀无法不正确的话，你可以在创建时通过<code>UNNotificationAttachmentOptionsTypeHintKey</code>来<a href="https://developer.apple.com/reference/usernotifications/unnotificationattachmentoptionstypehintkey">指定资源类型</a></li>
+<li>如果使用的图片和视频文件不在你的bundle内部，它们将被移动到系统的负责通知的文件夹下，然后当同志被移除后删除。如果媒体文件在bundle内部，它们将被负责到通知文件夹下。每个应用能使用的媒体文件大小总和是有限制，超过限制后创建<code>attachment</code>时将抛出异常。可能的所有错误可以再<code>UNError</code>中找到</li>
+<li>你可以访问一个已经创建的<code>attachment</code>的内容，但是要注意权限问题，可以使用<code>startAccessingSecurityScopedResource</code>来暂时获取以创建的<code>attachment</code>的访问权限。比如：</li>
+</ol>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>let content = notification.request.content
+</span><span class='line'>if let attachment = content.attachments.first {  
+</span><span class='line'>    if attachment.url.startAccessingSecurityScopedResource() {  
+</span><span class='line'>        eventImage.image = UIImage(contentsOfFile: attachment.url.path!)  
+</span><span class='line'>        attachment.url.stopAccessingSecurityScopedResource()  
+</span><span class='line'>    }  
+</span><span class='line'>}  </span></code></pre></td></tr></table></div></figure>
+
+
+<h2>自定义通知视图样式</h2>
+
+<p>ioS10 SDK 新加的另一个<code>Content Extension</code>可以用来自定义通知的详细页面的视图，新建一个<code>Notification Content Extension</code>,Xcode为我们准备的模板中包含了一个实现了<code>UNNotificationContentExtension</code>的<code>UIViewController</code>子类。这个extension中有个一必须实现的方法<code>didReceive(_:)</code>,在系统需要显示自定义样式的通知详情视图时，这个方法将被调用，你需要在其中配置你的UI.而UI本身可以通过这个extension中的<code>MainInterface.storyboard</code>来进行定义。自定义UI的通知是和通知category绑定的，我们需要在<code>extension</code>的info.plist里指定这个通知样式所对应的category标识符：</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/notification-content-info.png" alt="1" /></p>
+
+<p>系统在接收到通知后会先查找有没有能够处理这类通知的content extension,如果存在，那么就交给extensionl来进行处理，另外，在构建UI时，我们可以通过Info.plist控制通知详细视图的尺寸，以及是否显示原始的通知。关于Content Extension中的info.plist的key,可以在<a href="https://developer.apple.com/reference/usernotificationsui/unnotificationcontentextension">这个文档</a>中找到详细信息。</p>
+
+<p>虽然我们可以使用包括按钮在内的各种UI，但是系统不允许我们队这些UI进行交互，点击通知视图UI本身会将我们导航到应用中，不过我们可以通过action的方式来对自定义UI进行更新。<code>UNNotificationContentExtension</code>为我们提供了一个可选方法<code>didReceive(_:completionHandler:)</code>，它会在用户选择了某个action时被调用，你有机会在这里更新通知的UI，如果有UI更新，那么在方法的<code>completionHandler</code>中，开发者可以选择传递<code>. doNotDismiss</code>来保持通知继续呗显示。如果没有继续显示的必要，可以选择<code>. dismissAndForwardAction</code>或者<code>. dismiss</code>，前者将把通知的action继续传递给应用的<code>UNUserNotificationCenterDelegate</code>中的<code>userNotificationCenter(:didReceive:withCompletionHandler)</code>，而后者将直接解散这个通知</p>
+
+<p>如果你的自定义UI包含视频等，你还可以实现<code>UNNotificationContentExtension</code>里的<code>media</code>开头的一系列属性，它将为你提供一些视频播放的控件和相关方法。</p>
+
+<h2>总结</h2>
+
+<p>iOS10 SDk中对通知这块进行了IOS系统发布以来最大的一次重构，很多"老朋友"都被标记为了 deprecated:</p>
+
+<h2>iOS10中被标记弃用的API</h2>
+
+<ul>
+<li>UILocalNotification</li>
+<li>UIMutableUserNotificationAction</li>
+<li>UIMutableUserNotificationCategory</li>
+<li>UIUserNotificationAction</li>
+<li>UIUserNotificationCategory</li>
+<li>UIUserNotificationSettings</li>
+<li>handleActionWithIdentifier:forLocalNotification:</li>
+<li>handleActionWithIdentifier:forRemoteNotification:</li>
+<li>didReceiveLocalNotification:withCompletion:</li>
+<li>didReceiveRemoteNotification:withCompletion:</li>
+</ul>
+
+
+<p>等一系列在<code>UIKIT</code>中的发送和处理通知的类型及方法</p>
+
+<p>相比较于iOS早期时代的API,新的APi展现了高度的模块化和统一特性，易用性也非常好，是一套更加先进的API,如果有可能，特别是如果你的应用是重度依赖通知特性的话，直接从iOS10开始可以让你充分使用在新同志体系的各种特性。</p>
+
+<p>虽然原来的API都被标为弃用了，但是如果需要支持iOS10之前系统的话，你还是需要使用原来的API,我们可以使用</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>if #available(iOS 10.0, *) {
+</span><span class='line'>    // Use UserNotification
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>的方式来对iOS10进行新通知的适配，并让iOS10的用户享受到新通知带来的便利特性，然后在将来版本升级到只支持iOS10以上时再移除掉所有被启用的代码。对于优化和梳理通知相关代码来说，新API对代码设计和祖上上带来的好处足以弥补适配上的麻烦。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/10/10/gua-pei-ios10/">适配iOS10</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-10-10T11:03:06+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>10</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>11:03 am</span></time>
+        
+           | <a href="/blog/2016/10/10/gua-pei-ios10/#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/10/10/gua-pei-ios10/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>UICOllecitonViewCell的优化</h2>
+
+<p>在ios10之前，UIcollectionView上面如果有大量的Cell,当用户活动很快的时候，整个UIcollectionView有很卡顿，为什么会造成这样的问题，这里涉及到iOS系统的重用机制，当cell准备加载进到屏幕的时候，整个cell都已经加载完成，等待在屏幕外面了，也就是整整一行cell都已经加载完毕，这就是造成卡顿的主要原因，专业术语叫掉帧</p>
+
+<p>iOS10之前的UIcollectionViewCell的生命周期是这样的:</p>
+
+<ol>
+<li>用户滑动屏幕，屏幕外有一个cell准备加载进来，把cell从reusr队列拿出来，然后调用prepareForReuse方法，在这个方法里面，可以重置cell的状态，加载新的数据</li>
+<li>继续欢动，就会调用cellForItemAtIndexPath方法，在这个方法里面给cell赋值模型，然后返回给系统</li>
+<li>当cell马上进去屏幕的时候，就会调用willDispalyCell方法，在这个方法里面我们还可以修改cell,为进入屏幕做最后的准备工作</li>
+<li>执行完willDisplayCell方法后，cell就进去屏幕了，当cell完全离开屏幕之后，会调用didEndDisplayingCell方法</li>
+</ol>
+
+
+<p><em>ios 10 UIcollectionViewCell的生命周期是这样的</em></p>
+
+<ol>
+<li>用户滑动屏幕，屏幕外有一个cell准备加载进来，把cell从reusr队列拿出来，然后调用prepareForReuse方法，在这里当cell还没有进去屏幕的时候，就已经提前调用这个方法了，对比之前的区别就是cell的上边缘拿上进去屏幕的时候就会调用该方法，而ios10提前到cell还在屏幕外面的时候就调用</li>
+<li>在cellForItemAtIndexPath中创建cell,填充数据，刷新状态等操作，相比之前也提前了</li>
+<li>用户继续滑动的话，当cell马上就需要显示的时候我们再调用willDisplayCell方法，原则就是：何时需要显示，何时再去调用willDisplayCell方法</li>
+<li>当cell完全离开屏幕以后，会调用didEndDispalyingCell方法，跟之前一样，cell会进入重用队列</li>
+</ol>
+
+
+<p>在ios10之前，cell只能从重用队列里面取出，再走一遍生命周期，并调用cellForItemAtIndexPath创建或者生成一个cell.</p>
+
+<p>在ios10中，系统cell会保存一段时间，也就是说当用户把cell滑出屏幕以后，如果又滑动回来，cell不用再走一遍生命周期了，只需要调用willDisplayCell方法就可以重现出现在屏幕中了。</p>
+
+<h2>ios10新增加的Pre-Fetching预加载</h2>
+
+<p>这个是为了降低UIcollectionViewCell在加载的时候所花费的时间，在iOS10中，除了数据源协议和代理协议外，新增加了一个UIcollectionViewDataSourcePrefetching协议，这个协议里面定义了两个方法:</p>
+
+<p>这个是为了降低UIcollectionViewCell在加载的时候所花费的时候，在iOS10中，除了数据源协议和代理协议外，新增加了一个UIcollectionViewDataSourcePrefetching协议，这个协议里面定义了两个方法:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (void)collectionView:(UICollectionView *)collectionView prefetchItemsAtIndexPaths:(NSArray *)indexPaths NS_AVAILABLE_IOS(10_0);
+</span><span class='line'>
+</span><span class='line'>- (void)collectionView:(UICollectionView *)collectionView cancelPrefetchingForItemsAtIndexPaths:(NSArray *)indexPaths  NS_AVAILABLE_IOS(10_0);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在CollectionView prefetchItemAt indexPaths这个方法是异步预加载数据的，当中的indexPaths数组是有序的，就是Item接收数据的顺序：
+ColletionView cancelPrefetchingForItemsAt indexPaths这个方法是可选的，可以用来处理在滑动中取消或者降低提前加载数据的优先级。
+这个协议并不能代替之前读取数据的方法，仅仅是辅助加载数据</p>
+
+<h2>UIRefreshControl的使用</h2>
+
+<p>在iOS10中，UIRefreshControl 可以直接在UIcollectionView和UITableView中使用，并且脱离了UITableViewController，现在RefreshControl是UIScrollView的一个属性。</p>
+
+<p>使用方法:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>UIRefreshControl *refreshControl = [[UIRefreshControl alloc] init];
+</span><span class='line'>  [refreshControl addTarget:self action:@selector(loadData) forControlEvents:UIControlEventValueChanged];
+</span><span class='line'>    collectionView.refreshControl = refreshControl;</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>关于ATS的问题</h2>
+
+<p>WWDC2015提出的ATS(App Transport Security)是Apple在推进网络通讯安全的一个重要的方式，在iOS9中，默认情况下非HTTPS的网络访问是被禁止的。当然，因为这样的推进影响面非常广，作为缓冲，我们可以在info.plist中添加<code>NSAppTransportSecurity</code>字典并且将<code>NSAllowsArbitraryLoads</code>设置为<code>YES</code>来禁用ATS.相信大家已经对这个非常熟悉了。</p>
+
+<p>不过在WWDC2016中，Apple表示将继续在ios10和macOS 10.12里收紧对普通http的访问限制。从2017年一月一日起，所有的提交的app默认是不允许使用<code>NSAllowsArbitraryLoads</code>来绕过ATS限制的，也就是说，我们最好保证app的所有的网络请求都是HTTPS加密的，否则可能会在应用审核时遇到麻烦。</p>
+
+<ol>
+<li>默认情况下你的app可以访问加密足够强（TLS v1.2以上，AES-128和SHA-2）的HTTPS内容，这对所有的网络请求都有效，包括<code>NSURLSession</code>,<code>UIWebview</code>以及<code>WkWebView</code>等</li>
+<li>你依然可以添加<code>NSAllowsArbitraryLoads</code>为<code>YES</code>来禁用ATS,不过如果你这么做的话，需要在提交app时进行说明，为什么需要访问非HTTPS的内容，一般来说，可能类似浏览器类的app比较容易能通过</li>
+<li>相比于使用<code>NSAllowsArbitraryLoads</code>将全部HTTP内容放开，选择使用<code>NSExceptionDomains</code>来针对特定的域名开放HTTP应该要相对容易过审核。“需要访问的域名是第三方服务器,他们没有进行HTTPS对应”，会是审核时的一个可选理由，但是这应该只需要针对特定域名，而非全面开放，如果访问的是自己的服务器的话，可能这个理由会无法通过</li>
+<li>对于网页浏览和视频播放的行为，iOS10中新加入了<code>NSAllowsArbitraryLoadsInWebContent</code>键，通过将它设置为<code>YES</code>，可以让你的app中的<code>WKWebView</code>和使用<code>AVFoundation</code>播放的在线视频不受ATS的限制。这也应该是绝大多数使用了相关特性的app的选择。但是坏消息是这个键在ios9中并不会起到作用</li>
+</ol>
+
+
+<p>总结：对于API请求，基本上必须使用HTTPS的，特别是如果你们自己可以管理服务器的话，可能需要后端的同学尽快升级到HTTPS.如果你的app只支持iOS10,并且有用户可以自由输入网址进行浏览的功能，或者是在线视频音频播放功能的话，简单地加入<code>NSAllowsArbitraryLoadsInWebContent</code>并且将组件换成<code>WKWebKit</code>或者<code>AVFoundation</code>就可以了。如果你还需要支持ios9,并且需要访问网页和视频的话，可能只能开启<code>NSAllowsArbitraryLoads</code>然后提交的时候进行说明，并且看Apple审核员的脸色决定让不让通过了。除了<code>WKWebKit</code>以外，另外一个访问网页的选择是使用<code>SFSafariViewController</code>。因为其实<code>SFSafariViewController</code>就是一个独立于App的Safari进程，所以它完全不受ATS限制</p>
+
+<p>另外，当<code>NSAllowsArbitraryLoads</code>和<code>NSAllowsArbitraryLoadsInWebContent</code>同时存在时，根据系统不同，表现的行为也会不一样，简单说，ios9只看<code>NSAllowsArbitraryLoads</code>,而ios10会先看<code>NSAllowsArbitraryLoadsInWebContent</code>.在ios10中，要是<code>NSAllowsArbitraryLoadsInWebContent</code>存在的话，就忽略掉<code>NSAllowsArbitraryLoads</code>,如果它不存在，则遵循<code>NSAllowsArbitraryLoads</code>的设定。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/10/09/ioszhong-de-nei-cun-fen-pei/">IOS中的内存分配</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-10-09T17:16:16+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>9</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>5:16 pm</span></time>
+        
+           | <a href="/blog/2016/10/09/ioszhong-de-nei-cun-fen-pei/#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/10/09/ioszhong-de-nei-cun-fen-pei/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>内存分配可以分为5个区</p>
+
+<h2>栈区（stack）</h2>
+
+<p>这个一般由编译器操作，或者说是系统管理，会存一些局部变量，这些系统都会帮我们自动实现，无需我们干预，所以大量的局部变量，深递归，函数循环调用都可以耗尽栈内存而程序崩溃</p>
+
+<h2>堆区（heap）</h2>
+
+<p>一般由程序员管理，比如alloc申请内存，free释放内存，我们创建的对象也都放在这里</p>
+
+<h2>全局区(静态区 static)</h2>
+
+<p>全局变量和静态变量的存储是放在一块的，初始化的全局变量和静态变量在一块区域，未初始化的全局变量和未初始化的静态变量在相邻的另一块区域，程序结束后由系统释放。</p>
+
+<h2>常量区</h2>
+
+<p>常量字符串就是放在这里的，还有const常量</p>
+
+<h2>代码区</h2>
+
+<p>存放代码，app程序会拷贝到这里，程序不是在</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/1475976705224479.png" alt="1" /></p>
+
+<p>图中各个区并不连续</p>
+
+<p>当一个app启动后，代码区，常量区，全局区地址已经固定，因此指向这些区的指针不会为空而产生崩溃性的错误，而堆区和栈区是时时刻刻变化的（堆的创建销毁，栈的弹入和弹出），所以当使用一个指针指向这两个区里面的内存时，一定要注意内存是否已经被释放，否则会产生程序崩溃</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/10/09/sheng-ji-xcode8hou-zhu-yi-de-wen-ti/">升级Xcode8后注意的问题</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-10-09T16:37:48+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>9</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>4:37 pm</span></time>
+        
+           | <a href="/blog/2016/10/09/sheng-ji-xcode8hou-zhu-yi-de-wen-ti/#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/10/09/sheng-ji-xcode8hou-zhu-yi-de-wen-ti/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>现在已经可以从AppStore升级到Xcode8的正式版了，但是升级之后会有一些莫名其妙的问题，再次总结如下：</p>
+
+<h2>杂乱无章的Bug日志</h2>
+
+<p>更新xcode8后，新建立工程，都会打印一堆莫名其妙看不懂的log,比如：
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20161009-0.png" alt="1" /></p>
+
+<p>屏蔽的方法如下:</p>
+
+<p>xcode8里边的 <code>Edit Scheme-&gt;Run-&gt;Arguments,</code>在Environment Variables里边添加 <code>OS_ACTIVITY_MODE ＝ Disable</code></p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/707724-e81adf182229475f.png" alt="1" /></p>
+
+<h2>权限及相关设置</h2>
+
+<p>我们需要打开info.plist文件添加相应权限的说明，否则程序在iOS10上会出现崩溃，具体如下图</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/707724-d118ca12029c78ab.png" alt="1" /></p>
+
+<ul>
+<li>麦克风权限 Privacy - Microphone Usage Description 是否允许此App使用你的麦克风？</li>
+<li>相机权限： Privacy - Camera Usage Description 是否允许此App使用你的相机？</li>
+<li>相册权限： Privacy - Photo Library Usage Description 是否允许此App访问你的媒体资料库？</li>
+<li>通讯录权限： Privacy - Contacts Usage Description 是否允许此App访问你的通讯录？</li>
+<li>蓝牙权限：Privacy - Bluetooth Peripheral Usage Description 是否许允此App使用蓝牙？</li>
+<li>语音转文字权限：Privacy - Speech Recognition Usage Description 是否允许此App使用语音识别？</li>
+<li>日历权限：Privacy - Calendars Usage Description 是否允许此App使用日历？</li>
+<li>定位权限：Privacy - Location When In Use Usage Description 我们需要通过您的地理位置信息获取您周边的相关数据</li>
+<li>定位权限: Privacy - Location Always Usage Description 我们需要通过您的地理位置信息获取您周边的相关数据</li>
+</ul>
+
+
+<h2>字体变大，原有的frame需要适配</h2>
+
+<p>程序内原有的2个字体的长度是24，现在2个子需要27宽度来显示</p>
+
+<h2>推送</h2>
+
+<p>如下图部分，不要忘记打开，所有的推送平台，不管是极光推送还是其它推送平台，要想收到推送，这个必须打开
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20161009-1.png" alt="1" /></p>
+
+<p>之后就可以收到推送了，iOS10推送的API也进行了更新，并且支持了语音，图片和自定义等功能</p>
+
+<p>iOS10收到通知不再是在<code>[application: didReceiveRemoteNotification:]</code>方法去处理，iOS10推出新的代理方法，接受和处理各类通知(本地或者远程)</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'> - (void)userNotificationCenter:(UNUserNotificationCenter *)center willPresentNotification:(UNNotification *)notification withCompletionHandler:(void (^)(UNNotificationPresentationOptions))completionHandler { //应用在前台收到通知 NSLog(@"========%@", notification);
+</span><span class='line'>    }
+</span><span class='line'>    
+</span><span class='line'> - (void)userNotificationCenter:(UNUserNotificationCenter *)center didReceiveNotificationResponse:(UNNotificationResponse *)response withCompletionHandler:(void (^)())completionHandler { //点击通知进入应用 NSLog(@"response:%@", response);
+</span><span class='line'>   }
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -214,233 +1872,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/07/19/zi-ding-yi-viewcontroller-rong-qi-zhuan-chang/">自定义 ViewController 容器转场</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-07-19T10:02:19+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>10:02 am</span></time>
-        
-           | <a href="/blog/2016/07/19/zi-ding-yi-viewcontroller-rong-qi-zhuan-chang/#disqus_thread"
-             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/07/19/zi-ding-yi-viewcontroller-rong-qi-zhuan-chang/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>我们在本文讨论navigation controller中的两个view controller之间的转场动画，但是这些做法在 tab bar controller或者任何你自己定义的view controller容器中也是通用的&hellip;</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/07/19/zi-ding-yi-viewcontroller-rong-qi-zhuan-chang/">阅读全文 &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/07/18/chang-yong-de-di-san-fang-lei-ku-and-xue-xi-zi-liao/">常用的第三方类库&amp;学习资料</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-07-18T17:57:54+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>18</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>5:57 pm</span></time>
-        
-           | <a href="/blog/2016/07/18/chang-yong-de-di-san-fang-lei-ku-and-xue-xi-zi-liao/#disqus_thread"
-             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/07/18/chang-yong-de-di-san-fang-lei-ku-and-xue-xi-zi-liao/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><hr />
-
-<p>自己总结的iOS、mac开源项目及库，持续更新。。。。
-github排名 <a href="https://github.com/trending">https://github.com/trending</a>,github搜索：<a href="https://github.com/search">https://github.com/search</a></p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/07/18/chang-yong-de-di-san-fang-lei-ku-and-xue-xi-zi-liao/">阅读全文 &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/05/30/iosdong-hua/">Ios动画</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-05-30T09:26:31+08:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>30</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>9:26 am</span></time>
-        
-           | <a href="/blog/2016/05/30/iosdong-hua/#disqus_thread"
-             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/05/30/iosdong-hua/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>我们写的应用程序往往都不是静态的，因为它们需要使用用户的需求以及为执行各种任务而改变状态。</p>
-
-<p>在这些状态之间转换时，清晰的揭示正在发生什么是非常重要的。而不是在页面之间跳跃，动画帮助我们解释用户从哪里来，要到哪里去。</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/05/30/iosdong-hua/">阅读全文 &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/05/26/swiftyu-fa-xiao-ji-qiao/">Swift语法小技巧</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-05-26T15:09:59+08:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>26</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>3:09 pm</span></time>
-        
-           | <a href="/blog/2016/05/26/swiftyu-fa-xiao-ji-qiao/#disqus_thread"
-             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/05/26/swiftyu-fa-xiao-ji-qiao/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h3><a name="判断某个对象是否响应了某个方法"> 判断某个对象是否响应了某个方法</a></h3>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/05/26/swiftyu-fa-xiao-ji-qiao/">阅读全文 &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/05/23/wei-iosjian-li-travis-ci/">为iOS建立Travis CI</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-05-23T14:30:30+08:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>23</span><span class='date-suffix'>rd</span>, <span class='date-year'>2016</span></span> <span class='time'>2:30 pm</span></time>
-        
-           | <a href="/blog/2016/05/23/wei-iosjian-li-travis-ci/#disqus_thread"
-             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/05/23/wei-iosjian-li-travis-ci/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>你是否曾经试着为ios项目搭建一台支持<a href="http://baike.baidu.com/link?url=9m9zB2m909wrZ82wdNWMhtPBTt14PduTPIyi78YL0sS7ccrE-DN22S55wCuEhuobFZ0dL5T4MhKmQzFLx1q4-K">持续集成</a>的服务器，从我的个人经验而言，这可不是一个轻松的活。首先需要准备一台MAc电脑，并安装好全部所需的软件和插件。你要负责管理所有的用户账户，并提供安全保护。你需要授予访问仓库的权限，并配置所有的编译步骤和证书，在项目的运行时期，你需要保持服务器稳健和最新。</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/05/23/wei-iosjian-li-travis-ci/">阅读全文 &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/05/22/nodejs-dai-ma-de-zu-zhi-he-bu-shu/">Nodejs-代码的组织和部署</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-05-22T09:45:22+08:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>22</span><span class='date-suffix'>nd</span>, <span class='date-year'>2016</span></span> <span class='time'>9:45 am</span></time>
-        
-           | <a href="/blog/2016/05/22/nodejs-dai-ma-de-zu-zhi-he-bu-shu/#disqus_thread"
-             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/05/22/nodejs-dai-ma-de-zu-zhi-he-bu-shu/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>有经验的C程序员在编写一个新程序时首先从make文件写起，同样的，使用nodejs编写程序前，为了有个良好的开端，首先需要准备好代码的目录结构和部署方式，就如同修防止要先搭建脚手架。本章将介绍与之相关的各种知识</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/05/22/nodejs-dai-ma-de-zu-zhi-he-bu-shu/">阅读全文 &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/2">&larr; Older</a>
@@ -463,23 +1894,23 @@ github排名 <a href="https://github.com/trending">https://github.com/trending</
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2016/09/21/iostui-song/">iOS推送</a>
+        <a href="/blog/2016/10/28/zi-ding-yi-uicollectionviewlayout/">自定义UICollectionViewLayout</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/09/10/zu-he-yu-ji-cheng/">组合与继承</a>
+        <a href="/blog/2016/10/24/ios10-uicollectionview-xin-te-xing/">Ios10 UICollectionView 新特性</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/09/10/zu-he-ji-cheng/">组合继承</a>
+        <a href="/blog/2016/10/17/ios10-usernotifications/">Ios10 UserNotifications</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/07/19/view-layerxie-zuo/">View-Layer协作</a>
+        <a href="/blog/2016/10/10/gua-pei-ios10/">适配iOS10</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/07/19/zi-ding-yi-viewcontroller-rong-qi-zhuan-chang/">自定义 ViewController 容器转场</a>
+        <a href="/blog/2016/10/09/ioszhong-de-nei-cun-fen-pei/">IOS中的内存分配</a>
       </li>
     
   </ul>
@@ -489,12 +1920,12 @@ github排名 <a href="https://github.com/trending">https://github.com/trending</
 	<ul id="categories">
 		<li class='category'><a href='/blog/categories/cocoapods/'>cocoapods (1)</a></li>
 <li class='category'><a href='/blog/categories/git/'>git (3)</a></li>
-<li class='category'><a href='/blog/categories/ios/'>ios (25)</a></li>
+<li class='category'><a href='/blog/categories/ios/'>ios (27)</a></li>
 <li class='category'><a href='/blog/categories/life/'>life (1)</a></li>
 <li class='category'><a href='/blog/categories/mac/'>mac (2)</a></li>
 <li class='category'><a href='/blog/categories/nodejs/'>nodejs (2)</a></li>
 <li class='category'><a href='/blog/categories/octopress/'>octopress (2)</a></li>
-<li class='category'><a href='/blog/categories/swift/'>swift (13)</a></li>
+<li class='category'><a href='/blog/categories/swift/'>swift (16)</a></li>
 <li class='category'><a href='/blog/categories/xcode/'>xcode (1)</a></li>
 
 	</ul>

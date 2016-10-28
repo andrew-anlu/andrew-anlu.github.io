@@ -1,6 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
+<loc>http://andrew-anlu.github.io/blog/2016/10/28/zi-ding-yi-uicollectionviewlayout/</loc>
+<lastmod>2016-10-28T14:34:50+08:00</lastmod>
+</url>
+<url>
+<loc>http://andrew-anlu.github.io/blog/2016/10/24/ios10-uicollectionview-xin-te-xing/</loc>
+<lastmod>2016-10-24T10:35:36+08:00</lastmod>
+</url>
+<url>
+<loc>http://andrew-anlu.github.io/blog/2016/10/17/ios10-usernotifications/</loc>
+<lastmod>2016-10-17T09:53:08+08:00</lastmod>
+</url>
+<url>
+<loc>http://andrew-anlu.github.io/blog/2016/10/10/gua-pei-ios10/</loc>
+<lastmod>2016-10-10T11:03:06+08:00</lastmod>
+</url>
+<url>
+<loc>http://andrew-anlu.github.io/blog/2016/10/09/ioszhong-de-nei-cun-fen-pei/</loc>
+<lastmod>2016-10-09T17:16:16+08:00</lastmod>
+</url>
+<url>
+<loc>http://andrew-anlu.github.io/blog/2016/10/09/sheng-ji-xcode8hou-zhu-yi-de-wen-ti/</loc>
+<lastmod>2016-10-09T16:37:48+08:00</lastmod>
+</url>
+<url>
 <loc>http://andrew-anlu.github.io/blog/2016/09/21/iostui-song/</loc>
 <lastmod>2016-09-21T16:25:58+08:00</lastmod>
 </url>

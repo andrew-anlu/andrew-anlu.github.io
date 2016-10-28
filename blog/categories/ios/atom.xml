@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Ios | 安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/blog/categories/ios/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-09-26T10:41:52+08:00</updated>
+  <updated>2016-10-28T20:03:22+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -12,6 +12,634 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Ios10 UserNotifications]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/10/17/ios10-usernotifications/"/>
+    <updated>2016-10-17T09:53:08+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/10/17/ios10-usernotifications</id>
+    <content type="html"><![CDATA[<p>ios10以前杂乱的和通知相关的API都被统一了，现在开发者可以使用独立的UserNotificaitons.framework来集中管理和使用iOS系统中通知的功能。在此基础上，Apple还增加了撤回单条通知，更新已展示通知，中途修改通知内容，在通知中展示图片视频，自定义通知UI等一系列功能。</p>
+
+<p>对于开发者来说，想比较于之前版本，iOS10提供了一套非常易用通知处理接口，是SDK的一次重大重构，而之前的绝大部分通知相关API都已经被标为弃用(deprecated)</p>
+
+<p>您可以在WWDC16的 <a href="https://developer.apple.com/videos/play/wwdc2016/707/">introducaion to Notifications</a>和<a href="https://developer.apple.com/videos/play/wwdc2016/708/">Advanced Notifications</a>这两个Session中找到详细信息；另外也不要忘了参考<a href="https://developer.apple.com/reference/usernotifications">UserNotifications官方文档</a></p>
+
+<h2>UserNOtifications框架解析</h2>
+
+<h3>基本流程</h3>
+
+<p>iOS10中通知相关的操作遵循下面的流程:</p>
+
+<p><code>审核和注册</code>-><code>创建和发起</code>-><code>展示和处理</code></p>
+
+<p>首先你需要向用户请求推送权限，然后发送通知。对于发送出的通知，如果你的应用位于后台或者没有运行的话，系统将通过用户允许的方法（弹窗，横幅，或者是在通知中心）进行展示。如果你的应用已经位于前台正在运行，你可以自行决定要不要显示这个通知。最后，如果你希望用户点击通知能有打开应用以外的额外功能的话，你也需要进行处理。</p>
+
+<h2>权限申请</h2>
+
+<p>iOS8之前，本地推送和远程推送（Remote Notificaiton）是区分对待的，应用只需要在进行远程推送是获取用户同意。iOS8对这一行为进行了规范，因为无论是本地推送还是远程推送，其实在用户看来表现是一致的，都是打断用户的行为。因此从iOS8开始，这两种通知都需要申请权限。ios10里进一步消除了本地通知和推送通知的区别。向用户申请通知权限非常简单：</p>
+
+<pre><code>UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) {
+    granted, error in
+    if granted {
+        // 用户允许进行通知
+    }
+}
+</code></pre>
+
+<p>当然，在使用UN开头的API的时候，不要忘记导入<code>UserNotifications</code>框架：</p>
+
+<p><code>import UserNotifications</code></p>
+
+<p>第一次调用这个方法时，会弹出一个系统弹窗.</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20161017-0.png" alt="1" /></p>
+
+<p>要注意的是，一旦用户拒绝了这个请求，再次调用该方法时也不会进行弹窗，想要应用有机会接收到通知的话，用户必须自行前往系统的设置中为你的应用打开通知，而这往往是不可能的。因此，在合适的是偶弹出请求窗，在请求权限前预先进行说明，而不是直接粗暴地在启动的时候就进行弹窗，会是更明智的选择。</p>
+
+<h2>远程推送</h2>
+
+<p>一旦用户同意后，你就可以再应用中发送本地通知了。不过如果你通过服务器发送远程通知的话，还需要多一个获取用户token的操作，你的服务器可以使用这个token将用向Apple push Notification的服务器提交请求，然后APNS通过token识别设备和应用，将通知推给用户。</p>
+
+<p>提交token请求和获得token的回调是现在"唯一"不在新框架中的API,我们使用<code>UIApplication</code>的<code>registerForRemoteNotifications</code>来注册远程通知，在<code>AppDelegate</code>的<code>application(_:didRegisterForRemoteNotificationsWithDeviceToken)</code>中获取用户token:</p>
+
+<pre><code>// 向 APNs 请求 token：
+UIApplication.shared.registerForRemoteNotifications()
+
+// AppDelegate.swift
+ func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+    let tokenString = deviceToken.hexString
+    print("Get Push token: \(tokenString)")
+}
+</code></pre>
+
+<p>获取得到的<code>deviceToken</code>是一个<code>Data</code>类型，为了方便使用和传递，我们一般会选择将它转换为一个字符串。swift3中可以使用下面的<code>data</code>扩展来构造适合传递给Apple的字符串：</p>
+
+<pre><code>extension Data {
+    var hexString: String {
+        return withUnsafeBytes {(bytes: UnsafePointer&lt;UInt8&gt;) -&gt; String in
+            let buffer = UnsafeBufferPointer(start: bytes, count: count)
+            return buffer.map {String(format: "%02hhx", $0)}.reduce("", { $0 + $1 })
+        }
+    }
+}
+</code></pre>
+
+<h3>权限设置</h3>
+
+<p>用户可以再系统设置中修改你的应用的通知权限，除了打开和关闭全部通知权限外，用户也可以限制你的应用智能进行某种形式的通知显示，比如值允许横幅而不允许弹窗及通知中心显示灯。一般来说你不应该对用户的选择进行干涉，但是如果你的应用确实需要某种特定场景的推送的话，你可以对当前用户进行的设置进行检查:</p>
+
+<pre><code>UNUserNotificationCenter.current().getNotificationSettings {
+    settings in 
+    print(settings.authorizationStatus) // .authorized | .denied | .notDetermined
+    print(settings.badgeSetting) // .enabled | .disabled | .notSupported
+    // etc...
+}
+</code></pre>
+
+<h2>发送通知</h2>
+
+<p>UserNOtifications中对通知进行了统一。我们通过通知的内容（<code>UNNotificaitonsContent</code>）,发送的时机<code>UNNotifiationTrigger</code>以及一个发送通知的<code>String</code>类型的标识符，来生成一个<code>UNNotificationRequest</code>类型的发送请求。最后，我们将这个请求添加到<code>UNUserNotificationCenter.current()</code>中，就可以等待通知到达了：</p>
+
+<pre><code>// 1. 创建通知内容
+let content = UNMutableNotificationContent()
+content.title = "Time Interval Notification"
+content.body = "My first notification"
+
+// 2. 创建发送触发
+let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
+
+// 3. 发送请求标识符
+let requestIdentifier = "com.onevcat.usernotification.myFirstNotification"
+
+// 4. 创建一个发送请求
+let request = UNNotificationRequest(identifier: requestIdentifier, content: content, trigger: trigger)
+
+// 将请求添加到发送中心
+UNUserNotificationCenter.current().add(request) { error in
+    if error == nil {
+        print("Time Interval Notification scheduled: \(requestIdentifier)")
+    }
+}
+</code></pre>
+
+<ol>
+<li>iOS10中通知不仅支持简单的一行文字，你还可以添加<code>title</code>和 <code>subtitle</code>,来用粗体字的形式强调通知的目的。对于远程推送，iOS10之前一般只含有消息的推送；payload是这样的：</li>
+</ol>
+
+
+<pre><code>{
+  "aps":{
+    "alert":"Test",
+    "sound":"default",
+    "badge":1
+  }
+}
+</code></pre>
+
+<p>如果我们想要加入<code>title</code>和<code>subtitle</code>的话，则需要将<code>alert</code>从字符串换为字典，新的payload是:</p>
+
+<pre><code>
+  "aps":{
+    "alert":{
+      "title":"I am title",
+      "subtitle":"I am subtitle",
+      "body":"I am body"
+    },
+    "sound":"default",
+    "badge":1
+  }
+}
+</code></pre>
+
+<p>好消息是，后一种字典的方法其实在iOS8.2的时候就已经存在了，虽然当时<code>title</code>只是用在Apple Watch上的，但是设置好<code>body</code>的话在iOS上还是可以显示的，所以针对iOS10添加标题时是可以保证向前兼容的。</p>
+
+<p>另外，如果要进行本地化对应，在设置这些内容文本时，本地可以使用<code>String.localizedUserNotificationString(forKey: "your_key", arguments: [])</code>的方式来从<code>Localizable.strings</code>文件中取出本地化字符串，而远程推送的话，也可以再payload的alert中使用<code>loc-key</code>或者<code>title-loc-key</code>来进行指定</p>
+
+<ol>
+<li><p>触发器是只对本地通知而言的，远程推送的通知的话默认会在收到后立即显示。现在<code>UserNotifications</code>框架中提供了三种触发器，分别是：在一定时间后触发<code>UNTimeIntervalNotificationTrigger</code>,在某月某日某时触发<code>UNCalendarNotificationTrigger</code>,以及在用户进入或者离开某个区域时触发<code>UNLocationNotificationTrigger</code></p></li>
+<li><p>请求标识符可以用来区分不同的通知请求，在将一个通知请求提交后，通过特定的API我们能够使用这个标识符来取消或者更新这个通知。我们将在稍后提到具体方法</p></li>
+<li><p>在新版本的通知框架中，Apple借用了一部分网络请求的概念，我们组织并发送一个通知请求，然后将这个请求提交给<code>UNUserNotificationCenter</code>进行处理。我们会在delegate中接收到这个通知请求对应的responst,另外我们也有机会再应用的extension中对request进行处理</p></li>
+</ol>
+
+
+<p>在提交请求后，我们锁屏或者将应用切到后台，并等待设定的时间后，就能看到我们的通知出现在通知中心或者屏幕横幅了:
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20161017-1.png" alt="1" /></p>
+
+<h2>取消和更新</h2>
+
+<p>在创建通知请求时，我们已经制定了标识符。这个标识符可以用来管理通知，在iOS10之前，我们很难取消掉某一个特定的通知，也不能主动移除或者更新已经展示的通知。</p>
+
+<p>iOS10中，UserNotifications框架提供了一系列管理通知的API,你可以做到:</p>
+
+<ul>
+<li>取消还未展示的通知</li>
+<li>更新还未展示的通知</li>
+<li>移除已经展示过的通知</li>
+<li>更新已经展示过的通知</li>
+</ul>
+
+
+<p>其中关键就是创建请求时使用同样的标识符：</p>
+
+<p>比如，从通知中心移除一个展示过得通知：</p>
+
+<pre><code>let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 3, repeats: false)
+let identifier = "com.onevcat.usernotification.notificationWillBeRemovedAfterDisplayed"
+let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
+
+UNUserNotificationCenter.current().add(request) { error in
+    if error != nil {
+        print("Notification request added: \(identifier)")
+    }
+}
+
+delay(4) {
+    print("Notification request removed: \(identifier)")
+    UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [identifier])
+}
+</code></pre>
+
+<p>类似的，我们可以使用<code>removePendingNotificationRequests</code>，来取消还未展示的通知请求。对于更新通知，不论是否已经展示，都和一开始添加请求时一样，再次将请求提交给<code>UNUserNotificationCenter</code>即可：</p>
+
+<pre><code>// let request: UNNotificationRequest = ...
+UNUserNotificationCenter.current().add(request) { error in
+    if error != nil {
+        print("Notification request added: \(identifier)")
+    }
+}
+
+delay(2) {
+    let newTrigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+
+    // Add new request with the same identifier to update a notification.
+    let newRequest = UNNotificationRequest(identifier: identifier, content:newContent, trigger: newTrigger)
+    UNUserNotificationCenter.current().add(newRequest) { error in
+        if error != nil {
+            print("Notification request updated: \(identifier)")
+        }
+    }
+}
+</code></pre>
+
+<p>远程推送可以进行通知的更新，在使用Provider API向APNS提交请求时，在HTTP2的header中<code>apns-collapse-id</code>key的内容将被作为该推送的标识符进行使用。多次推送同一标识符的通知即可进行更新</p>
+
+<h2>处理通知</h2>
+
+<h3>应用内展示通知</h3>
+
+<p>现在系统可以在应用处于后台或者退出的时候向用户展示通知了。不过，当应用处于前台时，收到的通知是无法进行展示的。如果我们希望在应用内也能显示通知的话，需要额外的工作。</p>
+
+<p><code>UNUserNotificationCenterDelegate</code>提供了两个方法，分别对应如何在应用内展示通知，和收到通知响应时要如何处理的工作。我们可以实现这个借口中的对应方法来在应用内展示通知：</p>
+
+<pre><code>class NotificationHandler: NSObject, UNUserNotificationCenterDelegate {
+    func userNotificationCenter(_ center: UNUserNotificationCenter, 
+                       willPresent notification: UNNotification, 
+                       withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -&gt; Void) 
+    {
+        completionHandler([.alert, .sound])
+
+        // 如果不想显示某个通知，可以直接用空 options 调用 completionHandler:
+        // completionHandler([])
+    }
+}
+</code></pre>
+
+<p>实现后，将<code>NotificationHandler</code>的实例赋值给<code>UNUserNotificationCenter</code>的<code>delegate</code>属性就可以了。没有特殊理由的话，AppDelegate的<code>application(_:didFinishLaunchingWithOptions:)</code>就是一个不错的选择：</p>
+
+<pre><code>class AppDelegate: UIResponder, UIApplicationDelegate {
+    let notificationHandler = NotificationHandler()
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -&gt; Bool {
+        UNUserNotificationCenter.current().delegate = notificationHandler
+        return true
+    }
+}
+</code></pre>
+
+<h2>对通知进行响应</h2>
+
+<p><code>UNUserNotificationCenterDelegate</code>中还有一个方法,<code>userNotificationCenter(_:didReceive:withCompletionHandler:)</code>这个代理方法会在用户与你推送的通知进行交互时被调用，包括用户通过通知打开了你的应用，或者点击或者触发了某个Action。因为涉及到打开应用的行为，所以事先了这个方法的delegate必须在<code>applicationDidFinishLaunching:</code>返回前就完成设置，这也是我们之前推荐将<code>NotificationHandler</code>今早进行赋值的理由。</p>
+
+<p>一个最简单的事先自然什么也不错，直接告诉系统你已经完成了所有工作。</p>
+
+<pre><code>func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -&gt; Void) {
+    completionHandler()
+}
+</code></pre>
+
+<p>在该方法里，我们将获取到这个推送请求对应的response,<code>UNNotificationResponse</code>是一个几乎包括了通知的所有信息的对象，从中我们可以再次获取到<code>userInfo</code>中的信息:</p>
+
+<pre><code>func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -&gt; Void) {
+    if let name = response.notification.request.content.userInfo["name"] as? String {
+        print("I know it's you! \(name)")
+    }
+    completionHandler()
+}
+</code></pre>
+
+<p>更好的消息是，远程推送的payload内的内容也会出现在这个<code>userInfo</code>中，这样一来，不论是本地推送还是远程推送，处理的路径得到了统一。通过<code>userInfo</code>的内容来决定页面跳转或者是进行其他操作，都会有很大空间。</p>
+
+<h2>Actionable通知发送和处理</h2>
+
+<h3>注册Category</h3>
+
+<p>iOS8和9中Apple引入了可以交互的通知，这是通过将一簇action放到了一个category中，将这个category进行注册，最后在发送通知时将通知的category设置为要使用的category来实现的。</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20161017-2.png" alt="1" /></p>
+
+<p>注册一个category非常容易：</p>
+
+<pre><code>private func registerNotificationCategory() {
+    let saySomethingCategory: UNNotificationCategory = {
+        // 1
+        let inputAction = UNTextInputNotificationAction(
+            identifier: "action.input",
+            title: "Input",
+            options: [.foreground],
+            textInputButtonTitle: "Send",
+            textInputPlaceholder: "What do you want to say...")
+
+        // 2
+        let goodbyeAction = UNNotificationAction(
+            identifier: "action.goodbye",
+            title: "Goodbye",
+            options: [.foreground])
+
+        let cancelAction = UNNotificationAction(
+            identifier: "action.cancel",
+            title: "Cancel",
+            options: [.destructive])
+
+        // 3
+        return UNNotificationCategory(identifier:"saySomethingCategory", actions: [inputAction, goodbyeAction, cancelAction], intentIdentifiers: [], options: [.customDismissAction])
+    }()
+
+    UNUserNotificationCenter.current().setNotificationCategories([saySomethingCategory])
+}
+</code></pre>
+
+<ol>
+<li><code>UNTextInputNotificationAction</code>代表一个输入文本的action,你可以自定义框的按钮title和placeholder,你稍后会使用<code>identifier</code>来对action进行区分。</li>
+<li>普通的<code>UNNotificationAction</code>对应标准的按钮</li>
+<li>为category指定一个<code>identifier</code>,我们将在实际发送通知的时候用这个标识符进行设置，这样系统就知道对应哪个category了。</li>
+</ol>
+
+
+<p>当然，不要忘了在程序启动时调用这个方法进行注册</p>
+
+<pre><code>func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -&gt; Bool {
+    registerNotificationCategory()
+    UNUserNotificationCenter.current().delegate = notificationHandler
+    return true
+}
+</code></pre>
+
+<h3>发送一个带有action的通知</h3>
+
+<p>在完成category注册后，发送一个actionable通知就非常简单了，只需要在创建<code>UNNotificationContent</code>时把<code>categoryIdentifier</code>设置为需要的categoryId即可：</p>
+
+<pre><code>content.categoryIdentifier = "saySomethingCategory"
+</code></pre>
+
+<p>尝试展示这个通知，在下拉或者使用3D touch展开通知后，就可以看到对应的action了：</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20161017-3.png" alt="1" /></p>
+
+<p>远程推送也可以使用category,只需要在payload中添加<code>category</code>字段，并指定预先定义的category id 就可以了:</p>
+
+<pre><code>{
+  "aps":{
+    "alert":"Please say something",
+    "category":"saySomething"
+  }
+}
+</code></pre>
+
+<h3>处理actionable通知</h3>
+
+<p>和普通的通知并无二致力，actionable通知也会走到<code>didReceive</code>的delegate方法，我们通过request中包含的<code>categoryIdentifier</code>和response里的<code>actionIdentifier</code>就可以轻易判定是那个通知的那个操作被执行了。对于<code>UNTextInputNotificationAction</code>触发的response,直接将它转换为一个<code>UNTextInputNotificationResponse</code>，就可以拿到其中的用户输入了：</p>
+
+<pre><code>func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -&gt; Void) {
+
+    if let category = UserNotificationCategoryType(rawValue: response.notification.request.content.categoryIdentifier) {
+        switch category {
+        case .saySomething:
+            handleSaySomthing(response: response)
+        }
+    }
+    completionHandler()
+}
+
+private func handleSaySomthing(response: UNNotificationResponse) {
+    let text: String
+
+    if let actionType = SaySomethingCategoryAction(rawValue: response.actionIdentifier) {
+        switch actionType {
+        case .input: text = (response as! UNTextInputNotificationResponse).userText
+        case .goodbye: text = "Goodbye"
+        case .none: text = ""
+        }
+    } else {
+        // Only tap or clear. (You will not receive this callback when user clear your notification unless you set .customDismissAction as the option of category)
+        text = ""
+    }
+
+    if !text.isEmpty {
+        UIAlertController.showConfirmAlertFromTopViewController(message: "You just said \(text)")
+    }
+}
+</code></pre>
+
+<p>上面的代码先判断通知响应是否属于<code>saySomething</code>，然后从用户输入或者是选择中提取字符串，并且弹出一个alert作为响应结果。当然，更多请苦情下我们会发送一个网络请求，或者是根据用户操作更新一些UI等。</p>
+
+<h2>Notificiaton Extension</h2>
+
+<p>iOS10中添加了很多extention,作为应用与系统整合的入口。与通知相关的extension有两个：Service Extension和Content Extension.前者可以让我们有机会在收到远程推送的通知后，展示之前对通知内容进行修改：后者可以用来自定义通知视图的样式。</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/notification-extensions.png" alt="1" /></p>
+
+<h3>截取并修改通知内容</h3>
+
+<p><code>NotificationService</code>的模板已经为我们进行了基本的实现:</p>
+
+<pre><code>class NotificationService: UNNotificationServiceExtension {
+
+    var contentHandler: ((UNNotificationContent) -&gt; Void)?
+    var bestAttemptContent: UNMutableNotificationContent?
+
+    // 1
+    override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -&gt; Void) {
+        self.contentHandler = contentHandler
+        bestAttemptContent = (request.content.mutableCopy() as? UNMutableNotificationContent)
+
+        if let bestAttemptContent = bestAttemptContent {
+            if request.identifier == "mutableContent" {
+                bestAttemptContent.body = "\(bestAttemptContent.body), Andrew"
+            }
+            contentHandler(bestAttemptContent)
+        }
+    }
+
+    // 2
+    override func serviceExtensionTimeWillExpire() {
+        // Called just before the extension will be terminated by the system.
+        // Use this as an opportunity to deliver your "best attempt" at modified content, otherwise the original push payload will be used.
+        if let contentHandler = contentHandler, let bestAttemptContent =  bestAttemptContent {
+            contentHandler(bestAttemptContent)
+        }
+    }
+}
+</code></pre>
+
+<ol>
+<li><code>didReceive:</code>方法中有一个等待发送的通知请求，我们通过修改这个请求中的content内容，然后在限制的时间内将修改后的内容调用通过<code>contentHandler</code>返还给系统，就可以显示这个修改过得通知了</li>
+<li>在一定时间内没有调用<code>contentHandler</code>的话，系统会调用这个方法，来告诉你大限已到。你可以选择什么都不做，这样的话系统将当做什么都没发生，简单地显示原来的通知，可能你其实已经设置好了绝大部分内容，只是有很少一部分没有完成，这时你也可以像例子中这样调用<code>contentHandler</code>来显示一个变更"中途"的通知</li>
+</ol>
+
+
+<p>Service Extentsion现在只对远程推送的通知起效，你可以在推送payload中增加一个<code>mutable-content</code>的值为1的项来启用内容修改：</p>
+
+<pre><code>{
+  "aps":{
+    "alert":{
+      "title":"Greetings",
+      "body":"Long time no see"
+    },
+    "mutable-content":1
+  }
+}
+</code></pre>
+
+<p>这个payload的推送得到的结果就是推送的内容+“Andrew”</p>
+
+<p>使用在本机截取推送并替换内容的方式，可以完成端到端(end-to-end)的推送加密。你在服务器推送payload中加入加密过得文本，在客户端接到通知后使用预先定义或者获取过得秘钥进行解密，然后立即显示。这样一来，即使推送信道被第三方截取，其中所传递的内容也还是安全的。使用这种方式来发送密码或者敏感信息，对于一些金融业务应用和聊天应用来说，应该是必备的特性。</p>
+
+<h2>在通知中展示图片/视频</h2>
+
+<p>相比于旧版本的通知，iOS10中另一个亮眼功能室多媒体的推送，开发者现在可以在通知中嵌入图片或者视频，这极大丰富了推送内容的可读性和趣味性。</p>
+
+<p>为本地通知添加多媒体内容十分简单，只需要通过本地磁盘上的文件URL创建一个<code>UNNotificationAttachment</code>对象，然后将这个对象放到数组中赋值给<code>content</code>的<code>attachments</code>属性就行了：</p>
+
+<pre><code>let content = UNMutableNotificationContent()
+content.title = "Image Notification"
+content.body = "Show me an image!"
+
+if let imageURL = Bundle.main.url(forResource: "image", withExtension: "jpg"),
+   let attachment = try? UNNotificationAttachment(identifier: "imageAttachment", url: imageURL, options: nil)
+{
+    content.attachments = [attachment]
+}
+</code></pre>
+
+<p>在显示时，横幅或者弹窗将附带设置的图片，使用3D Touch pop通知或者下拉通知显示详细内容时，图片也会被放大显示：</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20161017-4.png" alt="2" /></p>
+
+<p>除了图片之外，通知还支持音频以及视频。你可以将MP3或者MP4这样的文件提供给系统来在通知中进行展示和播放，不过，这些文件都有尺寸的限制，比如图片不能超过5MB,视频不能超过50MB,不过对于一般的能在通知中展示的内容来说，这个尺寸应该是绰绰有余了。关于支持的文件格式和尺寸，可以在文档中进行确认。在创建<code>UNNotificationAttachment</code>时，如果遇到了不支持的格式，SDK也会抛出错误。</p>
+
+<p>通过远程推送的方式，你也可以显示图片等多媒体内容，这要借助于上一节所提到的通过<code>Notification Service Extension</code>来修改涂松通知内容的技术。一般做法是，我们在推送payload中指定需要加载的图片资源地址，这个地址可以是应用bundle内已经存在的资源，也可以是网络的资源。不过因为在创建<code>UNNotificationAttachment</code>时偶们只能使用本地资源，所以如果多媒体还不在本地的话，我们需要先将其下载到本地，在完成<code>UNNotificationAttachment</code>创建后，我们就可以和本地通知一样，将它设置给<code>attachments</code>属性，然后调用<code>contentHandler</code>了。</p>
+
+<p>简单的实例 payload如下：</p>
+
+<pre><code>{
+  "aps":{
+    "alert":{
+      "title":"Image Notification",
+      "body":"Show me an image from web!"
+    },
+    "mutable-content":1
+  },
+  "image": "https://onevcat.com/assets/images/background-cover.jpg"
+}
+</code></pre>
+
+<p><code>mutable-content</code>表示偶们会在接收到通知时对内容进行更改，<code>image</code>指明了目标图片的地址。</p>
+
+<p>在<code>NotificationService</code>里，加入如下代码来下载图片，并将其保存到磁盘缓存中：</p>
+
+<pre><code>private func downloadAndSave(url: URL, handler: @escaping (_ localURL: URL?) -&gt; Void) {
+    let task = URLSession.shared.dataTask(with: url, completionHandler: {
+        data, res, error in
+
+        var localURL: URL? = nil
+
+        if let data = data {
+            let ext = (url.absoluteString as NSString).pathExtension
+            let cacheURL = URL(fileURLWithPath: FileManager.default.cachesDirectory)
+            let url = cacheURL.appendingPathComponent(url.absoluteString.md5).appendingPathExtension(ext)
+
+            if let _ = try? data.write(to: url) {
+                localURL = url
+            }
+        }
+
+        handler(localURL)
+    })
+
+    task.resume()
+}
+</code></pre>
+
+<p>然后再<code>didReceive:</code>中，接收到这类通知时提取图片地址，下载，并生成attachment,进行通知展示：</p>
+
+<pre><code>if let imageURLString = bestAttemptContent.userInfo["image"] as? String,
+   let URL = URL(string: imageURLString)
+{
+    downloadAndSave(url: URL) { localURL in
+        if let localURL = localURL {
+            do {
+                let attachment = try UNNotificationAttachment(identifier: "image_downloaded", url: localURL, options: nil)
+                bestAttemptContent.attachments = [attachment]
+            } catch {
+                print(error)
+            }
+        }
+        contentHandler(bestAttemptContent)
+    }
+}
+</code></pre>
+
+<p>关于在通知中展示图案品或者视频，有几点想补充说明：</p>
+
+<ol>
+<li><code>UNNotificationContent</code>的<code>attachments</code>虽然是一个数组，但是系统只会展示第一个attachmen对象的内容。不过你依然可以发送多个<code>attachments</code>,然后再要展示的时候再重新安排他们的顺序，以显示最符合情景的图片或者视频。另外，你也可能会在自定义通知展示UI时用到多个<code>attachment</code>,我们接下来一节中会看到一个相关的例子。</li>
+<li>在当前iOS10中，<code>serviceExtensionTimeWillExpire</code>被条用之前，你有30秒时间来处理和更改通知内容，对于一般的图片来说，这个时间是足够的，但是如果你推送的体积较大的视频内容，用户又恰巧在糟糕的网络环境的话，很有可能无法及时下载完成。</li>
+<li>如果你想在远程推送来的通知中显示应用bundle内的资源的话，要注意extension的bundle和app main bundle并不是一回事，你可以选择将图片资源放到extension bundle中，也可以选择放在main bundle里，总之，你需要保证能够获取到正确的，并且你具有读取权限的url</li>
+<li>系统在创建<code>attachement</code>时会根据提供的url后缀确定文件类型，如果没有后缀，或者后缀无法不正确的话，你可以在创建时通过<code>UNNotificationAttachmentOptionsTypeHintKey</code>来<a href="https://developer.apple.com/reference/usernotifications/unnotificationattachmentoptionstypehintkey">指定资源类型</a></li>
+<li>如果使用的图片和视频文件不在你的bundle内部，它们将被移动到系统的负责通知的文件夹下，然后当同志被移除后删除。如果媒体文件在bundle内部，它们将被负责到通知文件夹下。每个应用能使用的媒体文件大小总和是有限制，超过限制后创建<code>attachment</code>时将抛出异常。可能的所有错误可以再<code>UNError</code>中找到</li>
+<li>你可以访问一个已经创建的<code>attachment</code>的内容，但是要注意权限问题，可以使用<code>startAccessingSecurityScopedResource</code>来暂时获取以创建的<code>attachment</code>的访问权限。比如：</li>
+</ol>
+
+
+<pre><code>let content = notification.request.content
+if let attachment = content.attachments.first {  
+    if attachment.url.startAccessingSecurityScopedResource() {  
+        eventImage.image = UIImage(contentsOfFile: attachment.url.path!)  
+        attachment.url.stopAccessingSecurityScopedResource()  
+    }  
+}  
+</code></pre>
+
+<h2>自定义通知视图样式</h2>
+
+<p>ioS10 SDK 新加的另一个<code>Content Extension</code>可以用来自定义通知的详细页面的视图，新建一个<code>Notification Content Extension</code>,Xcode为我们准备的模板中包含了一个实现了<code>UNNotificationContentExtension</code>的<code>UIViewController</code>子类。这个extension中有个一必须实现的方法<code>didReceive(_:)</code>,在系统需要显示自定义样式的通知详情视图时，这个方法将被调用，你需要在其中配置你的UI.而UI本身可以通过这个extension中的<code>MainInterface.storyboard</code>来进行定义。自定义UI的通知是和通知category绑定的，我们需要在<code>extension</code>的info.plist里指定这个通知样式所对应的category标识符：</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/notification-content-info.png" alt="1" /></p>
+
+<p>系统在接收到通知后会先查找有没有能够处理这类通知的content extension,如果存在，那么就交给extensionl来进行处理，另外，在构建UI时，我们可以通过Info.plist控制通知详细视图的尺寸，以及是否显示原始的通知。关于Content Extension中的info.plist的key,可以在<a href="https://developer.apple.com/reference/usernotificationsui/unnotificationcontentextension">这个文档</a>中找到详细信息。</p>
+
+<p>虽然我们可以使用包括按钮在内的各种UI，但是系统不允许我们队这些UI进行交互，点击通知视图UI本身会将我们导航到应用中，不过我们可以通过action的方式来对自定义UI进行更新。<code>UNNotificationContentExtension</code>为我们提供了一个可选方法<code>didReceive(_:completionHandler:)</code>，它会在用户选择了某个action时被调用，你有机会在这里更新通知的UI，如果有UI更新，那么在方法的<code>completionHandler</code>中，开发者可以选择传递<code>. doNotDismiss</code>来保持通知继续呗显示。如果没有继续显示的必要，可以选择<code>. dismissAndForwardAction</code>或者<code>. dismiss</code>，前者将把通知的action继续传递给应用的<code>UNUserNotificationCenterDelegate</code>中的<code>userNotificationCenter(:didReceive:withCompletionHandler)</code>，而后者将直接解散这个通知</p>
+
+<p>如果你的自定义UI包含视频等，你还可以实现<code>UNNotificationContentExtension</code>里的<code>media</code>开头的一系列属性，它将为你提供一些视频播放的控件和相关方法。</p>
+
+<h2>总结</h2>
+
+<p>iOS10 SDk中对通知这块进行了IOS系统发布以来最大的一次重构，很多"老朋友"都被标记为了 deprecated:</p>
+
+<h2>iOS10中被标记弃用的API</h2>
+
+<ul>
+<li>UILocalNotification</li>
+<li>UIMutableUserNotificationAction</li>
+<li>UIMutableUserNotificationCategory</li>
+<li>UIUserNotificationAction</li>
+<li>UIUserNotificationCategory</li>
+<li>UIUserNotificationSettings</li>
+<li>handleActionWithIdentifier:forLocalNotification:</li>
+<li>handleActionWithIdentifier:forRemoteNotification:</li>
+<li>didReceiveLocalNotification:withCompletion:</li>
+<li>didReceiveRemoteNotification:withCompletion:</li>
+</ul>
+
+
+<p>等一系列在<code>UIKIT</code>中的发送和处理通知的类型及方法</p>
+
+<p>相比较于iOS早期时代的API,新的APi展现了高度的模块化和统一特性，易用性也非常好，是一套更加先进的API,如果有可能，特别是如果你的应用是重度依赖通知特性的话，直接从iOS10开始可以让你充分使用在新同志体系的各种特性。</p>
+
+<p>虽然原来的API都被标为弃用了，但是如果需要支持iOS10之前系统的话，你还是需要使用原来的API,我们可以使用</p>
+
+<pre><code>if #available(iOS 10.0, *) {
+    // Use UserNotification
+}
+</code></pre>
+
+<p>的方式来对iOS10进行新通知的适配，并让iOS10的用户享受到新通知带来的便利特性，然后在将来版本升级到只支持iOS10以上时再移除掉所有被启用的代码。对于优化和梳理通知相关代码来说，新API对代码设计和祖上上带来的好处足以弥补适配上的麻烦。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[IOS中的内存分配]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/10/09/ioszhong-de-nei-cun-fen-pei/"/>
+    <updated>2016-10-09T17:16:16+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/10/09/ioszhong-de-nei-cun-fen-pei</id>
+    <content type="html"><![CDATA[<p>内存分配可以分为5个区</p>
+
+<h2>栈区（stack）</h2>
+
+<p>这个一般由编译器操作，或者说是系统管理，会存一些局部变量，这些系统都会帮我们自动实现，无需我们干预，所以大量的局部变量，深递归，函数循环调用都可以耗尽栈内存而程序崩溃</p>
+
+<h2>堆区（heap）</h2>
+
+<p>一般由程序员管理，比如alloc申请内存，free释放内存，我们创建的对象也都放在这里</p>
+
+<h2>全局区(静态区 static)</h2>
+
+<p>全局变量和静态变量的存储是放在一块的，初始化的全局变量和静态变量在一块区域，未初始化的全局变量和未初始化的静态变量在相邻的另一块区域，程序结束后由系统释放。</p>
+
+<h2>常量区</h2>
+
+<p>常量字符串就是放在这里的，还有const常量</p>
+
+<h2>代码区</h2>
+
+<p>存放代码，app程序会拷贝到这里，程序不是在</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/1475976705224479.png" alt="1" /></p>
+
+<p>图中各个区并不连续</p>
+
+<p>当一个app启动后，代码区，常量区，全局区地址已经固定，因此指向这些区的指针不会为空而产生崩溃性的错误，而堆区和栈区是时时刻刻变化的（堆的创建销毁，栈的弹入和弹出），所以当使用一个指针指向这两个区里面的内存时，一定要注意内存是否已经被释放，否则会产生程序崩溃</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[iOS推送]]></title>
@@ -131,12 +759,235 @@
 <ul>
 <li>就是我们在手机上平时见到的推送通知</li>
 <li>包括声音，横幅，角标，自定义字段</li>
+<li><p>App:</p>
+
+<ul>
+<li>处于前台，不会显示横幅，可通过 <code>didReceiveRemoteNotification</code>（ios7 before）,<code>didReceiveRemoteNotification:fetchCompletionHandler:</code>(ios7 after)获取通知内容</li>
+<li>处于后台，会展示横幅，无法获取通知内容</li>
+<li>处于退出，会展示横幅，无法获取通知内容</li>
+<li>点击图标启动，无法获取通知内容</li>
+<li>点击通知横幅启动，在<code>didFinishLaunchingWithOptions</code>获取通知内容</li>
 </ul>
 </li>
+</ul>
+</li>
+<li>通知内容类似如下:</li>
+</ul>
+
+
+<pre><code class="``">  {
+"_j_msgid" = 200806057;  // 第三方附带的 id，用于统计点击
+aps =     {
+  alert = "显示内容";
+  badge = 1;  // App 角标，可推送 n、+n、-n 来实现角标的固定、增加、减少
+  sound = default;  // 推送声音，默认系统三全音，如需使用自己的声音，需要将声音文件拖拽&amp;拷贝至 Xcode 工程目录任意位置，并在推送时指定其文件名
+};
+key1 = value1;  // 自定义字段，可设置多组，用于处理内部逻辑
+key2 = value2;
+}
+</code></pre></li>
+<li><p>后台推送</p>
+
+<ul>
+<li>各种显示效果跟普通推送完全一样</li>
+<li>必须携带<code>content-available</code> = 1</li>
+<li>必须携带 alter ,badge ,sound 至少一个字段</li>
+<li>仅 ios7以后支持</li>
+<li>必须在Xcode工程中 <code>TARGETS – Capabilities – Background Modes – Remote notifications</code>开启该功能，具体可参照 <a href="http://docs.jiguang.cn/client/ios_tutorials/#ios-7-background-remote-notification"> iOS 7 Background Remote Notification</a></li>
 </ul>
 </li>
 </ul>
 
+
+<h3>App</h3>
+
+<ul>
+<li>处于前台，可通过<code>didReceiveRemoteNotification</code>(iOS7 before) ，didReceiveRemoteNotification:fetchCompletionHandler: （iOS 7 after）获取通知内容</li>
+<li>处于后台，可通过<code>didReceiveRemoteNotification:fetchCompletion Handler:</code>获取通知内容，获取情况中于普通推送的唯一不同点，此时iOS系统允许开发者在App处于后台的情况下没执行一些代码，大概提供几分钟的时间，可以用来偷偷地刷新UI，切换页面，下载更新包等等操作</li>
+<li>处于退出，无法获取通知内容</li>
+<li>点击图标启动，无法获取通知内容</li>
+<li>点击推送横幅启动，在<code>didFinishLaunchingWithOptions</code>获取通知内容</li>
+</ul>
+
+
+<p><em>通知内容类似如下:</em></p>
+
+<pre><code>{
+  "_j_msgid" = 2090737306;
+  aps =     {
+    alert = "显示内容";
+    badge = 1;
+    "content-available" = 1;  // 必带字段
+    sound = default;
+  };
+  key1 = value1;
+}
+</code></pre>
+
+<h3>静默推送</h3>
+
+<ul>
+<li>没有任何展示效果</li>
+<li>必须携带<code>"content-available" = 1</code>，因此静默必然是后台的</li>
+<li>必须不携带 alert,badge,sound</li>
+<li>可携带自定义字段</li>
+</ul>
+
+
+<p><em>App:</em></p>
+
+<ul>
+<li>处于前台，可以通过<code>didReceiveRemoteNotification</code>(iOS7 before),<code>didReceiveRemoteNotification:fetchCompletionHandler:</code> (ios 7 after)获取通知内容</li>
+<li>处于后台，可通过<code>didReceiveRemoteNotification:fetchCompletion Handler:</code>获取通知内容，获取情况中与普通推送的唯一不同点，此时iOS系统允许开发者在App处于后台的情况下，执行一些代码，大概提供几分钟的时间，可以用来偷偷的刷新UI,切换页面，下载更新包等等操作</li>
+<li>处于退出，无法获取通知内容</li>
+</ul>
+
+
+<p><em>通知内容类似如下:</em></p>
+
+<pre><code>{
+    "_j_msgid" = 3938587719;
+    aps =     {
+        alert = "";
+        "content-available" = 1;  // 必带字段
+    };
+    key1 = value1;
+}
+</code></pre>
+
+<h2>推送目标篇</h2>
+
+<p>别名，标签，RegistrationID均是第三方提供的用于更方便地指定推送目标的功能</p>
+
+<h3>Tip6:推送根据目标的不同可以分为:</h3>
+
+<ul>
+<li>广播
+
+<ul>
+<li>无差别发送给所有用户</li>
+</ul>
+</li>
+<li><p>别名alias推送</p>
+
+<ul>
+<li>第三方提供的功能</li>
+<li>一个手机的一款App只能设置一个 alias(可修改)</li>
+<li>建议对每一个用户都取不同的别名，以此来确定唯一的用户</li>
+<li>推送时可指定多个alias来发送同一内容</li>
+<li>仅指定alias的用户能够收到推送</li>
+</ul>
+</li>
+<li><p>标签tag推送</p>
+
+<ul>
+<li>第三方提供的功能</li>
+<li>可以设置多个，可增加，清空</li>
+<li>用于指定多样的属性，如 『1000』+『daily』+『discount』 可用于表示月消费超过 1k、喜欢购买日用品、偏好折扣商品的用户</li>
+<li>如果要删除，需要在上次设置时，将设置的tags保存至<code>NSUserDefaults</code>，本次剔除不需要的tag后，再重新设置</li>
+<li>推送时可指定多个tag来发同一个内容</li>
+<li>手机如果设置了推送指定的多个 tag 中任一个tag，都能够收到推送消息。如指定 『1000』+『globe』+『original』 （千元级消费者、全球购、原价），那么设置了 『100』+『globe』+『discount』（百元级消费者、全球购、折扣价）的用户可以收到该推送消息。</li>
+</ul>
+</li>
+<li><p>Registration ID 推送</p>
+
+<ul>
+<li>第三方提供的功能</li>
+<li>在Tip 3的第三步时将<code>deviceToken</code>提供给第三方之后，其服务器会自动生成的指向该手机的唯一id</li>
+<li>可在推送时指定多个id来下发消息</li>
+<li>可用于对核心用户，旗舰用户的精准推送</li>
+</ul>
+</li>
+</ul>
+
+
+<h2>应用消息篇</h2>
+
+<h3>Tip 7:应用内消息和推送通知的区别，消息:</h3>
+
+<ul>
+<li>不需要Apple推送证书</li>
+<li>由第三方服务器下发，而不是APNS</li>
+<li>相比通知，更快速，几乎没有延迟，可用于IM消息的即使传达</li>
+<li>能够长时间保留离线消息，可获取所有历史消息内容</li>
+<li>通过长连接技术下发消息，因此：
+
+<ul>
+<li>手机必须启动并与第三方服务器简历连接</li>
+<li>如果手机启动立刻切换到后台，很可能连接没有建立</li>
+<li>手机必须处于前台才能收到消息</li>
+<li>手机从后台切回前台，会自动重新简历连接，并收到离线消息</li>
+</ul>
+</li>
+<li>没有任何展示（横幅，通知中心，角标，声音），因此可以：
+
+<ul>
+<li>完全自定义字段实现UI效果</li>
+<li>完全在静默的情况下处理App内部逻辑</li>
+<li>使用一些App Store审核不会通过的功能，在审核时关闭功能，上架后通过接收消息，开启相关功能</li>
+</ul>
+</li>
+</ul>
+
+
+<h2>组合大招</h2>
+
+<h3>Tip 8:tags的组合技巧</h3>
+
+<ul>
+<li>见 Tip5 - 标签tag 推送</li>
+<li>可以再服务器端来统计分析用户行为，然后将指定的tags发送至手机，手机接收后再为用户打上对应的tags</li>
+</ul>
+
+
+<h3>Tip 9:通知 + 消息的组合技巧</h3>
+
+<ul>
+<li>首先来看通知和消息的特性对比</li>
+</ul>
+
+
+<table>
+<thead>
+<tr>
+<th>XX </th>
+<th>  通知  </th>
+<th>             消息</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>送达时间 </td>
+<td> 可能存在几秒延迟  </td>
+<td> 几乎没延迟</td>
+</tr>
+<tr>
+<td>获取时机  </td>
+<td> 处于前台或后台 能获取内容</td>
+<td>仅处于前台能获取内容</td>
+</tr>
+<tr>
+<td>离线内容</td>
+<td> 保留一段时间，过期会抛弃，无法查询历史内容</td>
+<td>始终保留，可查询全部历史内容</td>
+</tr>
+<tr>
+<td>系统展示</td>
+<td>会展示（静默推送或App处于前台不展示）</td>
+<td>不展示</td>
+</tr>
+</tbody>
+</table>
+
+
+<p><em>由于各自的特性都存在差异，因此二者结合使用使得App推送性能最大化的必然选择：</em></p>
+
+<ul>
+<li>情景一</li>
+</ul>
+
+
+<p>QQ/微信聊天，会同时下发一组通知+消息，如果用户没有启动QQ,虽有延迟但必须能够先收到通知，在收到通知的提醒之后，用户打开App,此时收到了离线消息，即使更新UI，与好友即使地发送/接收消息，（在收到通知后，断网，然后启动APP，你会发现此时手机里并不会显示刚刚通知的内容，因为它是依靠拉取消息来刷新页面的，而不是不够稳定的通知）</p>
 ]]></content>
   </entry>
   
@@ -608,582 +1459,6 @@ static void *DR_popAnimationContext     = &amp;DR_popAnimationContext;
 <p>注意老的model值被设置到了layer上，所以在当动画结束和移除后，model的值和persentation的值是相符合的。</p>
 
 <p>创建像这样的你自己的API不会对每种情况都很适合，但是如果你需要在你的应用中的很多地方都做同样的动画的话，这可以帮助你写出整洁的代码，并减少重复。就算你之后从来不会使用这种方法，实际做一遍也能帮助你搞懂UIview block动画的APis,特别是你已经在core Animation的舒适区的时候，这非常有助于你的提高。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[自定义 ViewController 容器转场]]></title>
-    <link href="http://andrew-anlu.github.io/blog/2016/07/19/zi-ding-yi-viewcontroller-rong-qi-zhuan-chang/"/>
-    <updated>2016-07-19T10:02:19+08:00</updated>
-    <id>http://andrew-anlu.github.io/blog/2016/07/19/zi-ding-yi-viewcontroller-rong-qi-zhuan-chang</id>
-    <content type="html"><![CDATA[<p>我们在本文讨论navigation controller中的两个view controller之间的转场动画，但是这些做法在 tab bar controller或者任何你自己定义的view controller容器中也是通用的&hellip;</p>
-
-<!--more-->
-
-
-<p>尽管从技术角度来讲，使用ios7的api,你可以对自定义容器中的view controller做自定义转场，但是这不是能直接使用的，实现这种效果非常不容易。</p>
-
-<p>请注意我正在讨论的自定义视图控制器容器都是UIViewController的直接子类，而不是UITabBarController或者UINavigationController的子类。</p>
-
-<p>对于你自定义的继承与UIViewController的容器子类，并没有现成可用的Api允许一个任意的动画控制器将一个子视图控制器自动转场到另外一个，不管是可交互的转场还是不可交互式的转场。我甚至都觉得苹果根据不想支持这种方式。苹果支持下面的几种转场方式:</p>
-
-<ul>
-<li>Navigation Controller推入和推出页面</li>
-<li>Tab bar Controller选择的改变</li>
-<li>Model页面的展示和消失</li>
-</ul>
-
-
-<p>在本文中，我将向你展示如何自定义视图控制器容器，并且使其支持第三方的动画控制器</p>
-
-<h2>预热准备</h2>
-
-<p>看到这里，你可能对上文我们说到一些问题犯嘀咕，让我来告诉你答案吧:</p>
-
-<p>为什么我们不直接继承UINavigationController或UITabBarController.并且使用它们提供的功能呢？</p>
-
-<p>有些时候这是你不想要的。可能你想要一个非常特殊的外观或者行为，和这些类能够提供给你的差别非常大，因此你必须使用一些黑客式的手段去达到你想要的结果，同时还要担心系统框架的版本更新后这些黑客式的手段是否还仍然有效。或者，你就是想完全控制你的视图控制器容器，避免不得不支持一些特定的功能。</p>
-
-<p>好吧，那么为什么不实用
-<code>transitionFromViewController:toViewController:duration:options:animations:completion :</code>去实现呢?</p>
-
-<p>这又是一个好问题，你可能想用这种方式去实现，但是或许你对代码的整洁性比较在意，想把这种转场相关的代码封装在内部。那么为什么不实用一个即存的，被良好验证的设计模式呢？这种设计模式可以非常方便的支持第三方的转场动画。</p>
-
-<h2>介绍相关的API</h2>
-
-<p>在我们开始写代码之前，让我们先花一分钟时间来简单看一下我们需要的组件吧。</p>
-
-<p>ios7自定义视图控制器转场的API基本上都是以协议的方式提供的，这也使其可以非常灵活的使用，因为你可以很简单地讲它们插入到你的类中。最主要的五个组件如下：</p>
-
-<ol>
-<li>动画控制器(Animation Controllers)遵从UIViewControllerAnimatedTransitioning协议，并且负责实际执行动画。</li>
-<li>交互控制器(Interaction Controllers)通过遵从UIViewControllerInteractiveTransitioning协议来控制可交互式的转场</li>
-<li>转场代理(Transitioning Delegates)根据不同的转场类型方便的提供需要的动画控制器和交互控制器</li>
-<li>转场上下文(Transitioning Contexts)定义了转场时需要的元数据，比如在转场过程中所参与的视图控制和视图相关属性。转场上下文对象遵从UIViewControllerContextTransitoning协议，并且这是由系统负责生成和提供的。</li>
-<li>转场协调器(Transition Coordinators)可以在运行转场动画时，并行的运行其他动画。转场协调器遵从UIViewControllerTransitionCoorinator协议。</li>
-</ol>
-
-
-<p>正如你从其他的阅读材料中得知的那样，转场有不可交互式和可交互式两种方式。在本文红，我们将集中精力于不可交互的转场。这种转场是最简单的转场，也是我们学习的一个好的开始。这意味着我们需要处理上面提到的动画控制器(animation controllers)，转场代理(transioning delegates)和转场上下文(transionging contexts)</p>
-
-<h2>示例工程</h2>
-
-<p>通过三个阶段，我们将要实现一个简单自定义的视图控制器容器，它可以对子视图控制器提供自定义的转场动画的支持。</p>
-
-<p>你可以在<a href="https://github.com/objcio/issue-12-custom-container-transitions">这里</a>找到这三个阶段的Xcode工程的源代码</p>
-
-<h3>阶段1:基础</h3>
-
-<p>我们应用中的核心类是<code>ContainerViewController</code>，它持有一个UIViewController实例的数组，每个实例是一个普通的ChildViewController。容器视图控制器设置了一个带有可点击图标，并代表每个子视图控制器的私有的子视图:</p>
-
-<p><img src="https://www.objccn.io/images/issues/issue-12/2014-05-01-custom-container-view-controller-transitions-stage-1.gif" alt="1" /></p>
-
-<p>我们通过点击图标在不同的子视图控制器之间切换，在这一阶段，子视图控制器之间切换时是没有转场动画的。</p>
-
-<p>你可以在这里查看<a href="https://github.com/objcio/issue-12-custom-container-transitions/tree/stage-1">阶段1</a>的源代码</p>
-
-<h3>阶段2：转场动画</h3>
-
-<p>当我们添加转场动画时，我们想要使用一个遵从 UIViewControllerAnimatedTransitioning协议的动画控制器(animation controllers)。这个协议声明了三个方法，前面的2歌方法是必须实现的：</p>
-
-<pre><code>- (NSTimeInterval)transitionDuration:(id&lt;UIViewControllerContextTransitioning&gt;)transitionContext;
-- (void)animateTransition:(id&lt;UIViewControllerContextTransitioning&gt;)transitionContext;
-- (void)animationEnded:(BOOL)transitionCompleted;  
-</code></pre>
-
-<p>通过这些方法，我们可以获得我们所需的所有东西。当我们的视图控制器容器准备执行动画时，我们可以从动画冬至器中获取动画的持续时间，并让其去执行真正的动画。当动画执行完毕后，如果动画控制器实现了可选的 <code>animationEnded:</code>方法，我们可以调用动画控制器中的 animationEnded: 方法。</p>
-
-<p>但是，首先我们必须把一件事情搞清楚。正如你在上面的方法签名中看到的那样，上面两个必须实现的方法需要一个转场上下文参数，这是一个遵从 <code>UIViewControllerContextTransionging</code>协议的对象。通常情况下，当我们使用系统内建的类时，系统框架为我们创建了转场上下文对象，并把它传递给动画控制器。但是在我们这种情况下，我们需要自定义转场动画，所以我们需要承担系统框架的责任，自己去创建这个转场上下文对象。</p>
-
-<p>这就是大量使用协议的方便之处。我们可以不用必须复写一个私有类，而复写私有类这种方法是明显不可行的。我们可以定义自己的类，并使其遵从文档中相应的协议就可以了。</p>
-
-<p>尽管在UIViewControllerContextTransioning协议中声明了很多方法，而且他们都是必须要实现的，但是我们现在可以暂时忽略它们中的一些方法，因为我们现在仅仅支持不可交互的转场。</p>
-
-<p>同UIKit类似，我们定义了私有类<code>NSObject &lt;UIViewControllerContextTransitioning&gt;</code>.在我们的特定例子汇总，这个私有类是 PrivateTransitionContext,它的初始化方法如下实现:</p>
-
-<pre><code>- (instancetype)initWithFromViewController:(UIViewController *)fromViewController toViewController:(UIViewController *)toViewController goingRight:(BOOL)goingRight {
-    NSAssert ([fromViewController isViewLoaded] &amp;&amp; fromViewController.view.superview, @"The fromViewController view must reside in the container view upon initializing the transition context.");
-
-    if ((self = [super init])) {
-        self.presentationStyle = UIModalPresentationCustom;
-        self.containerView = fromViewController.view.superview;
-        self.viewControllers = @{
-            UITransitionContextFromViewControllerKey:fromViewController,
-            UITransitionContextToViewControllerKey:toViewController,
-        };
-
-        CGFloat travelDistance = (goingRight ? -self.containerView.bounds.size.width : self.containerView.bounds.size.width);
-        self.disappearingFromRect = self.appearingToRect = self.containerView.bounds;
-        self.disappearingToRect = CGRectOffset (self.containerView.bounds, travelDistance, 0);
-        self.appearingFromRect = CGRectOffset (self.containerView.bounds, -travelDistance, 0);
-    }
-
-    return self;
-}
-</code></pre>
-
-<p>我们把视图的出现和消失时的状态记录了下来，比如初始状态和最终状态的frame.</p>
-
-<p>请注意一点，我们的初始化方法需要我们提供我们是在向右切换还是向左切换。在我们的<code>ContainerViewController</code>中，按钮是一个接一个水平排列的，转场上下文通过设置每个frame来记录它们之间的位置关系。动画控制器或者说 animator,在生成动画时可以使用这些frame.</p>
-
-<p>我们也可以通过另外的方式去获取这些信息，但是那样的话，就会使animator和<code>ContainerViewController</code>及其视图控制器耦合在一起了，这是不好的，我们并不想这样。animator应该只关心它自己以及传递给它的上下文，因为这样，在理想的情况下，animator可以在不同的上下文中得到复用。</p>
-
-<p>在下一步实现我们自己的动画控制器时，我们应该时刻记住这一点，现在让我们来实现转场上下文吧。</p>
-
-<p>使用Animator类的实例来做转场动画的核心代码如下所示:</p>
-
-<pre><code>[fromViewController willMoveToParentViewController:nil];
-[self addChildViewController:toViewController];
-
-Animator *animator = [[Animator alloc] init];
-
-NSUInteger fromIndex = [self.viewControllers indexOfObject:fromViewController];
-NSUInteger toIndex = [self.viewControllers indexOfObject:toViewController];
-PrivateTransitionContext *transitionContext = [[PrivateTransitionContext alloc] initWithFromViewController:fromViewController toViewController:toViewController goingRight:toIndex &gt; fromIndex];
-
-transitionContext.animated = YES;
-transitionContext.interactive = NO;
-transitionContext.completionBlock = ^(BOOL didComplete) {
-    [fromViewController.view removeFromSuperview];
-    [fromViewController removeFromParentViewController];
-    [toViewController didMoveToParentViewController:self];
-};
-
-[animator animateTransition:transitionContext];
-</code></pre>
-
-<p>这其中的大部分是对视图控制器容器的操作，计算出我们是在向左切换还是向右切换，做动画的部分基本上只有3行代码：</p>
-
-<ol>
-<li>创建Animator</li>
-<li>创建转场上下文</li>
-<li>触发动画执行</li>
-</ol>
-
-
-<p>有了上面的代码，转场效果看起来如下图所示:</p>
-
-<p><img src="https://www.objccn.io/images/issues/issue-12/2014-05-01-custom-container-view-controller-transitions-stage-2.gif" alt="2" /></p>
-
-<p>非常酷，我们甚至没有写一行动画相关的代码</p>
-
-<p>你可以在<a href="https://github.com/objcio/issue-12-custom-container-transitions/tree/stage-2">阶段2</a>标签下看到这部分代码的变化。</p>
-
-<h3>阶段3：封装</h3>
-
-<p>我想我们最后要做的一件事情是封装 ContainerViewController,使其能够:</p>
-
-<ol>
-<li>提供默认的转场动画</li>
-<li>提供替换默认动画控制器的代理</li>
-</ol>
-
-
-<p>这意味着我们需要对Animator类的依赖移除，同时需要创建一个代理协议。</p>
-
-<p>我们如下定义这个协议:</p>
-
-<pre><code>@protocol ContainerViewControllerDelegate &lt;NSObject&gt;
-@optional
-- (void)containerViewController:(ContainerViewController *)containerViewController didSelectViewController:(UIViewController *)viewController;
-- (id &lt;UIViewControllerAnimatedTransitioning&gt;)containerViewController:(ContainerViewController *)containerViewController animationControllerForTransitionFromViewController:(UIViewController *)fromViewController toViewController:(UIViewController *)toViewController;
-@end
-</code></pre>
-
-<p><code>containerViewController:didSelectViewController:</code>方法使<code>ContainerViewController</code>可以很容易的集成与功能齐全的应用中。</p>
-
-<p><code>containerViewController:animationControllerForTransitionFromViewController:toViewController:</code>方法挺有趣的，当然，你可以把它和下面的UIKit中的视图控制器容器的代理协议做对比:</p>
-
-<ul>
-<li>tabBarController:animationControllerForTransitionFromViewController:toViewController: (UITabBarControllerDelegate)</li>
-<li>navigationController:animationControllerForOperation:fromViewController:toViewController: (UINavigationControllerDelegate)</li>
-</ul>
-
-
-<p>所有的这些方法都返回一个id<UIViewControllerAnimatedTransitioning>对象。与之前一直使用一个 Animator 对象不同，我们现在可以从我们的代理那里获取一个动画控制器:</p>
-
-<pre><code>id&lt;UIViewControllerAnimatedTransitioning&gt;animator = nil;
-if ([self.delegate respondsToSelector:@selector (containerViewController:animationControllerForTransitionFromViewController:toViewController:)]) {
-    animator = [self.delegate containerViewController:self animationControllerForTransitionFromViewController:fromViewController toViewController:toViewController];
-}
-animator = (animator ?: [[PrivateAnimatedTransition alloc] init]);
-</code></pre>
-
-<p>如果我们有代理并且它返回一个Animator,那么我们就使用这个 animator.否则，我们使用内部私有类PrivateAnimatedTransition 创建一个默认的 animator.接下来我们将实现 <code>PrivateAnimatedTransition</code>类。</p>
-
-<p>尽管默认的动画和 Animator有一些不同，但是代码看起来惊人的相似，下面是完整的代码实现:</p>
-
-<pre><code>@implementation PrivateAnimatedTransition
-
-static CGFloat const kChildViewPadding = 16;
-static CGFloat const kDamping = 0.75f;
-static CGFloat const kInitialSpringVelocity = 0.5f;
-
-- (NSTimeInterval)transitionDuration:(id&lt;UIViewControllerContextTransitioning&gt;)transitionContext {
-    return 1;
-}
-
-- (void)animateTransition:(id&lt;UIViewControllerContextTransitioning&gt;)transitionContext {
-
-    UIViewController* toViewController = [transitionContext viewControllerForKey:UITransitionContextToViewControllerKey];
-    UIViewController* fromViewController = [transitionContext viewControllerForKey:UITransitionContextFromViewControllerKey];
-
-    // When sliding the views horizontally, in and out, figure out whether we are going left or right.
-    BOOL goingRight = ([transitionContext initialFrameForViewController:toViewController].origin.x &lt; [transitionContext finalFrameForViewController:toViewController].origin.x);
-
-    CGFloat travelDistance = [transitionContext containerView].bounds.size.width + kChildViewPadding;
-    CGAffineTransform travel = CGAffineTransformMakeTranslation (goingRight ? travelDistance : -travelDistance, 0);
-
-    [[transitionContext containerView] addSubview:toViewController.view];
-    toViewController.view.alpha = 0;
-    toViewController.view.transform = CGAffineTransformInvert (travel);
-
-    [UIView animateWithDuration:[self transitionDuration:transitionContext] delay:0 usingSpringWithDamping:kDamping initialSpringVelocity:kInitialSpringVelocity options:0x00 animations:^{
-        fromViewController.view.transform = travel;
-        fromViewController.view.alpha = 0;
-        toViewController.view.transform = CGAffineTransformIdentity;
-        toViewController.view.alpha = 1;
-    } completion:^(BOOL finished) {
-        fromViewController.view.transform = CGAffineTransformIdentity;
-        [transitionContext completeTransition:![transitionContext transitionWasCancelled]];
-    }];
-}
-
-@end
-</code></pre>
-
-<p>需要注意一点的是，上面的代码没有通过设置视图的frame 来反应它们之间的位置关系，但是代码仍然可以正常工作，只不过转场总是在同一个方向上。因此，这个类也可以被其它的代码库使用。</p>
-
-<p>转场动画看起来像是这样:</p>
-
-<p><img src="https://www.objccn.io/images/issues/issue-12/2014-05-01-custom-container-view-controller-transitions-stage-3.gif" alt="2" /></p>
-
-<p>在<a href="https://github.com/objcio/issue-12-custom-container-transitions/tree/stage-3">阶段3</a>代码中，app delegate中设置代理的部分被注释掉了，这样就可以看到默认的动画效果了，你可以将其设置回再使用 Animator类，你可能想查看同<a href="https://github.com/objcio/issue-12-custom-container-transitions/compare/stage-2...stage-3">阶段2相比所有的修改</a></p>
-
-<p>我们现在有一个自包含的提供了默认转场动画的 ContainerViewController 类，这个默认的转场动画可以被开发者定义的ios7自定义动画控制器(UIViewControllerAnimatedTransitioning)的对象代替，甚至都可以不用关心我们的源代码就可以方便的替换。</p>
-
-<h2>结论</h2>
-
-<p>在本文中，我们通过使用ios7提供的自定义视图控制器转场的新特性，使得我们自定义的视图控制器容器成为了UIkit的一等公民。</p>
-
-<p>这意味着你可以把自定义的非交互的转场动画应用到自定义的视图控制器容器中。你可以看到我们把7个话题之前使用的转场类直接拿过来使用，而且没有做任何修改。</p>
-
-<p>如果你想让自己的容器视图控制器作为一个类库或者框架，或者仅仅想使你的代码得到更好的复用，这将是非常完美的。</p>
-
-<p>我们现在仅仅支持非交互式的转场，下一步就是对交互式的转场也提供支持。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Ios动画]]></title>
-    <link href="http://andrew-anlu.github.io/blog/2016/05/30/iosdong-hua/"/>
-    <updated>2016-05-30T09:26:31+08:00</updated>
-    <id>http://andrew-anlu.github.io/blog/2016/05/30/iosdong-hua</id>
-    <content type="html"><![CDATA[<p>我们写的应用程序往往都不是静态的，因为它们需要使用用户的需求以及为执行各种任务而改变状态。</p>
-
-<p>在这些状态之间转换时，清晰的揭示正在发生什么是非常重要的。而不是在页面之间跳跃，动画帮助我们解释用户从哪里来，要到哪里去。</p>
-
-<!--more-->
-
-
-<p>键盘在View中滑进滑出给了我们一个错觉，让我们以为它是简单的被隐藏在屏幕下方的，并且是手机很自然的一个部分。View Controller转场加强了我们的应用程序的导航结构，并且给了用户正在移向那个方向的提示。微妙的反弹和碰撞使界面栩栩如生，并且激发出了物理的质感。要是没有这些的话，我们就只有一个没有视觉设计的干巴巴的环境了。</p>
-
-<p>动画是叙述你的应用的故事的绝佳方式，在了解动画背景的基本原理之后，设计它们会轻松很多。</p>
-
-<h2>首要任务</h2>
-
-<p>在这篇文章中，我们将特别地针对  Core Anmiation进行探讨，虽然你将看到的很多东西也可以用更高级的UIKit的方法来完成，但是Core Animation将会让你更好的理解正在发生什么。它以一种更明确的方式来描述动画，这对这篇文章以及你自己的代码的读者来说都非常有用。</p>
-
-<p>在看动画如何与我们的屏幕上的看到的内容交互之前，我们需要快速浏览一下Core Animation的<code>CALayer</code>，这是动画产生作用的地方。</p>
-
-<p>你大概知道UIView实例，以及layer-backed的NSView,修改它们的layer来委托强大的Core Graphics框架来进行渲染。然而你务必要理解，当把动画添加到一个layer时，是不直接修改它的属性的。</p>
-
-<p>取而代之，Core Animation维护了两个平行的layer层次结构:mode layer tree(模型层树)和presentation layer tree(表示层树)。前者中的layers反映了我们能直接看到的layers的状态，而后者的layers则是正在表现的值的近似。</p>
-
-<p>考虑在view上增加一个渐出动画。如果在动画中的任意时刻，查看layer的opacity值，你是得不到与屏幕内容对应的透明度的。取而代之，你需要查看presentaion layer 以获得正确的结果。</p>
-
-<p>虽然你可能不会去直接设置presentaion layer的属性，但是使用它的当前值来创建新的动画护着在动画发生时与layers交互式非常有用的。</p>
-
-<p>通过使用 <code>-[CALayer presentaionLayer]</code>和<code>[CALayer modelLayer]</code>，你可以在两个layer之间轻松切换。</p>
-
-<h2>基本动画</h2>
-
-<p>可能最常见的情况是将一个View的属性从一个值改变为另一个值，考虑夏敏的这个例子。</p>
-
-<p> <img src="http://7xkxhx.com1.z0.glb.clouddn.com/rocket-linear.gif" alt="w" />
- 
-在这里，我们让红色小火箭的 x-position从77 变为455,刚好超过的parent View的边，为了填充所有路径，我们需要确定我们的火箭在任意时刻所到达的位置。这通常使用线性插值法来完成。</p>
-
-<pre><code>X(T)=x0 + t△x
-</code></pre>
-
-<p>也就是说，对于动画给定的一个分数t,火箭的x坐标就是起始点的x坐标77，加上一个到终点的距离∆x = 378,乘以该分数的值。</p>
-
-<p>使用<code>CABasicAnimation</code>，我们可以如下实现这个动画:</p>
-
-<pre><code>CABasicAnimation *animation = [CABasicAnimation animation];
-animation.keyPath = @"position.x";
-animation.fromValue = @77;
-animation.toValue = @455;
-animation.duration = 1;
-
-[rocket.layer addAnimation:animation forKey:@"basic"];
-</code></pre>
-
-<p>请注意我们的动画键路径，也就是position.x,实际上包含一个存储在<code>position</code>属性中的CGPoint结构体成员。这是CoreAnimation一个非常方便的特性。请查看<a href="https://developer.apple.com/library/ios/documentation/Cocoa/Conceptual/CoreAnimation_guide/Key-ValueCodingExtensions/Key-ValueCodingExtensions.html">支持的键路径的完整列表</a></p>
-
-<p>然而，当我们运行该代码时，我们意识到火箭在完成动画后马上回到了初始位置，这是因为在默认情况下，动画不会再超出其持续时间后还修改 presentaion layer.实际上，在结束时它甚至会被彻底移除。</p>
-
-<p>一旦动画被移除，presentation layer将回到 model layer的值，并且因为我们从未修改该layer的 postion属性，所以我们的飞船将重新出现在它开始的地方。</p>
-
-<p>这里有两种解决这个问题的方法:</p>
-
-<p>第一种方法是直接在 model layer上更新尚需经，这是推荐的做法，因为它使得动画完全可选。</p>
-
-<p>一旦动画完成并且从layer中移除，presentation layer将回到model layer设置的值，而这个值恰好与动画最后一个步骤相匹配</p>
-
-<pre><code>CABasicAnimation *animation = [CABasicAnimation animation];
-animation.keyPath = @"position.x";
-animation.fromValue = @77;
-animation.toValue = @455;
-animation.duration = 1;
-
-[rocket.layer addAnimation:animation forKey:@"basic"];
-
-rocket.layer.position = CGPointMake(455, 61);
-</code></pre>
-
-<p>或者，你可以通过设置动画的fillMode属性为<code>kCAFillModeForward</code>，并设置<code>removedOnCompletion</code>为No以防止它被自动移除:</p>
-
-<pre><code>CABasicAnimation *animation = [CABasicAnimation animation];
-animation.keyPath = @"position.x";
-animation.fromValue = @77;
-animation.toValue = @455;
-animation.duration = 1;
-
-animation.fillMode = kCAFillModeForward;
-animation.removedOnCompletion = NO;
-
-[rectangle.layer addAnimation:animation forKey:@"basic"];
-</code></pre>
-
-<p>如果将已完成的动画保持在layer上时，会造成额外的开销，因为渲染器会去进行额外的绘画工作。</p>
-
-<p>指的指出的是，实际上我们创建的动画对象在被添加到layer时立刻就复制了一份。这个特性在多个view中重用动画时这非常有用。比方说我们想要第二个火箭在第一个火箭起飞后不久后起飞：</p>
-
-<pre><code>CABasicAnimation *animation = [CABasicAnimation animation];
-animation.keyPath = @"position.x";
-animation.byValue = @378;
-animation.duration = 1;
-
-[rocket1.layer addAnimation:animation forKey:@"basic"];
-rocket1.layer.position = CGPointMake(455, 61);
-
-animation.beginTime = CACurrentMediaTime() + 0.5;
-
-[rocket2.layer addAnimation:animation forKey:@"basic"];
-rocket2.layer.position = CGPointMake(455, 111);
-</code></pre>
-
-<p>设置动画的<code>beginTime</code>为未来0.5秒将只会影响<code>rocket2</code>，因为动画在执行语句<code>[rocket1.layer addAnimation:animation forKey:@"basic"];</code>时已经被复制了，并且之后的rocket1也不会考虑对动画对象的改变。</p>
-
-<p>不妨看一看David的<a href="http://ronnqvi.st/controlling-animation-timing/">关于动画时间的一篇很棒的文章</a>，通过它可以学习如何更精确的控制你的动画。</p>
-
-<p>我决定再使用<code>CABasicAnimation</code>的byValule属性创建一个动画，这个动画从presentaion layer的当前值开始，加上byValue的值后结束。这使得动画更易于重用，因为你不需要精确的指定可能无法提前知道的from- 和 toValue的值。</p>
-
-<p><code>fromValue</code>,<code>byValue</code>和<code>toValue</code>的不同组合可以用来实现不同的效果，如果你需要创建一个可以在你的不同应用中重用的动画，你可以<a href="https://developer.apple.com/library/ios/documentation/GraphicsImaging/Reference/CABasicAnimation_class/Introduction/Introduction.html#//apple_ref/doc/uid/TP40004496-CH1-SW4">查看文档</a></p>
-
-<h2>多步动画</h2>
-
-<p>这很容易想到一个场景，你想要为你的冻哈定义超过两个步骤，我们可以使用更通用的<code>CAKeyframeAnimation</code>，而不是去链接多个<code>CABasicAnimation</code>实例。</p>
-
-<p>关键帧(keyFrame)使我们能够定义动画中任意的一个点，然后让core Animation填充所谓的中间帧</p>
-
-<p>比方说我们正在制作我们下一个Iphone应用程序汇总的登录表单，我们希望当用户输入错误的密码时表单会晃动，使用关键帧动画，看起来大概像是这样：
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/form.gif" alt="d" /></p>
-
-<pre><code>CAKeyframeAnimation *animation = [CAKeyframeAnimation animation];
-animation.keyPath = @"position.x";
-animation.values = @[ @0, @10, @-10, @10, @0 ];
-animation.keyTimes = @[ @0, @(1 / 6.0), @(3 / 6.0), @(5 / 6.0), @1 ];
-animation.duration = 0.4;
-
-animation.additive = YES;
-
-[form.layer addAnimation:animation forKey:@"shake"];
-</code></pre>
-
-<p>values数组定义了表单应该到哪些位置、</p>
-
-<p>设置keytimes属性让我们能够指定关键帧动画发生的时间。它们被指定为关键帧动画总持续时间的一个分数。</p>
-
-<blockquote><p><em>注意:</em></p>
-
-<p><a style="font-style:normal">
-请注意我是如何选择不同的值从0到10到-10转换以维持恒定的速度的。
-</a></p></blockquote>
-
-<p>设置additive尚需经为YES 使 Core Animation在更新 presentaion layer之前将动画的值添加到 model layer中去。这使得我们能够对所有形式的需要更新的元素重用相同的动画，且无需提前知道它们的位置。因为这个属性从<code>CAPropertyAnimation</code>继承，所以你也可以在使用<code>CABasicAnimation</code>时使用它。</p>
-
-<h2>沿路径的动画</h2>
-
-<p>虽然用代码实现一个简单的水平晃动并不难，但是沿着复杂路径的 动画就需要我们在关键帧的values数组中存储大量box化的CGPoint.指的庆幸的是，<code>CAKeyFrmeAnimaiton</code>提供了更加便利的Path属性作为代替</p>
-
-<p>举个例子，我们如何让一个view做圆周运动:</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/planets.gif" alt="1" /></p>
-
-<pre><code>CGRect boundingRect = CGRectMake(-150, -150, 300, 300);
-
-CAKeyframeAnimation *orbit = [CAKeyframeAnimation animation];
-orbit.keyPath = @"position";
-orbit.path = CFAutorelease(CGPathCreateWithEllipseInRect(boundingRect, NULL));
-orbit.duration = 4;
-orbit.additive = YES;
-orbit.repeatCount = HUGE_VALF;
-orbit.calculationMode = kCAAnimationPaced;
-orbit.rotationMode = kCAAnimationRotateAuto;
-
-[satellite.layer addAnimation:orbit forKey:@"orbit"];
-</code></pre>
-
-<p>使用<code>CGPathCreateWithEllipseInRect ()</code>，我们创建一个圆形的<code>CGPath</code>作为我们的关键帧动画的path.</p>
-
-<p>使用<code>calculationMode</code>是控制关键帧动画时间的另一种方式。我们通过将其设置为<code>kCAAnimationPaced</code>，让Core Animation想被驱动的对象施加一个恒定速度，不管路径的各个线程有多长，将其设置为<code>kCAAnimationPaced</code>将无视所有我们已经设置的 keyTimes.</p>
-
-<p>设置 rotationsMode属性为 <code>kCAAnimationRotateAuto</code>，确保飞船沿着路径旋转。作为对比，我们将该属性设置为nil，那动画会怎么样呢？</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/planets-incorrect.gif" alt="2" /></p>
-
-<h2>时间函数</h2>
-
-<p>让我们再次来看看第一个例子 ：</p>
-
-<p>你会发现我们的火箭的动画有些看起来非常不自然的地方，那是因为我们在现实时间中看到的大部分运动需要时间来加速或者减速。对象瞬间达到最高速度，然后再立即停止往往看起来非常不自然。除非你在让机器人跳舞，但这很少是想要的结果。</p>
-
-<p>为了给我们的动画一个存在惯性的感觉，我们可以使用我们上面提到的参数因子来进行插值。然而，如果我们接下来需要为每个需要加速或减速的行为创建一个新的插值函数，这将是一个很难扩展的方法。</p>
-
-<p>取而代之，常见的做法是把要进行动画的属性的插值从动画的速度中解耦出来。这样一来，给动画提速会差生一种小火箭加速运动的效果，而不用改变我们的插值函数。</p>
-
-<p>我们可以通过引入一个时间函数 （timing function）来实现这个目标。该函数通过修改持续时间的分数来控制动画的速度。</p>
-
-<p>最简单的easing函数是linear.它在整个动画上维持一个恒定的速度。在 Core Animation中，这个功能由CAMediaTimingFunction来表示。</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/rect-linear.gif" alt="2" /></p>
-
-<pre><code>CABasicAnimation *animation = [CABasicAnimation animation];
-animation.keyPath = @"position.x"; 
-animation.fromValue = @50;
-animation.toValue = @150;
-animation.duration = 1;
-
-animation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionLinear];
-
-[rectangle.layer addAnimation:animation forKey:@"basic"];
-
-rectangle.layer.position = CGPointMake(150, 0);
-</code></pre>
-
-<p>Core Animation附带了一些linear之外的内置easing函数，如:</p>
-
-<ul>
-<li><p>Ease in (kCAMediaTimingFunctionEaseIn):
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/rect-easein.gif" alt="1" /></p></li>
-<li><p>Ease out (kCAMediaTimingFunctionEaseOut):
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/rect-easeout.gif" alt="2" /></p></li>
-<li><p>Ease in ease out (kCAMediaTimingFunctionEaseInEaseOut):</p></li>
-</ul>
-
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/rect-easeineaseout.gif" alt="3" /></p>
-
-<ul>
-<li>默认 (kCAMediaTimingFunctionDefault):
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/rect-default.gif" alt="4" /></li>
-</ul>
-
-
-<p>在一定限度内，你也可以使用<code>+functionWithControlPoints::::</code>创建自己的easing函数。通过传递cubic Bezier曲线的两个控制点的x和y坐标，你可以轻松的创建自定义easying函数，比如我为我们的红色小火箭选择的那个。</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/rocket-custom.gif" alt="custom" /></p>
-
-<pre><code>CABasicAnimation *animation = [CABasicAnimation animation];
-animation.keyPath = @"position.x";
-animation.fromValue = @77;
-animation.toValue = @455;
-animation.duration = 1;
-
-animation.timingFunction = [CAMediaTimingFunction functionWithControlPoints:0.5:0:0.9:0.7];
-
-[rocket.layer addAnimation:animation forKey:@"basic"];
-
-rocket.layer.position = CGPointMake(150, 0);
-</code></pre>
-
-<p>我不打算讲太多关于Bezier曲线的细节，在计算机图形学中，它们是创建平滑曲线的常用技术。你可能在基于矢量的绘图工具，比如Sketch或者Adobe lllustrotor中见过它们。</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/bezier.png" alt="1" /></p>
-
-<p>传递给 <code>+functionWithControlPoints::::</code>的值有效地控制了控制点的位置。所得到的定时函数将基于得到的路径来调整动画的速度。X轴代表时间的分数，而Y轴是插值函数的插入值。</p>
-
-<p>遗憾的是，由于这些部分被锁定在[0-1]的范围内，我们不可能用它来创建一些像预期动作(Anticipation,一种像目标进发前先回退一点，到达目标后还过冲一会，见下图)这样的常见效果 .</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/anticipate.gif" alt="3" /></p>
-
-<h2>动画组</h2>
-
-<p>对于某些复杂的效果，可能需要同时为多个属性进行动画。想象一下，在一个媒体播放程序中，当切换到随机曲目时我们让随机动画效果，看起来就想下面这样:</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/covers.gif" alt="animaiton" /></p>
-
-<p>你可以看到，我们需要同时对上面的封面的 position,roation和 z-position进行动画，使用 CAAimationGroup来动画其中一个封面的代码如下:</p>
-
-<pre><code>CABasicAnimation *zPosition = [CABasicAnimation animation];
-zPosition.keyPath = @"zPosition";
-zPosition.fromValue = @-1;
-zPosition.toValue = @1;
-zPosition.duration = 1.2;
-
-CAKeyframeAnimation *rotation = [CAKeyframeAnimation animation];
-rotation.keyPath = @"transform.rotation";
-rotation.values = @[ @0, @0.14, @0 ];
-rotation.duration = 1.2;
-rotation.timingFunctions = @[
-    [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut],
-    [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut]
-];
-
-CAKeyframeAnimation *position = [CAKeyframeAnimation animation];
-position.keyPath = @"position";
-position.values = @[
-    [NSValue valueWithCGPoint:CGPointZero],
-    [NSValue valueWithCGPoint:CGPointMake(110, -20)],
-    [NSValue valueWithCGPoint:CGPointZero]
-];
-position.timingFunctions = @[
-    [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut],
-    [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut]
-];
-position.additive = YES;
-position.duration = 1.2;
-
-CAAnimationGroup *group = [[CAAnimationGroup alloc] init];
-group.animations = @[ zPosition, rotation, position ];
-group.duration = 1.2;
-group.beginTime = 0.5;
-
-[card.layer addAnimation:group forKey:@"shuffle"];
-
-card.layer.zPosition = 1;
-</code></pre>
-
-<p>我们使用CAAimationGroup得到一个好处是可以将所有动画作为一个对象暴露出去。如果你要在应用程序中的多个地方用工厂对象创建的重用的动画的话，这将会非常有用。</p>
-
-<p>你也可以使用动画组同时控制所有动画组成部分的时间</p>
-
-<h2>Core Animation 之外</h2>
-
-<p>你应该已经听过 UIKIT Dynamics了，这是ios7中引入的一个物理模拟框架，它允许你使用约束和力来为 views做动画。与core Animation不同，它与你在屏幕上看到的内容交互更为间接，但是它的动态特性让你可以在事先不知道结果时创建动画。</p>
 ]]></content>
   </entry>
   

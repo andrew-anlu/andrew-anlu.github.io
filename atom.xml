@@ -4,7 +4,7 @@
   <title><![CDATA[安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-09-26T10:41:52+08:00</updated>
+  <updated>2016-10-28T20:03:22+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -12,6 +12,1526 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[自定义UICollectionViewLayout]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/10/28/zi-ding-yi-uicollectionviewlayout/"/>
+    <updated>2016-10-28T14:34:50+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/10/28/zi-ding-yi-uicollectionviewlayout</id>
+    <content type="html"><![CDATA[<p>UICollectionView，自从ios6之后就被引入到开发中，现在已经变成了最流程的UI元素之一，它最吸引人的特性就是将数据和布局进行分离，依靠分离的数据元素去处理布局，这个布局对象是决定占位元素和视图的元素。</p>
+
+<p>你可能已经习惯了默认的flow layout布局，它是一个默认实现的被UIKit,它是由基本的表格布局组成的。当然你也可以自定义布局，你可以按照自己的喜好来对视图进行重排。自定义布局是非常强大和灵活的。</p>
+
+<p>通过本章，你将学会如何自定义的布局，怎么去计算layout Attributes,怎么去处理动态的cell。</p>
+
+<h2>Getting Started</h2>
+
+<p><a href="https://koenig-media.raywenderlich.com/uploads/2015/05/Pinterest-starterproject.zip">Download the started project</a>，下载后打开</p>
+
+<p>编译运行，效果如图：</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2015/05/build_and_run_starter_project.png" alt="1" /></p>
+
+<h2>创建自定义的布局类</h2>
+
+<p>你第一步就是创建一个自定义的布局类，UICollectionView有一个抽象类是<code>UIcollectionViewLayout</code>,它定义了你的Collection View 的每个cell的属性集合-<code>UICollectionViewLayoutAttributes</code>，它包含了你的CollectionView中每个item的属性，比如frame,透明度等</p>
+
+<p>创建一个类继承自<code>UICollectionViewLayout</code>,确保选中的是swift语言，然后创建。</p>
+
+<p>下一步，在你的storyboard中配置下你的自定义布局对象类。</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2015/07/storyboard_select_collection_view.png" alt="1" /></p>
+
+<p>然后打开<code>Attributes Inspector</code>面板，选中<code>Custom</code>，在下一个<code>class</code>框中选中你刚才创建的新类<code>PinterestLayout</code>：</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2015/07/storyboard_change_layout.png" alt="1" /></p>
+
+<p>好了，编译运行：</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2015/05/build_and_run_empty_collection.png" alt="3" /></p>
+
+<p>why?</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2015/05/meme-nopictures.jpg" alt="1" /></p>
+
+<p>不要慌张！因为你还没有在自定义布局类中写入方法，所以这里什么都不显示。</p>
+
+<h2>核心布局对象</h2>
+
+<p>让我们先看看Collection View的布局调用流程，当Collection View 需要显示一些布局信息的时候，它会询问layout object 去提供一些防范去实现。</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2015/05/layout-lifecycle.png" alt="1" /></p>
+
+<p>你自定义的布局必须实现如下方法:</p>
+
+<ul>
+<li><code>prepareLayout()</code>，在cell将要进入屏幕的时候，这个方法将会被调用，这是一个机会当你去准备展示和计算CollectionView size和坐标的地方</li>
+<li><code>collectionViewContentSize()</code>：在这个方法中，你将会返回CollectionView的高度和宽度-不仅仅是可视的内容，Collection View 将会用这些信息去配置ScrollView的内容尺寸</li>
+<li><code>layoutAttributesForElementsInRect(_:):</code>在这个方法中，你需要返回所有的嵌套在矩形区域中的布局属性，你将要返回一个包含<code>UICollectionViewLayoutAttributes</code>属性的集合</li>
+</ul>
+
+
+<p>ok，现在你知道需要去实现什么方法了-但是如何去计算attributes？</p>
+
+<h2>计算布局属性</h2>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Ios10 UICollectionView 新特性]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/10/24/ios10-uicollectionview-xin-te-xing/"/>
+    <updated>2016-10-24T10:35:36+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/10/24/ios10-uicollectionview-xin-te-xing</id>
+    <content type="html"><![CDATA[<p>关于ios 10 UIcolelctionView的新特性，主要还是体现在如下三个方面</p>
+
+<ol>
+<li>顺滑的滑动体验</li>
+<li>针对self=sizing的改进</li>
+<li>Interactive recording重排</li>
+</ol>
+
+
+<p>这个功能在iOS9的时候介绍过了，苹果在iOS10的API里面大大增强了这一个功能</p>
+
+<h2>目录</h2>
+
+<h3><a href="#1">UICollectionViewCell顺滑的滑动体验</a></h3>
+
+<h3><a href="#2">UICollectionViewCell的预加载</a></h3>
+
+<h3><a href="#3">UITableViewCell的预加载</a></h3>
+
+<h3><a href="#4">针对self-sizing的改进</a></h3>
+
+<h3><a href="#5">Interactive Recordering</a></h3>
+
+<h3><a href="#6">UIRefreshControl的改进</a></h3>
+
+<h2><a name="1"></a>UICollectionViewCell顺滑的滑动体验</h2>
+
+<p>众所周知，iOS设备已良好的用户体验赢得了广大的用户群，iOS系统在用户点击屏幕会立即做出响应。而且很大一部分的操作是来自用户的滑动操作，所以滑动的顺滑性是使用用户沉浸在App中享受的必要条件，接下来我们就谈谈iOS10中增加了那些新特性。</p>
+
+<p>我们先来看一下之前UIcollectionView的体验，假设我们每个cell都是简单的蓝色，实际开发app中，cell会比较复杂，我们先生成100cell.当用户滑动不是很快的时候，还感觉不出来卡顿，当用户大幅度滑动，整个UIcollectionView的卡顿就很明显了。如果整个cell的dataSource又是从网络加载的，那就更加卡顿了，如果如下图</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467784344928825.gif" alt="1" /></p>
+
+<p>如果这种app上架，用户使用过后，很可能就直接给1星评价了，但是为什么会造成这种问题呢？我们来分析一下，我们模拟一下系统是如果处理重用机制的，效果如下图：</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467784355209022.gif" alt="2" /></p>
+
+<p>在上图中，我们可以看出，当cell准备进入屏幕的时候，整个cell都已经加载完成，等待在屏幕外面了。而且更重要的是，在屏幕外面等待加载的cell是整整一行！这一行的cell都已经加载完数据。这是UICollectionView在用户大幅度滑动时卡顿的根本原因。用专业术语来说就是掉帧</p>
+
+<p>接下来我们来详细说说掉帧的问题</p>
+
+<p>当今的用户是很挑剔的，用户需要一个很顺滑的体验，只要有一点卡顿，很可能一言不合就卸载app了。要想用户感觉不到卡顿，那么我们的app就必须达到每秒60帧，用数学换算一下就是每帧16毫秒就必须刷新一次。</p>
+
+<p>我们用图标来分析一下掉帧的问题，下面会出现两种不同的帧</p>
+
+<ul>
+<li>第一种情况，下图是当用户轻微的上下小幅度滑动，这个时候每个cell的加载压力都不打，ios针对这种情况，已经做了很好的优化了，所以用户感觉不到任何卡顿，这种情况下不会掉帧，用户也希望能使用如此顺滑的app</li>
+</ul>
+
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467784433822879.jpg" alt="1" /></p>
+
+<ul>
+<li>第二种情况，当用户大幅度滑动，每个cell加载的压力很大， 也许需要网络请求，也许需要读取数据库，而且每次都加载一行cell出来，这样每个cell的加载时间都增加了，加载一行的总时间也就大大增加了，如下图所示，这样，不仅仅当前帧在加载cell，总的时间还会挤压到下一帧的时间里面去。这种情况下，用户就感觉到卡顿了。</li>
+</ul>
+
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467784459878847.jpg" alt="2" /></p>
+
+<p>我们换种方式在说明一下2种情况下掉帧的情况。我们用下图的标准来衡量一下上面2中情况。下图分为2部分，上面红色的区域，就是表示掉帧的区域，因为高于16ms。红色和绿色区域的分界线就在16ms处，Y轴我们表示的是CPU在主线程中花费的时间，X轴表示对额就是在用户滑动中发生的刷新事件。</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467784491910972.jpg" alt="1" /></p>
+
+<p>针对上述掉帧的情况，绘制出实验数据，如下图，值得我们关注的是，曲线是很曲折的，非常的不平滑，当用户大幅度滑动的时候，峰值超过了16 ms ，当用户慢速滑动的时候，帧率又能保持在比较顺滑的区域，处于绿色区域内的cell加载压力都是很小的。这就是时而掉帧时而顺滑的场景。这种场景下，用户体验是很糟糕的。</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467784519648239.jpg" alt="2" /></p>
+
+<p>那怎么解决这个问题呢？我们来看下图：</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467784547235875.jpg" alt="2" /></p>
+
+<p>上图中的曲线我们看着就很平缓了，而且这种情况也不会出现掉帧的情况了，每个滑动中的时间都能达到60帧了，这是怎样做到的呢？因为把每个cell的加载事件都评分了，每个cell不会再出现很忙和很闲的两个极端，这样我们就取消了之前的波峰和波谷。从而让该曲线达到了近乎水平的直线。</p>
+
+<p>如何让每个cell都分摊加载任务的压力？这就要谈到新的cell的生命周期了。</p>
+
+<p>先来看看老的UICollectionViewCell的声明周期，当用户滑动屏幕，屏幕外有一个cell准备加载显示进来。</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467784605179969.jpg" alt="1" />
+这个时候我们把这个cell从reuse队列里面拿出来，然后调用<code>prepareForReuse</code>方法。这个方法就给了cell时间，用来重置cell,重置转台，刷新cell,加载新数据。</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467784613342397.jpg" alt="2" /></p>
+
+<p>再滑动，我们就会调用<code>cellForItemAtIndexPath</code>方法了，这个方法里面就是我们开发者自定义的填充cell的方式了。这里会填充data model,然后赋值给cell,再把cell返回给iOS系统。</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467784643684182.jpg" alt="1" /></p>
+
+<p>当cell马上要进入屏幕的时候，就会调用willDisplayCell的方法，这个方法给了我们app最后一次机会，为cell进入屏幕做最后的准备工作。执行完willDisplayCell之后，cell就进入屏幕了。</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467784674667370.jpg" alt="2" /></p>
+
+<p>当cell完全离开屏幕之后，就会调用<code>didEndDisplayingCell</code>方法，以上就是在iOS10之前的整个UICollectionViewCell的生命周期。</p>
+
+<p>接下来我们看看iOS10 的UICollectionViewCell的生命周期是怎么样的。</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467784919171617.jpg" alt="1" /></p>
+
+<p>这里还是和iOS9一样的。当用户滑动UICollectionView的时候，需要一个cell,我们就从reuse队列中拿出一个cell，并调用<code>prepareForReuse</code>方法，注意调用这个方法的时间，当cell还没有进入屏幕的时候，就已经提前调用这个方法了。注意对比和iOS9的区别，iOS9是在cell上边缘马上进入屏幕的时候才调用方法， 而这里，cell整个生命周期都被提前了，提前到cell还在设备外面的时候。</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467784950618167.jpg" alt="2" /></p>
+
+<p>这里还是和之前一样，在<code>cellForItemAtIndexPath</code>中创建cell，填充数据，刷新状态等操作，注意，这里的生命周期也比iOS9提前了。</p>
+
+<p>用户继续滑动，这个时候就有不同了。</p>
+
+<p>这个时候我们并不去调用<code>willDisplayCell</code>方法了，这里遵循的原则是，何时去显示，何时再去调用<code>willDisplayCell</code>.</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467785001420508.jpg" alt="1" /></p>
+
+<p>当cell要马上就需要显示的时候，我们再调用<code>willDisplayCell</code>方法。</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467785009176155.jpg" alt="2" /></p>
+
+<p>当整个cell要从UICollectionView的可见区域消失的时候，这个时候回调用<code>didEndDisplayingCell</code>方法，接下来发生的事情和iOS9一样，cell会进入重用队列中。</p>
+
+<p>如果用户想要显示某个cell,在iOS9中，cell只能从重用队列里面取出，再次走一遍生命周期，并调用<code>cellForItemAtIndexPath</code>去创建或者生成一个cell.</p>
+
+<p>在iOS10当中，系统会把cell保持一段时间，在iOS中，如果用户把cell滑出屏幕后，如果突然又想回来，这个时候cell并不需要再走一遍生命周期了，只需要直接调用<code>willDisplayCell</code>就可以了。cell就又会重新出现在屏幕中了。这就是iOS10的整个UICollectionView的生命周期</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467785140434098.jpg" alt="1" /></p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467785147242971.jpg" alt="2" /></p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467785156440182.jpg" alt="3" /></p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467785162269537.jpg" alt="4" /></p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467785168247905.jpg" alt="5" /></p>
+
+<p>上面说的iOS10里面的场景同样适用于多列的情况，这时我们每次只加载一个cell,而不是每次加载一行的cell.当第一个cell准备好之后再叫第二个cell准备。当2个cell都准本号之后，接着我们再调用<code>willDisplayCell</code>给每个cell,发送完这个消息之后，cell就会出现在屏幕上了。</p>
+
+<p>这虽然看起来是一个很小的改动，但是这小小的改动就提升了很多用户体验</p>
+
+<p>让我们来看看上述的改动对滑动的影响！</p>
+
+<p><a href="http://cc.cocimg.com/api/uploads/20160706/1467785199429168.gif">1</a></p>
+
+<p>滑动比iOS9流畅很多，这里可以看到整个过程都很平缓，不卡顿。</p>
+
+<p>还是和iOS9一样，我们来模拟一下系统是如果加载cell的情况。</p>
+
+<p><a href="http://cc.cocimg.com/api/uploads/20160706/1467785382812684.gif">2</a></p>
+
+<p>我们可以很明显的的看到，iOS系统是一个一个的加载cell的，一个cell加载完之后再去加载下一个cell,这里和iOS9的有很大的不同，ios9是记载整整一行的cell</p>
+
+<p>这是因为我们用了新的UICollectionViewCell的生命周期，整个App完全没有加一行代码，现在iOS10是丝滑般的体验，是在是太棒了。</p>
+
+<h2><a name = "2"></a>UICollectionViewCell的Pre-Fetching预加载</h2>
+
+<p>当我们编译iOS10的APP的时候，这个Pre-Fetching默认是enable的。当然，如果有一些原因导致你必须用到iOS10之前的老的生命周期，你只需要给collectioView加入新的<code>isPrefetchingEnabled</code>属性即可。如果你不想用到<code>Pre-Fetching</code>，那么把这个属性变成false即可。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>collectionView.isPrefetchingEnabled = false</span></code></pre></td></tr></table></div></figure>
+
+
+<p>为了最佳实践一下这个新特性，我们先改变一下我们加载cell的方式，我们把很重的读取数据的操作，所有内容的创建都放到<code>cellForItemAtIndexPath</code>方法里面去完成。保证我们在<code>willDisplayCell</code>和<code>didEndDisplayCell</code>这两个方法里面基本不做其他事情。最后，保证<code>cellForItemAtIndexPath</code>加载的cell都不是从重用队列里面拿出来的。</p>
+
+<p>如果这个时候你用ios10编译出你的app,那么非常顺滑的用户体验就会自动的优化出来</p>
+
+<p>UICollectionView的流畅滑动解决了，那么在UICollectionViewCell在加载的时候所花费的时候，怎么解决呢？</p>
+
+<p>UICollectionViewCell加载的时候取决于DataMOdel,DataMOdel很可能回去加载图片，来自于网络或者来自于本地的数据库，这些操作大多数都是异步操作，为了使data加载更快，iOS10引入了新的Apil来解决这个问题。</p>
+
+<p>UICollectionView有两个小伙伴，那就是dataSource和delegate,在iOS10中，将会迎来第三个小伙伴，这个小伙伴就是<code>prefetchDataSource</code></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>protocol UICollectionViewDataSourcePrefetching {
+</span><span class='line'>    func collectionView(_ collectionView: UICollectionView,
+</span><span class='line'>                        prefetchItemsAt indexPaths: [NSIndexPath])
+</span><span class='line'>    optional func collectionView(_ collectionView: UICollectionView,
+</span><span class='line'>                                 cancelPrefetchingForItemsAt indexPaths: [NSIndexPath])
+</span><span class='line'>}
+</span><span class='line'>class UICollectionView : UIScrollView {
+</span><span class='line'>    weak var prefetchDataSource: UICollectionViewDataSourcePrefetching?
+</span><span class='line'>    var isPrefetchingEnabled: Bool
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这个协议连只有一个必须要实现的方法-<code>ColletionView prefetchItemsAt indexPaths</code>，这个方法会在<code>prefetchDataSource</code>里面被调用，用来给你异步的预加载数据的。indexPaths数组是有序的，就是接下来item接收数据的顺序，让我们model异步处理数据更加方便。</p>
+
+<p>在这个协议里面患有第二个方法<code>CollectionView cancelPrefetcingForItemsAt indexPaths</code>，不过这个方法是可选的，我们可以利用这个方法来处理在滑动中取消或者降低提前加载数据的优先级。</p>
+
+<p>值得说明的是，新增加的这个小伙伴<code>prefetchDataSource</code>，并不能取代原来的读取数据的方法，这个预加载仅仅只是辅助加载数据，并不能删除原来我们读取数据的方法。</p>
+
+<p>至此，我们来看看从文章开始到现在，UICollectionView的性能提升了多少，我们还是用掉帧的方法来看看UICollectionView的性能。</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467785413182613.jpg" alt="1" /></p>
+
+<p>上面是iOS9 UICollectionView的性能，很明显的看见，波峰波谷很明显，并且还掉了8帧，有明显的卡顿现象。</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467785449871270.jpg" alt="2" />
+上图是iOS10 UICollectionView的性能，我们可以明显的看到，经过ios10的优化，整个曲线很明显的平缓了一些，没有极端的波峰掉帧现象。但是依旧存在少量的波峰快到了16ms分界线了。</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467785482131029.jpg" alt="1" /></p>
+
+<p>上图是iOS10 + pre-Fetching Api之后的性能，已经优化的效果很明显了，整条曲线基本上都水平了。近乎完美，但是还是能发现有个别波峰特别高，波峰特别高的地方就是那个cell加载压力大， 时间花的比较长导致的。接下来我们继续优化！</p>
+
+<p>先来总结一下使用Pre-Fetching API 需要注意的地方。</p>
+
+<ul>
+<li>在我们使用Pre-Fetching API的时候，我们一定要保证整个预加载过程都放在后台线程中进行。合理使用GCD和NSOperationQueue处理好多线程</li>
+<li>请切记，Pre-Fetching API 是一种自适应的技术，何为自适应技术呢？当我们滑动速度很慢的时候，在这种“安静”的时期，Pre-Fetching API会默默的再后台预加载数据，但是一旦我们快速滑动，我们需要频繁的刷新，我们不会去执行pre-fetching API</li>
+<li>最后，用<code>cancelPrefetchingAPI</code>去迎合用户的滑动动作的变换，比如说用户在快速滑动发现了有趣的感兴趣的事情，这个时候停下来，甚至快速反向滑动了，或者点击了事件，进去看详情了，这些时刻我们都应该开启<code>cancelPrefetchingAPI</code></li>
+</ul>
+
+
+<p>综合所述，Pre-Fetching API对于提高UICOllectionView的性能提升是很有帮助的，而且并不需要加入太多的代码，加入少量的代码就可以获得巨大的额性能提升！</p>
+
+<h2><a name="3"></a>UITableViewCell的Pre-Fetching预加载</h2>
+
+<p>在iOS10中，UITableViewCell也跟着UICollectionView一起得到了性能的提升，一样拥有了Pre-Fetching API</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>protocol UITableViewDataSourcePrefetching {
+</span><span class='line'>    func tableView(_ tableView: UITableView, prefetchRowsAt indexPaths: [NSIndexPath])
+</span><span class='line'>    optional func tableView(_ tableView: UITableView, cancelPrefetchingForRowsAt indexPaths:
+</span><span class='line'>                            [NSIndexPath])
+</span><span class='line'>}
+</span><span class='line'>class UITableView : UIScrollView {
+</span><span class='line'>    weak var prefetchDataSource: UITableViewDataSourcePrefetching?
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这里和上面的UICollectionView一样，会调用<code>TableView prefetchRowsAt indexPaths</code>方法，indexPaths还是一个有序数字，顺序就是列表上可见的顺序，第二个可选的API还是<code>TableView cancelPrefetchingForRowsAt indexPaths</code>，和之前的提到的一样，也是用来取消预加载的，性能的提升和UIcollectionView一样的，对于UITableView 的性能提升很大！</p>
+
+<h2><a name="4"></a>针对self-sizing的改进</h2>
+
+<p>self-sizing API 第一次被引入是在ios8中，然而现在在iOS10中得到了一些改进。</p>
+
+<p>在UICollectionView中有个固定的类，叫UICollectionViewFlowlayout,iOS已经在这个类中完全支持了self-sizing.为了能开启这一特性，需要我们开发者为一些不能为0的 CGSize的cell设置一下estimated item size.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>layout.estimatedItemSize = CGSize(width:50,height:50)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这会告诉UICOllectionView我们想要开启动态计算内容的布局。</p>
+
+<p>至今，我们有三种方法来动态的布局：</p>
+
+<ul>
+<li>第一种方法是使用autolayout，当我们合理的加入约束，当cell加载的时候，就会根据内容动态的加载布局</li>
+<li>第二种方法，如果你不想使用autolayout的方法，想更加手动的控制它，那么我们就需要重写sizeThatFits()方法</li>
+<li>第三种方法，终极的方法是重写<code>preferredLayoutAttributesFittingAttributes()</code>方法，在这个方法里面不仅仅可以提供size的信息，更可以得到alpha和transform的信息。</li>
+</ul>
+
+
+<p>所以想指定cell的大小，就可以用上面的三个方法之一</p>
+
+<p>但是实际的操作中，我们可以发现，有时候设置一个合适的estimated item size，对于我们来说是很困难的事情，如果flow layout可以用数学的方法动态的计算布局，而不是根据我们给的size去布局，那回事很酷的事情。</p>
+
+<p>iOS10中就引入了新的API来解决上述问题。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>layout.estimatedItemSize = UICollectionViewFlowLayoutAutomaticSize</span></code></pre></td></tr></table></div></figure>
+
+
+<p>对于开发者，我们需要做的事情，仅仅就是设置好flow layout,然后给<code>estimatedItemSize</code>设定一个新的常数，最后<code>UICollectionViewFlowLayout</code>就会自动计算高度了。</p>
+
+<p>系统会自动计算好所有的布局，包括已经定下来的size的cell,并且还会动态的给出接下来的cell的大小的预测。</p>
+
+<p>接下来看2个例子就可以很明显看出iOS10针对self-sizing的改进了。</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467785547586106.gif" alt="1" />
+上图可以看到，iOS 9的布局是针对单个cell计算的，当改变了单个cell,其它的cell依旧没有变化，还是需要重新计算</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467785653922069.gif" alt="2" /></p>
+
+<p>这里例子就可以很明显的看出差别了，当我们改变了第一个cell的size之后，系统会自动计算出所有的cell的size，并且每一行，每一个section的size都会被动态的计算出来，并且刷新界面！</p>
+
+<p>以上就是iOS 10 针对 self-sizing的改进。</p>
+
+<h2><a name="5"></a>Interactive Reordering</h2>
+
+<p>谈到重新排列，这是我们就需要类比一下UITableview了，UICollectioNView重新排列就如同UITableview把cell上下移动，只不过UITableView的重新排列是针对垂直方向的。</p>
+
+<p>在IOS 9 中，引入了UICollectionView的Interactive Reordering，在今年的iOS 10中，又加入了新的API</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467785697559422.gif" alt="1" /></p>
+
+<p>在上图中，我们可以看到，我们即使任意拖动cell,整个界面也会重新排列，并且我们改变了cell的大小，整个UICollectionView也会重新动态的布局。</p>
+
+<p>我们先来看看iOS 9 里面的API</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>class UICollectionView : UIScrollView {
+</span><span class='line'>    func beginInteractiveMovementForItem(at indexPath: NSIndexPath) -&gt; Bool
+</span><span class='line'>    func updateInteractiveMovementTargetPosition(_ targetPosition: CGPoint)
+</span><span class='line'>    func endInteractiveMovement()
+</span><span class='line'>    func cancelInteractiveMovement()
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>要想开启interactive movement,我们就需要调用<code>beginInteractiveMovementForItem()</code>方法，其中indexPath代表了我们将要移动的cell.接着每次手势的刷新，我们都需要刷新cell的位置，去响应我们手指的移动操作，这时我们就需要调用<code>updateInteractiveMovementTargetPosition()</code>方法，我们通过手势来传递坐标的变化。当我们移动结束之后，就会调用<code>endInteractiveMovement()</code>方法。UICollectionView就会放下cell,处理完整个layout，此时你也可以重新刷新model或者处理数据model.如果中间突然手势取消了，那么这个时候就应该调用<code>cancelInteractiveMovement()</code>方法，如果我们重新把cell对应一圈之后有放回原位了，其实就是取消了移动，那这个时候就应该在<code>cancelInteractiveMovement()</code>方法里面不用取刷新data Source.</p>
+
+<p>在iOS10中，如果你使用UICollectionViewController,那么这个重排对于你来说更加简单、</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>class UICollectionViewController : UIViewController {
+</span><span class='line'>    var installsStandardGestureForInteractiveMovement: Bool
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>你只需要把installsStandardGestureForInteractiveMovement这个属性设置为true就可以了。CollectionViewController会自动为你加入手势，并且自定为你调用上面的方法。</p>
+
+<p>以上就是去年ios 9 为我们增加的API</p>
+
+<p>今年的ios 10 新加入的API是在iOS9的基础上增加了翻页的功能。</p>
+
+<p>UICollectionView继承自UIScrollView,所以只需要你做的是把 isPagingEnable设置为true，即可开启分页的功能。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>collectionView.isPagingEnabled = true</span></code></pre></td></tr></table></div></figure>
+
+
+<p>开启分页之前:
+<img src="http://cc.cocimg.com/api/uploads/20160706/1467785741500789.gif" alt="1" /></p>
+
+<p>开启分页之后就长这样子:</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160706/1467785759631412.gif" alt="2" /></p>
+
+<p>每次移动一次就会以页为单位的翻页、</p>
+
+<h2><a name="6"></a>UIRefreshControl的改进</h2>
+
+<p>UIRefreshControl现在可以直接在CollectionView里面使用了，同样的，也可以直接在UITableView里面使用，并且可以脱离UITableViewController.因为现在RefreshCOntrol成为了ScrollView的一个属性了。</p>
+
+<p>UIRefreshControl的使用方法很简单，就三步:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>let refreshControl = UIRefreshControl()
+</span><span class='line'>refreshControl.addTarget(self, action: #selector(refreshControlDidFire(_:)),
+</span><span class='line'>                         for: .valueChanged)
+</span><span class='line'>collectionView.refreshControl = refreshControl</span></code></pre></td></tr></table></div></figure>
+
+
+<p>先创建一个refreshCOntroler,再关联一个action事件，最后把这个新的refreshControl赋给想要的控件的对应的属性就可以了。</p>
+
+<h2>Summary</h2>
+
+<ul>
+<li>UICollectionview cell Pre-fetching预加载的机制</li>
+<li>UICollectionView And UITableView prefetch DataSource新增的API</li>
+<li>针对self-sizing cell改进</li>
+<li>Interactive recordering 重排</li>
+</ul>
+
+
+<p>最后，原来有些地方用到 AsyncDispatchKit优化的UICollectioView速度的，现在可以考虑不用第三方库了，系统自带的方法可以解决一般性的卡顿问题了。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Ios10 UserNotifications]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/10/17/ios10-usernotifications/"/>
+    <updated>2016-10-17T09:53:08+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/10/17/ios10-usernotifications</id>
+    <content type="html"><![CDATA[<p>ios10以前杂乱的和通知相关的API都被统一了，现在开发者可以使用独立的UserNotificaitons.framework来集中管理和使用iOS系统中通知的功能。在此基础上，Apple还增加了撤回单条通知，更新已展示通知，中途修改通知内容，在通知中展示图片视频，自定义通知UI等一系列功能。</p>
+
+<p>对于开发者来说，想比较于之前版本，iOS10提供了一套非常易用通知处理接口，是SDK的一次重大重构，而之前的绝大部分通知相关API都已经被标为弃用(deprecated)</p>
+
+<p>您可以在WWDC16的 <a href="https://developer.apple.com/videos/play/wwdc2016/707/">introducaion to Notifications</a>和<a href="https://developer.apple.com/videos/play/wwdc2016/708/">Advanced Notifications</a>这两个Session中找到详细信息；另外也不要忘了参考<a href="https://developer.apple.com/reference/usernotifications">UserNotifications官方文档</a></p>
+
+<h2>UserNOtifications框架解析</h2>
+
+<h3>基本流程</h3>
+
+<p>iOS10中通知相关的操作遵循下面的流程:</p>
+
+<p><code>审核和注册</code>-><code>创建和发起</code>-><code>展示和处理</code></p>
+
+<p>首先你需要向用户请求推送权限，然后发送通知。对于发送出的通知，如果你的应用位于后台或者没有运行的话，系统将通过用户允许的方法（弹窗，横幅，或者是在通知中心）进行展示。如果你的应用已经位于前台正在运行，你可以自行决定要不要显示这个通知。最后，如果你希望用户点击通知能有打开应用以外的额外功能的话，你也需要进行处理。</p>
+
+<h2>权限申请</h2>
+
+<p>iOS8之前，本地推送和远程推送（Remote Notificaiton）是区分对待的，应用只需要在进行远程推送是获取用户同意。iOS8对这一行为进行了规范，因为无论是本地推送还是远程推送，其实在用户看来表现是一致的，都是打断用户的行为。因此从iOS8开始，这两种通知都需要申请权限。ios10里进一步消除了本地通知和推送通知的区别。向用户申请通知权限非常简单：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) {
+</span><span class='line'>    granted, error in
+</span><span class='line'>    if granted {
+</span><span class='line'>        // 用户允许进行通知
+</span><span class='line'>    }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>当然，在使用UN开头的API的时候，不要忘记导入<code>UserNotifications</code>框架：</p>
+
+<p><code>import UserNotifications</code></p>
+
+<p>第一次调用这个方法时，会弹出一个系统弹窗.</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20161017-0.png" alt="1" /></p>
+
+<p>要注意的是，一旦用户拒绝了这个请求，再次调用该方法时也不会进行弹窗，想要应用有机会接收到通知的话，用户必须自行前往系统的设置中为你的应用打开通知，而这往往是不可能的。因此，在合适的是偶弹出请求窗，在请求权限前预先进行说明，而不是直接粗暴地在启动的时候就进行弹窗，会是更明智的选择。</p>
+
+<h2>远程推送</h2>
+
+<p>一旦用户同意后，你就可以再应用中发送本地通知了。不过如果你通过服务器发送远程通知的话，还需要多一个获取用户token的操作，你的服务器可以使用这个token将用向Apple push Notification的服务器提交请求，然后APNS通过token识别设备和应用，将通知推给用户。</p>
+
+<p>提交token请求和获得token的回调是现在"唯一"不在新框架中的API,我们使用<code>UIApplication</code>的<code>registerForRemoteNotifications</code>来注册远程通知，在<code>AppDelegate</code>的<code>application(_:didRegisterForRemoteNotificationsWithDeviceToken)</code>中获取用户token:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>// 向 APNs 请求 token：
+</span><span class='line'>UIApplication.shared.registerForRemoteNotifications()
+</span><span class='line'>
+</span><span class='line'>// AppDelegate.swift
+</span><span class='line'> func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+</span><span class='line'>    let tokenString = deviceToken.hexString
+</span><span class='line'>    print("Get Push token: \(tokenString)")
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>获取得到的<code>deviceToken</code>是一个<code>Data</code>类型，为了方便使用和传递，我们一般会选择将它转换为一个字符串。swift3中可以使用下面的<code>data</code>扩展来构造适合传递给Apple的字符串：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>extension Data {
+</span><span class='line'>    var hexString: String {
+</span><span class='line'>        return withUnsafeBytes {(bytes: UnsafePointer&lt;UInt8&gt;) -&gt; String in
+</span><span class='line'>            let buffer = UnsafeBufferPointer(start: bytes, count: count)
+</span><span class='line'>            return buffer.map {String(format: "%02hhx", $0)}.reduce("", { $0 + $1 })
+</span><span class='line'>        }
+</span><span class='line'>    }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>权限设置</h3>
+
+<p>用户可以再系统设置中修改你的应用的通知权限，除了打开和关闭全部通知权限外，用户也可以限制你的应用智能进行某种形式的通知显示，比如值允许横幅而不允许弹窗及通知中心显示灯。一般来说你不应该对用户的选择进行干涉，但是如果你的应用确实需要某种特定场景的推送的话，你可以对当前用户进行的设置进行检查:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>UNUserNotificationCenter.current().getNotificationSettings {
+</span><span class='line'>    settings in 
+</span><span class='line'>    print(settings.authorizationStatus) // .authorized | .denied | .notDetermined
+</span><span class='line'>    print(settings.badgeSetting) // .enabled | .disabled | .notSupported
+</span><span class='line'>    // etc...
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>发送通知</h2>
+
+<p>UserNOtifications中对通知进行了统一。我们通过通知的内容（<code>UNNotificaitonsContent</code>）,发送的时机<code>UNNotifiationTrigger</code>以及一个发送通知的<code>String</code>类型的标识符，来生成一个<code>UNNotificationRequest</code>类型的发送请求。最后，我们将这个请求添加到<code>UNUserNotificationCenter.current()</code>中，就可以等待通知到达了：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>// 1. 创建通知内容
+</span><span class='line'>let content = UNMutableNotificationContent()
+</span><span class='line'>content.title = "Time Interval Notification"
+</span><span class='line'>content.body = "My first notification"
+</span><span class='line'>
+</span><span class='line'>// 2. 创建发送触发
+</span><span class='line'>let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
+</span><span class='line'>
+</span><span class='line'>// 3. 发送请求标识符
+</span><span class='line'>let requestIdentifier = "com.onevcat.usernotification.myFirstNotification"
+</span><span class='line'>
+</span><span class='line'>// 4. 创建一个发送请求
+</span><span class='line'>let request = UNNotificationRequest(identifier: requestIdentifier, content: content, trigger: trigger)
+</span><span class='line'>
+</span><span class='line'>// 将请求添加到发送中心
+</span><span class='line'>UNUserNotificationCenter.current().add(request) { error in
+</span><span class='line'>    if error == nil {
+</span><span class='line'>        print("Time Interval Notification scheduled: \(requestIdentifier)")
+</span><span class='line'>    }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<ol>
+<li>iOS10中通知不仅支持简单的一行文字，你还可以添加<code>title</code>和 <code>subtitle</code>,来用粗体字的形式强调通知的目的。对于远程推送，iOS10之前一般只含有消息的推送；payload是这样的：</li>
+</ol>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{
+</span><span class='line'>  "aps":{
+</span><span class='line'>    "alert":"Test",
+</span><span class='line'>    "sound":"default",
+</span><span class='line'>    "badge":1
+</span><span class='line'>  }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果我们想要加入<code>title</code>和<code>subtitle</code>的话，则需要将<code>alert</code>从字符串换为字典，新的payload是:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>
+</span><span class='line'>  "aps":{
+</span><span class='line'>    "alert":{
+</span><span class='line'>      "title":"I am title",
+</span><span class='line'>      "subtitle":"I am subtitle",
+</span><span class='line'>      "body":"I am body"
+</span><span class='line'>    },
+</span><span class='line'>    "sound":"default",
+</span><span class='line'>    "badge":1
+</span><span class='line'>  }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>好消息是，后一种字典的方法其实在iOS8.2的时候就已经存在了，虽然当时<code>title</code>只是用在Apple Watch上的，但是设置好<code>body</code>的话在iOS上还是可以显示的，所以针对iOS10添加标题时是可以保证向前兼容的。</p>
+
+<p>另外，如果要进行本地化对应，在设置这些内容文本时，本地可以使用<code>String.localizedUserNotificationString(forKey: "your_key", arguments: [])</code>的方式来从<code>Localizable.strings</code>文件中取出本地化字符串，而远程推送的话，也可以再payload的alert中使用<code>loc-key</code>或者<code>title-loc-key</code>来进行指定</p>
+
+<ol>
+<li><p>触发器是只对本地通知而言的，远程推送的通知的话默认会在收到后立即显示。现在<code>UserNotifications</code>框架中提供了三种触发器，分别是：在一定时间后触发<code>UNTimeIntervalNotificationTrigger</code>,在某月某日某时触发<code>UNCalendarNotificationTrigger</code>,以及在用户进入或者离开某个区域时触发<code>UNLocationNotificationTrigger</code></p></li>
+<li><p>请求标识符可以用来区分不同的通知请求，在将一个通知请求提交后，通过特定的API我们能够使用这个标识符来取消或者更新这个通知。我们将在稍后提到具体方法</p></li>
+<li><p>在新版本的通知框架中，Apple借用了一部分网络请求的概念，我们组织并发送一个通知请求，然后将这个请求提交给<code>UNUserNotificationCenter</code>进行处理。我们会在delegate中接收到这个通知请求对应的responst,另外我们也有机会再应用的extension中对request进行处理</p></li>
+</ol>
+
+
+<p>在提交请求后，我们锁屏或者将应用切到后台，并等待设定的时间后，就能看到我们的通知出现在通知中心或者屏幕横幅了:
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20161017-1.png" alt="1" /></p>
+
+<h2>取消和更新</h2>
+
+<p>在创建通知请求时，我们已经制定了标识符。这个标识符可以用来管理通知，在iOS10之前，我们很难取消掉某一个特定的通知，也不能主动移除或者更新已经展示的通知。</p>
+
+<p>iOS10中，UserNotifications框架提供了一系列管理通知的API,你可以做到:</p>
+
+<ul>
+<li>取消还未展示的通知</li>
+<li>更新还未展示的通知</li>
+<li>移除已经展示过的通知</li>
+<li>更新已经展示过的通知</li>
+</ul>
+
+
+<p>其中关键就是创建请求时使用同样的标识符：</p>
+
+<p>比如，从通知中心移除一个展示过得通知：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 3, repeats: false)
+</span><span class='line'>let identifier = "com.onevcat.usernotification.notificationWillBeRemovedAfterDisplayed"
+</span><span class='line'>let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
+</span><span class='line'>
+</span><span class='line'>UNUserNotificationCenter.current().add(request) { error in
+</span><span class='line'>    if error != nil {
+</span><span class='line'>        print("Notification request added: \(identifier)")
+</span><span class='line'>    }
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>delay(4) {
+</span><span class='line'>    print("Notification request removed: \(identifier)")
+</span><span class='line'>    UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [identifier])
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>类似的，我们可以使用<code>removePendingNotificationRequests</code>，来取消还未展示的通知请求。对于更新通知，不论是否已经展示，都和一开始添加请求时一样，再次将请求提交给<code>UNUserNotificationCenter</code>即可：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>// let request: UNNotificationRequest = ...
+</span><span class='line'>UNUserNotificationCenter.current().add(request) { error in
+</span><span class='line'>    if error != nil {
+</span><span class='line'>        print("Notification request added: \(identifier)")
+</span><span class='line'>    }
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>delay(2) {
+</span><span class='line'>    let newTrigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+</span><span class='line'>
+</span><span class='line'>    // Add new request with the same identifier to update a notification.
+</span><span class='line'>    let newRequest = UNNotificationRequest(identifier: identifier, content:newContent, trigger: newTrigger)
+</span><span class='line'>    UNUserNotificationCenter.current().add(newRequest) { error in
+</span><span class='line'>        if error != nil {
+</span><span class='line'>            print("Notification request updated: \(identifier)")
+</span><span class='line'>        }
+</span><span class='line'>    }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>远程推送可以进行通知的更新，在使用Provider API向APNS提交请求时，在HTTP2的header中<code>apns-collapse-id</code>key的内容将被作为该推送的标识符进行使用。多次推送同一标识符的通知即可进行更新</p>
+
+<h2>处理通知</h2>
+
+<h3>应用内展示通知</h3>
+
+<p>现在系统可以在应用处于后台或者退出的时候向用户展示通知了。不过，当应用处于前台时，收到的通知是无法进行展示的。如果我们希望在应用内也能显示通知的话，需要额外的工作。</p>
+
+<p><code>UNUserNotificationCenterDelegate</code>提供了两个方法，分别对应如何在应用内展示通知，和收到通知响应时要如何处理的工作。我们可以实现这个借口中的对应方法来在应用内展示通知：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>class NotificationHandler: NSObject, UNUserNotificationCenterDelegate {
+</span><span class='line'>    func userNotificationCenter(_ center: UNUserNotificationCenter, 
+</span><span class='line'>                       willPresent notification: UNNotification, 
+</span><span class='line'>                       withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -&gt; Void) 
+</span><span class='line'>    {
+</span><span class='line'>        completionHandler([.alert, .sound])
+</span><span class='line'>
+</span><span class='line'>        // 如果不想显示某个通知，可以直接用空 options 调用 completionHandler:
+</span><span class='line'>        // completionHandler([])
+</span><span class='line'>    }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>实现后，将<code>NotificationHandler</code>的实例赋值给<code>UNUserNotificationCenter</code>的<code>delegate</code>属性就可以了。没有特殊理由的话，AppDelegate的<code>application(_:didFinishLaunchingWithOptions:)</code>就是一个不错的选择：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>class AppDelegate: UIResponder, UIApplicationDelegate {
+</span><span class='line'>    let notificationHandler = NotificationHandler()
+</span><span class='line'>    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -&gt; Bool {
+</span><span class='line'>        UNUserNotificationCenter.current().delegate = notificationHandler
+</span><span class='line'>        return true
+</span><span class='line'>    }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>对通知进行响应</h2>
+
+<p><code>UNUserNotificationCenterDelegate</code>中还有一个方法,<code>userNotificationCenter(_:didReceive:withCompletionHandler:)</code>这个代理方法会在用户与你推送的通知进行交互时被调用，包括用户通过通知打开了你的应用，或者点击或者触发了某个Action。因为涉及到打开应用的行为，所以事先了这个方法的delegate必须在<code>applicationDidFinishLaunching:</code>返回前就完成设置，这也是我们之前推荐将<code>NotificationHandler</code>今早进行赋值的理由。</p>
+
+<p>一个最简单的事先自然什么也不错，直接告诉系统你已经完成了所有工作。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -&gt; Void) {
+</span><span class='line'>    completionHandler()
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在该方法里，我们将获取到这个推送请求对应的response,<code>UNNotificationResponse</code>是一个几乎包括了通知的所有信息的对象，从中我们可以再次获取到<code>userInfo</code>中的信息:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -&gt; Void) {
+</span><span class='line'>    if let name = response.notification.request.content.userInfo["name"] as? String {
+</span><span class='line'>        print("I know it's you! \(name)")
+</span><span class='line'>    }
+</span><span class='line'>    completionHandler()
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>更好的消息是，远程推送的payload内的内容也会出现在这个<code>userInfo</code>中，这样一来，不论是本地推送还是远程推送，处理的路径得到了统一。通过<code>userInfo</code>的内容来决定页面跳转或者是进行其他操作，都会有很大空间。</p>
+
+<h2>Actionable通知发送和处理</h2>
+
+<h3>注册Category</h3>
+
+<p>iOS8和9中Apple引入了可以交互的通知，这是通过将一簇action放到了一个category中，将这个category进行注册，最后在发送通知时将通知的category设置为要使用的category来实现的。</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20161017-2.png" alt="1" /></p>
+
+<p>注册一个category非常容易：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>private func registerNotificationCategory() {
+</span><span class='line'>    let saySomethingCategory: UNNotificationCategory = {
+</span><span class='line'>        // 1
+</span><span class='line'>        let inputAction = UNTextInputNotificationAction(
+</span><span class='line'>            identifier: "action.input",
+</span><span class='line'>            title: "Input",
+</span><span class='line'>            options: [.foreground],
+</span><span class='line'>            textInputButtonTitle: "Send",
+</span><span class='line'>            textInputPlaceholder: "What do you want to say...")
+</span><span class='line'>
+</span><span class='line'>        // 2
+</span><span class='line'>        let goodbyeAction = UNNotificationAction(
+</span><span class='line'>            identifier: "action.goodbye",
+</span><span class='line'>            title: "Goodbye",
+</span><span class='line'>            options: [.foreground])
+</span><span class='line'>
+</span><span class='line'>        let cancelAction = UNNotificationAction(
+</span><span class='line'>            identifier: "action.cancel",
+</span><span class='line'>            title: "Cancel",
+</span><span class='line'>            options: [.destructive])
+</span><span class='line'>
+</span><span class='line'>        // 3
+</span><span class='line'>        return UNNotificationCategory(identifier:"saySomethingCategory", actions: [inputAction, goodbyeAction, cancelAction], intentIdentifiers: [], options: [.customDismissAction])
+</span><span class='line'>    }()
+</span><span class='line'>
+</span><span class='line'>    UNUserNotificationCenter.current().setNotificationCategories([saySomethingCategory])
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<ol>
+<li><code>UNTextInputNotificationAction</code>代表一个输入文本的action,你可以自定义框的按钮title和placeholder,你稍后会使用<code>identifier</code>来对action进行区分。</li>
+<li>普通的<code>UNNotificationAction</code>对应标准的按钮</li>
+<li>为category指定一个<code>identifier</code>,我们将在实际发送通知的时候用这个标识符进行设置，这样系统就知道对应哪个category了。</li>
+</ol>
+
+
+<p>当然，不要忘了在程序启动时调用这个方法进行注册</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -&gt; Bool {
+</span><span class='line'>    registerNotificationCategory()
+</span><span class='line'>    UNUserNotificationCenter.current().delegate = notificationHandler
+</span><span class='line'>    return true
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>发送一个带有action的通知</h3>
+
+<p>在完成category注册后，发送一个actionable通知就非常简单了，只需要在创建<code>UNNotificationContent</code>时把<code>categoryIdentifier</code>设置为需要的categoryId即可：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>content.categoryIdentifier = "saySomethingCategory"</span></code></pre></td></tr></table></div></figure>
+
+
+<p>尝试展示这个通知，在下拉或者使用3D touch展开通知后，就可以看到对应的action了：</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20161017-3.png" alt="1" /></p>
+
+<p>远程推送也可以使用category,只需要在payload中添加<code>category</code>字段，并指定预先定义的category id 就可以了:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{
+</span><span class='line'>  "aps":{
+</span><span class='line'>    "alert":"Please say something",
+</span><span class='line'>    "category":"saySomething"
+</span><span class='line'>  }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>处理actionable通知</h3>
+
+<p>和普通的通知并无二致力，actionable通知也会走到<code>didReceive</code>的delegate方法，我们通过request中包含的<code>categoryIdentifier</code>和response里的<code>actionIdentifier</code>就可以轻易判定是那个通知的那个操作被执行了。对于<code>UNTextInputNotificationAction</code>触发的response,直接将它转换为一个<code>UNTextInputNotificationResponse</code>，就可以拿到其中的用户输入了：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -&gt; Void) {
+</span><span class='line'>
+</span><span class='line'>    if let category = UserNotificationCategoryType(rawValue: response.notification.request.content.categoryIdentifier) {
+</span><span class='line'>        switch category {
+</span><span class='line'>        case .saySomething:
+</span><span class='line'>            handleSaySomthing(response: response)
+</span><span class='line'>        }
+</span><span class='line'>    }
+</span><span class='line'>    completionHandler()
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>private func handleSaySomthing(response: UNNotificationResponse) {
+</span><span class='line'>    let text: String
+</span><span class='line'>
+</span><span class='line'>    if let actionType = SaySomethingCategoryAction(rawValue: response.actionIdentifier) {
+</span><span class='line'>        switch actionType {
+</span><span class='line'>        case .input: text = (response as! UNTextInputNotificationResponse).userText
+</span><span class='line'>        case .goodbye: text = "Goodbye"
+</span><span class='line'>        case .none: text = ""
+</span><span class='line'>        }
+</span><span class='line'>    } else {
+</span><span class='line'>        // Only tap or clear. (You will not receive this callback when user clear your notification unless you set .customDismissAction as the option of category)
+</span><span class='line'>        text = ""
+</span><span class='line'>    }
+</span><span class='line'>
+</span><span class='line'>    if !text.isEmpty {
+</span><span class='line'>        UIAlertController.showConfirmAlertFromTopViewController(message: "You just said \(text)")
+</span><span class='line'>    }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上面的代码先判断通知响应是否属于<code>saySomething</code>，然后从用户输入或者是选择中提取字符串，并且弹出一个alert作为响应结果。当然，更多请苦情下我们会发送一个网络请求，或者是根据用户操作更新一些UI等。</p>
+
+<h2>Notificiaton Extension</h2>
+
+<p>iOS10中添加了很多extention,作为应用与系统整合的入口。与通知相关的extension有两个：Service Extension和Content Extension.前者可以让我们有机会在收到远程推送的通知后，展示之前对通知内容进行修改：后者可以用来自定义通知视图的样式。</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/notification-extensions.png" alt="1" /></p>
+
+<h3>截取并修改通知内容</h3>
+
+<p><code>NotificationService</code>的模板已经为我们进行了基本的实现:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>class NotificationService: UNNotificationServiceExtension {
+</span><span class='line'>
+</span><span class='line'>    var contentHandler: ((UNNotificationContent) -&gt; Void)?
+</span><span class='line'>    var bestAttemptContent: UNMutableNotificationContent?
+</span><span class='line'>
+</span><span class='line'>    // 1
+</span><span class='line'>    override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -&gt; Void) {
+</span><span class='line'>        self.contentHandler = contentHandler
+</span><span class='line'>        bestAttemptContent = (request.content.mutableCopy() as? UNMutableNotificationContent)
+</span><span class='line'>
+</span><span class='line'>        if let bestAttemptContent = bestAttemptContent {
+</span><span class='line'>            if request.identifier == "mutableContent" {
+</span><span class='line'>                bestAttemptContent.body = "\(bestAttemptContent.body), Andrew"
+</span><span class='line'>            }
+</span><span class='line'>            contentHandler(bestAttemptContent)
+</span><span class='line'>        }
+</span><span class='line'>    }
+</span><span class='line'>
+</span><span class='line'>    // 2
+</span><span class='line'>    override func serviceExtensionTimeWillExpire() {
+</span><span class='line'>        // Called just before the extension will be terminated by the system.
+</span><span class='line'>        // Use this as an opportunity to deliver your "best attempt" at modified content, otherwise the original push payload will be used.
+</span><span class='line'>        if let contentHandler = contentHandler, let bestAttemptContent =  bestAttemptContent {
+</span><span class='line'>            contentHandler(bestAttemptContent)
+</span><span class='line'>        }
+</span><span class='line'>    }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<ol>
+<li><code>didReceive:</code>方法中有一个等待发送的通知请求，我们通过修改这个请求中的content内容，然后在限制的时间内将修改后的内容调用通过<code>contentHandler</code>返还给系统，就可以显示这个修改过得通知了</li>
+<li>在一定时间内没有调用<code>contentHandler</code>的话，系统会调用这个方法，来告诉你大限已到。你可以选择什么都不做，这样的话系统将当做什么都没发生，简单地显示原来的通知，可能你其实已经设置好了绝大部分内容，只是有很少一部分没有完成，这时你也可以像例子中这样调用<code>contentHandler</code>来显示一个变更"中途"的通知</li>
+</ol>
+
+
+<p>Service Extentsion现在只对远程推送的通知起效，你可以在推送payload中增加一个<code>mutable-content</code>的值为1的项来启用内容修改：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{
+</span><span class='line'>  "aps":{
+</span><span class='line'>    "alert":{
+</span><span class='line'>      "title":"Greetings",
+</span><span class='line'>      "body":"Long time no see"
+</span><span class='line'>    },
+</span><span class='line'>    "mutable-content":1
+</span><span class='line'>  }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这个payload的推送得到的结果就是推送的内容+“Andrew”</p>
+
+<p>使用在本机截取推送并替换内容的方式，可以完成端到端(end-to-end)的推送加密。你在服务器推送payload中加入加密过得文本，在客户端接到通知后使用预先定义或者获取过得秘钥进行解密，然后立即显示。这样一来，即使推送信道被第三方截取，其中所传递的内容也还是安全的。使用这种方式来发送密码或者敏感信息，对于一些金融业务应用和聊天应用来说，应该是必备的特性。</p>
+
+<h2>在通知中展示图片/视频</h2>
+
+<p>相比于旧版本的通知，iOS10中另一个亮眼功能室多媒体的推送，开发者现在可以在通知中嵌入图片或者视频，这极大丰富了推送内容的可读性和趣味性。</p>
+
+<p>为本地通知添加多媒体内容十分简单，只需要通过本地磁盘上的文件URL创建一个<code>UNNotificationAttachment</code>对象，然后将这个对象放到数组中赋值给<code>content</code>的<code>attachments</code>属性就行了：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>let content = UNMutableNotificationContent()
+</span><span class='line'>content.title = "Image Notification"
+</span><span class='line'>content.body = "Show me an image!"
+</span><span class='line'>
+</span><span class='line'>if let imageURL = Bundle.main.url(forResource: "image", withExtension: "jpg"),
+</span><span class='line'>   let attachment = try? UNNotificationAttachment(identifier: "imageAttachment", url: imageURL, options: nil)
+</span><span class='line'>{
+</span><span class='line'>    content.attachments = [attachment]
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在显示时，横幅或者弹窗将附带设置的图片，使用3D Touch pop通知或者下拉通知显示详细内容时，图片也会被放大显示：</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20161017-4.png" alt="2" /></p>
+
+<p>除了图片之外，通知还支持音频以及视频。你可以将MP3或者MP4这样的文件提供给系统来在通知中进行展示和播放，不过，这些文件都有尺寸的限制，比如图片不能超过5MB,视频不能超过50MB,不过对于一般的能在通知中展示的内容来说，这个尺寸应该是绰绰有余了。关于支持的文件格式和尺寸，可以在文档中进行确认。在创建<code>UNNotificationAttachment</code>时，如果遇到了不支持的格式，SDK也会抛出错误。</p>
+
+<p>通过远程推送的方式，你也可以显示图片等多媒体内容，这要借助于上一节所提到的通过<code>Notification Service Extension</code>来修改涂松通知内容的技术。一般做法是，我们在推送payload中指定需要加载的图片资源地址，这个地址可以是应用bundle内已经存在的资源，也可以是网络的资源。不过因为在创建<code>UNNotificationAttachment</code>时偶们只能使用本地资源，所以如果多媒体还不在本地的话，我们需要先将其下载到本地，在完成<code>UNNotificationAttachment</code>创建后，我们就可以和本地通知一样，将它设置给<code>attachments</code>属性，然后调用<code>contentHandler</code>了。</p>
+
+<p>简单的实例 payload如下：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{
+</span><span class='line'>  "aps":{
+</span><span class='line'>    "alert":{
+</span><span class='line'>      "title":"Image Notification",
+</span><span class='line'>      "body":"Show me an image from web!"
+</span><span class='line'>    },
+</span><span class='line'>    "mutable-content":1
+</span><span class='line'>  },
+</span><span class='line'>  "image": "https://onevcat.com/assets/images/background-cover.jpg"
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>mutable-content</code>表示偶们会在接收到通知时对内容进行更改，<code>image</code>指明了目标图片的地址。</p>
+
+<p>在<code>NotificationService</code>里，加入如下代码来下载图片，并将其保存到磁盘缓存中：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>private func downloadAndSave(url: URL, handler: @escaping (_ localURL: URL?) -&gt; Void) {
+</span><span class='line'>    let task = URLSession.shared.dataTask(with: url, completionHandler: {
+</span><span class='line'>        data, res, error in
+</span><span class='line'>
+</span><span class='line'>        var localURL: URL? = nil
+</span><span class='line'>
+</span><span class='line'>        if let data = data {
+</span><span class='line'>            let ext = (url.absoluteString as NSString).pathExtension
+</span><span class='line'>            let cacheURL = URL(fileURLWithPath: FileManager.default.cachesDirectory)
+</span><span class='line'>            let url = cacheURL.appendingPathComponent(url.absoluteString.md5).appendingPathExtension(ext)
+</span><span class='line'>
+</span><span class='line'>            if let _ = try? data.write(to: url) {
+</span><span class='line'>                localURL = url
+</span><span class='line'>            }
+</span><span class='line'>        }
+</span><span class='line'>
+</span><span class='line'>        handler(localURL)
+</span><span class='line'>    })
+</span><span class='line'>
+</span><span class='line'>    task.resume()
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>然后再<code>didReceive:</code>中，接收到这类通知时提取图片地址，下载，并生成attachment,进行通知展示：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>if let imageURLString = bestAttemptContent.userInfo["image"] as? String,
+</span><span class='line'>   let URL = URL(string: imageURLString)
+</span><span class='line'>{
+</span><span class='line'>    downloadAndSave(url: URL) { localURL in
+</span><span class='line'>        if let localURL = localURL {
+</span><span class='line'>            do {
+</span><span class='line'>                let attachment = try UNNotificationAttachment(identifier: "image_downloaded", url: localURL, options: nil)
+</span><span class='line'>                bestAttemptContent.attachments = [attachment]
+</span><span class='line'>            } catch {
+</span><span class='line'>                print(error)
+</span><span class='line'>            }
+</span><span class='line'>        }
+</span><span class='line'>        contentHandler(bestAttemptContent)
+</span><span class='line'>    }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>关于在通知中展示图案品或者视频，有几点想补充说明：</p>
+
+<ol>
+<li><code>UNNotificationContent</code>的<code>attachments</code>虽然是一个数组，但是系统只会展示第一个attachmen对象的内容。不过你依然可以发送多个<code>attachments</code>,然后再要展示的时候再重新安排他们的顺序，以显示最符合情景的图片或者视频。另外，你也可能会在自定义通知展示UI时用到多个<code>attachment</code>,我们接下来一节中会看到一个相关的例子。</li>
+<li>在当前iOS10中，<code>serviceExtensionTimeWillExpire</code>被条用之前，你有30秒时间来处理和更改通知内容，对于一般的图片来说，这个时间是足够的，但是如果你推送的体积较大的视频内容，用户又恰巧在糟糕的网络环境的话，很有可能无法及时下载完成。</li>
+<li>如果你想在远程推送来的通知中显示应用bundle内的资源的话，要注意extension的bundle和app main bundle并不是一回事，你可以选择将图片资源放到extension bundle中，也可以选择放在main bundle里，总之，你需要保证能够获取到正确的，并且你具有读取权限的url</li>
+<li>系统在创建<code>attachement</code>时会根据提供的url后缀确定文件类型，如果没有后缀，或者后缀无法不正确的话，你可以在创建时通过<code>UNNotificationAttachmentOptionsTypeHintKey</code>来<a href="https://developer.apple.com/reference/usernotifications/unnotificationattachmentoptionstypehintkey">指定资源类型</a></li>
+<li>如果使用的图片和视频文件不在你的bundle内部，它们将被移动到系统的负责通知的文件夹下，然后当同志被移除后删除。如果媒体文件在bundle内部，它们将被负责到通知文件夹下。每个应用能使用的媒体文件大小总和是有限制，超过限制后创建<code>attachment</code>时将抛出异常。可能的所有错误可以再<code>UNError</code>中找到</li>
+<li>你可以访问一个已经创建的<code>attachment</code>的内容，但是要注意权限问题，可以使用<code>startAccessingSecurityScopedResource</code>来暂时获取以创建的<code>attachment</code>的访问权限。比如：</li>
+</ol>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>let content = notification.request.content
+</span><span class='line'>if let attachment = content.attachments.first {  
+</span><span class='line'>    if attachment.url.startAccessingSecurityScopedResource() {  
+</span><span class='line'>        eventImage.image = UIImage(contentsOfFile: attachment.url.path!)  
+</span><span class='line'>        attachment.url.stopAccessingSecurityScopedResource()  
+</span><span class='line'>    }  
+</span><span class='line'>}  </span></code></pre></td></tr></table></div></figure>
+
+
+<h2>自定义通知视图样式</h2>
+
+<p>ioS10 SDK 新加的另一个<code>Content Extension</code>可以用来自定义通知的详细页面的视图，新建一个<code>Notification Content Extension</code>,Xcode为我们准备的模板中包含了一个实现了<code>UNNotificationContentExtension</code>的<code>UIViewController</code>子类。这个extension中有个一必须实现的方法<code>didReceive(_:)</code>,在系统需要显示自定义样式的通知详情视图时，这个方法将被调用，你需要在其中配置你的UI.而UI本身可以通过这个extension中的<code>MainInterface.storyboard</code>来进行定义。自定义UI的通知是和通知category绑定的，我们需要在<code>extension</code>的info.plist里指定这个通知样式所对应的category标识符：</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/notification-content-info.png" alt="1" /></p>
+
+<p>系统在接收到通知后会先查找有没有能够处理这类通知的content extension,如果存在，那么就交给extensionl来进行处理，另外，在构建UI时，我们可以通过Info.plist控制通知详细视图的尺寸，以及是否显示原始的通知。关于Content Extension中的info.plist的key,可以在<a href="https://developer.apple.com/reference/usernotificationsui/unnotificationcontentextension">这个文档</a>中找到详细信息。</p>
+
+<p>虽然我们可以使用包括按钮在内的各种UI，但是系统不允许我们队这些UI进行交互，点击通知视图UI本身会将我们导航到应用中，不过我们可以通过action的方式来对自定义UI进行更新。<code>UNNotificationContentExtension</code>为我们提供了一个可选方法<code>didReceive(_:completionHandler:)</code>，它会在用户选择了某个action时被调用，你有机会在这里更新通知的UI，如果有UI更新，那么在方法的<code>completionHandler</code>中，开发者可以选择传递<code>. doNotDismiss</code>来保持通知继续呗显示。如果没有继续显示的必要，可以选择<code>. dismissAndForwardAction</code>或者<code>. dismiss</code>，前者将把通知的action继续传递给应用的<code>UNUserNotificationCenterDelegate</code>中的<code>userNotificationCenter(:didReceive:withCompletionHandler)</code>，而后者将直接解散这个通知</p>
+
+<p>如果你的自定义UI包含视频等，你还可以实现<code>UNNotificationContentExtension</code>里的<code>media</code>开头的一系列属性，它将为你提供一些视频播放的控件和相关方法。</p>
+
+<h2>总结</h2>
+
+<p>iOS10 SDk中对通知这块进行了IOS系统发布以来最大的一次重构，很多"老朋友"都被标记为了 deprecated:</p>
+
+<h2>iOS10中被标记弃用的API</h2>
+
+<ul>
+<li>UILocalNotification</li>
+<li>UIMutableUserNotificationAction</li>
+<li>UIMutableUserNotificationCategory</li>
+<li>UIUserNotificationAction</li>
+<li>UIUserNotificationCategory</li>
+<li>UIUserNotificationSettings</li>
+<li>handleActionWithIdentifier:forLocalNotification:</li>
+<li>handleActionWithIdentifier:forRemoteNotification:</li>
+<li>didReceiveLocalNotification:withCompletion:</li>
+<li>didReceiveRemoteNotification:withCompletion:</li>
+</ul>
+
+
+<p>等一系列在<code>UIKIT</code>中的发送和处理通知的类型及方法</p>
+
+<p>相比较于iOS早期时代的API,新的APi展现了高度的模块化和统一特性，易用性也非常好，是一套更加先进的API,如果有可能，特别是如果你的应用是重度依赖通知特性的话，直接从iOS10开始可以让你充分使用在新同志体系的各种特性。</p>
+
+<p>虽然原来的API都被标为弃用了，但是如果需要支持iOS10之前系统的话，你还是需要使用原来的API,我们可以使用</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>if #available(iOS 10.0, *) {
+</span><span class='line'>    // Use UserNotification
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>的方式来对iOS10进行新通知的适配，并让iOS10的用户享受到新通知带来的便利特性，然后在将来版本升级到只支持iOS10以上时再移除掉所有被启用的代码。对于优化和梳理通知相关代码来说，新API对代码设计和祖上上带来的好处足以弥补适配上的麻烦。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[适配iOS10]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/10/10/gua-pei-ios10/"/>
+    <updated>2016-10-10T11:03:06+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/10/10/gua-pei-ios10</id>
+    <content type="html"><![CDATA[<h2>UICOllecitonViewCell的优化</h2>
+
+<p>在ios10之前，UIcollectionView上面如果有大量的Cell,当用户活动很快的时候，整个UIcollectionView有很卡顿，为什么会造成这样的问题，这里涉及到iOS系统的重用机制，当cell准备加载进到屏幕的时候，整个cell都已经加载完成，等待在屏幕外面了，也就是整整一行cell都已经加载完毕，这就是造成卡顿的主要原因，专业术语叫掉帧</p>
+
+<p>iOS10之前的UIcollectionViewCell的生命周期是这样的:</p>
+
+<ol>
+<li>用户滑动屏幕，屏幕外有一个cell准备加载进来，把cell从reusr队列拿出来，然后调用prepareForReuse方法，在这个方法里面，可以重置cell的状态，加载新的数据</li>
+<li>继续欢动，就会调用cellForItemAtIndexPath方法，在这个方法里面给cell赋值模型，然后返回给系统</li>
+<li>当cell马上进去屏幕的时候，就会调用willDispalyCell方法，在这个方法里面我们还可以修改cell,为进入屏幕做最后的准备工作</li>
+<li>执行完willDisplayCell方法后，cell就进去屏幕了，当cell完全离开屏幕之后，会调用didEndDisplayingCell方法</li>
+</ol>
+
+
+<p><em>ios 10 UIcollectionViewCell的生命周期是这样的</em></p>
+
+<ol>
+<li>用户滑动屏幕，屏幕外有一个cell准备加载进来，把cell从reusr队列拿出来，然后调用prepareForReuse方法，在这里当cell还没有进去屏幕的时候，就已经提前调用这个方法了，对比之前的区别就是cell的上边缘拿上进去屏幕的时候就会调用该方法，而ios10提前到cell还在屏幕外面的时候就调用</li>
+<li>在cellForItemAtIndexPath中创建cell,填充数据，刷新状态等操作，相比之前也提前了</li>
+<li>用户继续滑动的话，当cell马上就需要显示的时候我们再调用willDisplayCell方法，原则就是：何时需要显示，何时再去调用willDisplayCell方法</li>
+<li>当cell完全离开屏幕以后，会调用didEndDispalyingCell方法，跟之前一样，cell会进入重用队列</li>
+</ol>
+
+
+<p>在ios10之前，cell只能从重用队列里面取出，再走一遍生命周期，并调用cellForItemAtIndexPath创建或者生成一个cell.</p>
+
+<p>在ios10中，系统cell会保存一段时间，也就是说当用户把cell滑出屏幕以后，如果又滑动回来，cell不用再走一遍生命周期了，只需要调用willDisplayCell方法就可以重现出现在屏幕中了。</p>
+
+<h2>ios10新增加的Pre-Fetching预加载</h2>
+
+<p>这个是为了降低UIcollectionViewCell在加载的时候所花费的时间，在iOS10中，除了数据源协议和代理协议外，新增加了一个UIcollectionViewDataSourcePrefetching协议，这个协议里面定义了两个方法:</p>
+
+<p>这个是为了降低UIcollectionViewCell在加载的时候所花费的时候，在iOS10中，除了数据源协议和代理协议外，新增加了一个UIcollectionViewDataSourcePrefetching协议，这个协议里面定义了两个方法:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (void)collectionView:(UICollectionView *)collectionView prefetchItemsAtIndexPaths:(NSArray *)indexPaths NS_AVAILABLE_IOS(10_0);
+</span><span class='line'>
+</span><span class='line'>- (void)collectionView:(UICollectionView *)collectionView cancelPrefetchingForItemsAtIndexPaths:(NSArray *)indexPaths  NS_AVAILABLE_IOS(10_0);</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在CollectionView prefetchItemAt indexPaths这个方法是异步预加载数据的，当中的indexPaths数组是有序的，就是Item接收数据的顺序：
+ColletionView cancelPrefetchingForItemsAt indexPaths这个方法是可选的，可以用来处理在滑动中取消或者降低提前加载数据的优先级。
+这个协议并不能代替之前读取数据的方法，仅仅是辅助加载数据</p>
+
+<h2>UIRefreshControl的使用</h2>
+
+<p>在iOS10中，UIRefreshControl 可以直接在UIcollectionView和UITableView中使用，并且脱离了UITableViewController，现在RefreshControl是UIScrollView的一个属性。</p>
+
+<p>使用方法:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>UIRefreshControl *refreshControl = [[UIRefreshControl alloc] init];
+</span><span class='line'>  [refreshControl addTarget:self action:@selector(loadData) forControlEvents:UIControlEventValueChanged];
+</span><span class='line'>    collectionView.refreshControl = refreshControl;</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>关于ATS的问题</h2>
+
+<p>WWDC2015提出的ATS(App Transport Security)是Apple在推进网络通讯安全的一个重要的方式，在iOS9中，默认情况下非HTTPS的网络访问是被禁止的。当然，因为这样的推进影响面非常广，作为缓冲，我们可以在info.plist中添加<code>NSAppTransportSecurity</code>字典并且将<code>NSAllowsArbitraryLoads</code>设置为<code>YES</code>来禁用ATS.相信大家已经对这个非常熟悉了。</p>
+
+<p>不过在WWDC2016中，Apple表示将继续在ios10和macOS 10.12里收紧对普通http的访问限制。从2017年一月一日起，所有的提交的app默认是不允许使用<code>NSAllowsArbitraryLoads</code>来绕过ATS限制的，也就是说，我们最好保证app的所有的网络请求都是HTTPS加密的，否则可能会在应用审核时遇到麻烦。</p>
+
+<ol>
+<li>默认情况下你的app可以访问加密足够强（TLS v1.2以上，AES-128和SHA-2）的HTTPS内容，这对所有的网络请求都有效，包括<code>NSURLSession</code>,<code>UIWebview</code>以及<code>WkWebView</code>等</li>
+<li>你依然可以添加<code>NSAllowsArbitraryLoads</code>为<code>YES</code>来禁用ATS,不过如果你这么做的话，需要在提交app时进行说明，为什么需要访问非HTTPS的内容，一般来说，可能类似浏览器类的app比较容易能通过</li>
+<li>相比于使用<code>NSAllowsArbitraryLoads</code>将全部HTTP内容放开，选择使用<code>NSExceptionDomains</code>来针对特定的域名开放HTTP应该要相对容易过审核。“需要访问的域名是第三方服务器,他们没有进行HTTPS对应”，会是审核时的一个可选理由，但是这应该只需要针对特定域名，而非全面开放，如果访问的是自己的服务器的话，可能这个理由会无法通过</li>
+<li>对于网页浏览和视频播放的行为，iOS10中新加入了<code>NSAllowsArbitraryLoadsInWebContent</code>键，通过将它设置为<code>YES</code>，可以让你的app中的<code>WKWebView</code>和使用<code>AVFoundation</code>播放的在线视频不受ATS的限制。这也应该是绝大多数使用了相关特性的app的选择。但是坏消息是这个键在ios9中并不会起到作用</li>
+</ol>
+
+
+<p>总结：对于API请求，基本上必须使用HTTPS的，特别是如果你们自己可以管理服务器的话，可能需要后端的同学尽快升级到HTTPS.如果你的app只支持iOS10,并且有用户可以自由输入网址进行浏览的功能，或者是在线视频音频播放功能的话，简单地加入<code>NSAllowsArbitraryLoadsInWebContent</code>并且将组件换成<code>WKWebKit</code>或者<code>AVFoundation</code>就可以了。如果你还需要支持ios9,并且需要访问网页和视频的话，可能只能开启<code>NSAllowsArbitraryLoads</code>然后提交的时候进行说明，并且看Apple审核员的脸色决定让不让通过了。除了<code>WKWebKit</code>以外，另外一个访问网页的选择是使用<code>SFSafariViewController</code>。因为其实<code>SFSafariViewController</code>就是一个独立于App的Safari进程，所以它完全不受ATS限制</p>
+
+<p>另外，当<code>NSAllowsArbitraryLoads</code>和<code>NSAllowsArbitraryLoadsInWebContent</code>同时存在时，根据系统不同，表现的行为也会不一样，简单说，ios9只看<code>NSAllowsArbitraryLoads</code>,而ios10会先看<code>NSAllowsArbitraryLoadsInWebContent</code>.在ios10中，要是<code>NSAllowsArbitraryLoadsInWebContent</code>存在的话，就忽略掉<code>NSAllowsArbitraryLoads</code>,如果它不存在，则遵循<code>NSAllowsArbitraryLoads</code>的设定。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[IOS中的内存分配]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/10/09/ioszhong-de-nei-cun-fen-pei/"/>
+    <updated>2016-10-09T17:16:16+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/10/09/ioszhong-de-nei-cun-fen-pei</id>
+    <content type="html"><![CDATA[<p>内存分配可以分为5个区</p>
+
+<h2>栈区（stack）</h2>
+
+<p>这个一般由编译器操作，或者说是系统管理，会存一些局部变量，这些系统都会帮我们自动实现，无需我们干预，所以大量的局部变量，深递归，函数循环调用都可以耗尽栈内存而程序崩溃</p>
+
+<h2>堆区（heap）</h2>
+
+<p>一般由程序员管理，比如alloc申请内存，free释放内存，我们创建的对象也都放在这里</p>
+
+<h2>全局区(静态区 static)</h2>
+
+<p>全局变量和静态变量的存储是放在一块的，初始化的全局变量和静态变量在一块区域，未初始化的全局变量和未初始化的静态变量在相邻的另一块区域，程序结束后由系统释放。</p>
+
+<h2>常量区</h2>
+
+<p>常量字符串就是放在这里的，还有const常量</p>
+
+<h2>代码区</h2>
+
+<p>存放代码，app程序会拷贝到这里，程序不是在</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/1475976705224479.png" alt="1" /></p>
+
+<p>图中各个区并不连续</p>
+
+<p>当一个app启动后，代码区，常量区，全局区地址已经固定，因此指向这些区的指针不会为空而产生崩溃性的错误，而堆区和栈区是时时刻刻变化的（堆的创建销毁，栈的弹入和弹出），所以当使用一个指针指向这两个区里面的内存时，一定要注意内存是否已经被释放，否则会产生程序崩溃</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[升级Xcode8后注意的问题]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/10/09/sheng-ji-xcode8hou-zhu-yi-de-wen-ti/"/>
+    <updated>2016-10-09T16:37:48+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/10/09/sheng-ji-xcode8hou-zhu-yi-de-wen-ti</id>
+    <content type="html"><![CDATA[<p>现在已经可以从AppStore升级到Xcode8的正式版了，但是升级之后会有一些莫名其妙的问题，再次总结如下：</p>
+
+<h2>杂乱无章的Bug日志</h2>
+
+<p>更新xcode8后，新建立工程，都会打印一堆莫名其妙看不懂的log,比如：
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20161009-0.png" alt="1" /></p>
+
+<p>屏蔽的方法如下:</p>
+
+<p>xcode8里边的 <code>Edit Scheme-&gt;Run-&gt;Arguments,</code>在Environment Variables里边添加 <code>OS_ACTIVITY_MODE ＝ Disable</code></p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/707724-e81adf182229475f.png" alt="1" /></p>
+
+<h2>权限及相关设置</h2>
+
+<p>我们需要打开info.plist文件添加相应权限的说明，否则程序在iOS10上会出现崩溃，具体如下图</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/707724-d118ca12029c78ab.png" alt="1" /></p>
+
+<ul>
+<li>麦克风权限 Privacy - Microphone Usage Description 是否允许此App使用你的麦克风？</li>
+<li>相机权限： Privacy - Camera Usage Description 是否允许此App使用你的相机？</li>
+<li>相册权限： Privacy - Photo Library Usage Description 是否允许此App访问你的媒体资料库？</li>
+<li>通讯录权限： Privacy - Contacts Usage Description 是否允许此App访问你的通讯录？</li>
+<li>蓝牙权限：Privacy - Bluetooth Peripheral Usage Description 是否许允此App使用蓝牙？</li>
+<li>语音转文字权限：Privacy - Speech Recognition Usage Description 是否允许此App使用语音识别？</li>
+<li>日历权限：Privacy - Calendars Usage Description 是否允许此App使用日历？</li>
+<li>定位权限：Privacy - Location When In Use Usage Description 我们需要通过您的地理位置信息获取您周边的相关数据</li>
+<li>定位权限: Privacy - Location Always Usage Description 我们需要通过您的地理位置信息获取您周边的相关数据</li>
+</ul>
+
+
+<h2>字体变大，原有的frame需要适配</h2>
+
+<p>程序内原有的2个字体的长度是24，现在2个子需要27宽度来显示</p>
+
+<h2>推送</h2>
+
+<p>如下图部分，不要忘记打开，所有的推送平台，不管是极光推送还是其它推送平台，要想收到推送，这个必须打开
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20161009-1.png" alt="1" /></p>
+
+<p>之后就可以收到推送了，iOS10推送的API也进行了更新，并且支持了语音，图片和自定义等功能</p>
+
+<p>iOS10收到通知不再是在<code>[application: didReceiveRemoteNotification:]</code>方法去处理，iOS10推出新的代理方法，接受和处理各类通知(本地或者远程)</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'> - (void)userNotificationCenter:(UNUserNotificationCenter *)center willPresentNotification:(UNNotification *)notification withCompletionHandler:(void (^)(UNNotificationPresentationOptions))completionHandler { //应用在前台收到通知 NSLog(@"========%@", notification);
+</span><span class='line'>    }
+</span><span class='line'>    
+</span><span class='line'> - (void)userNotificationCenter:(UNUserNotificationCenter *)center didReceiveNotificationResponse:(UNNotificationResponse *)response withCompletionHandler:(void (^)())completionHandler { //点击通知进入应用 NSLog(@"response:%@", response);
+</span><span class='line'>   }
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[iOS推送]]></title>
@@ -146,12 +1666,253 @@
 <ul>
 <li>就是我们在手机上平时见到的推送通知</li>
 <li>包括声音，横幅，角标，自定义字段</li>
+<li><p>App:</p>
+
+<ul>
+<li>处于前台，不会显示横幅，可通过 <code>didReceiveRemoteNotification</code>（ios7 before）,<code>didReceiveRemoteNotification:fetchCompletionHandler:</code>(ios7 after)获取通知内容</li>
+<li>处于后台，会展示横幅，无法获取通知内容</li>
+<li>处于退出，会展示横幅，无法获取通知内容</li>
+<li>点击图标启动，无法获取通知内容</li>
+<li>点击通知横幅启动，在<code>didFinishLaunchingWithOptions</code>获取通知内容</li>
 </ul>
 </li>
+</ul>
+</li>
+<li>通知内容类似如下:</li>
+</ul>
+
+
+<pre><code class="``">  {
+"_j_msgid" = 200806057;  // 第三方附带的 id，用于统计点击
+aps =     {
+  alert = "显示内容";
+  badge = 1;  // App 角标，可推送 n、+n、-n 来实现角标的固定、增加、减少
+  sound = default;  // 推送声音，默认系统三全音，如需使用自己的声音，需要将声音文件拖拽&amp;拷贝至 Xcode 工程目录任意位置，并在推送时指定其文件名
+};
+key1 = value1;  // 自定义字段，可设置多组，用于处理内部逻辑
+key2 = value2;
+}
+</code></pre></li>
+<li><p>后台推送</p>
+
+<ul>
+<li>各种显示效果跟普通推送完全一样</li>
+<li>必须携带<code>content-available</code> = 1</li>
+<li>必须携带 alter ,badge ,sound 至少一个字段</li>
+<li>仅 ios7以后支持</li>
+<li>必须在Xcode工程中 <code>TARGETS – Capabilities – Background Modes – Remote notifications</code>开启该功能，具体可参照 <a href="http://docs.jiguang.cn/client/ios_tutorials/#ios-7-background-remote-notification"> iOS 7 Background Remote Notification</a></li>
 </ul>
 </li>
 </ul>
 
+
+<h3>App</h3>
+
+<ul>
+<li>处于前台，可通过<code>didReceiveRemoteNotification</code>(iOS7 before) ，didReceiveRemoteNotification:fetchCompletionHandler: （iOS 7 after）获取通知内容</li>
+<li>处于后台，可通过<code>didReceiveRemoteNotification:fetchCompletion Handler:</code>获取通知内容，获取情况中于普通推送的唯一不同点，此时iOS系统允许开发者在App处于后台的情况下没执行一些代码，大概提供几分钟的时间，可以用来偷偷地刷新UI，切换页面，下载更新包等等操作</li>
+<li>处于退出，无法获取通知内容</li>
+<li>点击图标启动，无法获取通知内容</li>
+<li>点击推送横幅启动，在<code>didFinishLaunchingWithOptions</code>获取通知内容</li>
+</ul>
+
+
+<p><em>通知内容类似如下:</em></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{
+</span><span class='line'>  "_j_msgid" = 2090737306;
+</span><span class='line'>  aps =     {
+</span><span class='line'>    alert = "显示内容";
+</span><span class='line'>    badge = 1;
+</span><span class='line'>    "content-available" = 1;  // 必带字段
+</span><span class='line'>    sound = default;
+</span><span class='line'>  };
+</span><span class='line'>  key1 = value1;
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>静默推送</h3>
+
+<ul>
+<li>没有任何展示效果</li>
+<li>必须携带<code>"content-available" = 1</code>，因此静默必然是后台的</li>
+<li>必须不携带 alert,badge,sound</li>
+<li>可携带自定义字段</li>
+</ul>
+
+
+<p><em>App:</em></p>
+
+<ul>
+<li>处于前台，可以通过<code>didReceiveRemoteNotification</code>(iOS7 before),<code>didReceiveRemoteNotification:fetchCompletionHandler:</code> (ios 7 after)获取通知内容</li>
+<li>处于后台，可通过<code>didReceiveRemoteNotification:fetchCompletion Handler:</code>获取通知内容，获取情况中与普通推送的唯一不同点，此时iOS系统允许开发者在App处于后台的情况下，执行一些代码，大概提供几分钟的时间，可以用来偷偷的刷新UI,切换页面，下载更新包等等操作</li>
+<li>处于退出，无法获取通知内容</li>
+</ul>
+
+
+<p><em>通知内容类似如下:</em></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{
+</span><span class='line'>    "_j_msgid" = 3938587719;
+</span><span class='line'>    aps =     {
+</span><span class='line'>        alert = "";
+</span><span class='line'>        "content-available" = 1;  // 必带字段
+</span><span class='line'>    };
+</span><span class='line'>    key1 = value1;
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>推送目标篇</h2>
+
+<p>别名，标签，RegistrationID均是第三方提供的用于更方便地指定推送目标的功能</p>
+
+<h3>Tip6:推送根据目标的不同可以分为:</h3>
+
+<ul>
+<li>广播
+
+<ul>
+<li>无差别发送给所有用户</li>
+</ul>
+</li>
+<li><p>别名alias推送</p>
+
+<ul>
+<li>第三方提供的功能</li>
+<li>一个手机的一款App只能设置一个 alias(可修改)</li>
+<li>建议对每一个用户都取不同的别名，以此来确定唯一的用户</li>
+<li>推送时可指定多个alias来发送同一内容</li>
+<li>仅指定alias的用户能够收到推送</li>
+</ul>
+</li>
+<li><p>标签tag推送</p>
+
+<ul>
+<li>第三方提供的功能</li>
+<li>可以设置多个，可增加，清空</li>
+<li>用于指定多样的属性，如 『1000』+『daily』+『discount』 可用于表示月消费超过 1k、喜欢购买日用品、偏好折扣商品的用户</li>
+<li>如果要删除，需要在上次设置时，将设置的tags保存至<code>NSUserDefaults</code>，本次剔除不需要的tag后，再重新设置</li>
+<li>推送时可指定多个tag来发同一个内容</li>
+<li>手机如果设置了推送指定的多个 tag 中任一个tag，都能够收到推送消息。如指定 『1000』+『globe』+『original』 （千元级消费者、全球购、原价），那么设置了 『100』+『globe』+『discount』（百元级消费者、全球购、折扣价）的用户可以收到该推送消息。</li>
+</ul>
+</li>
+<li><p>Registration ID 推送</p>
+
+<ul>
+<li>第三方提供的功能</li>
+<li>在Tip 3的第三步时将<code>deviceToken</code>提供给第三方之后，其服务器会自动生成的指向该手机的唯一id</li>
+<li>可在推送时指定多个id来下发消息</li>
+<li>可用于对核心用户，旗舰用户的精准推送</li>
+</ul>
+</li>
+</ul>
+
+
+<h2>应用消息篇</h2>
+
+<h3>Tip 7:应用内消息和推送通知的区别，消息:</h3>
+
+<ul>
+<li>不需要Apple推送证书</li>
+<li>由第三方服务器下发，而不是APNS</li>
+<li>相比通知，更快速，几乎没有延迟，可用于IM消息的即使传达</li>
+<li>能够长时间保留离线消息，可获取所有历史消息内容</li>
+<li>通过长连接技术下发消息，因此：
+
+<ul>
+<li>手机必须启动并与第三方服务器简历连接</li>
+<li>如果手机启动立刻切换到后台，很可能连接没有建立</li>
+<li>手机必须处于前台才能收到消息</li>
+<li>手机从后台切回前台，会自动重新简历连接，并收到离线消息</li>
+</ul>
+</li>
+<li>没有任何展示（横幅，通知中心，角标，声音），因此可以：
+
+<ul>
+<li>完全自定义字段实现UI效果</li>
+<li>完全在静默的情况下处理App内部逻辑</li>
+<li>使用一些App Store审核不会通过的功能，在审核时关闭功能，上架后通过接收消息，开启相关功能</li>
+</ul>
+</li>
+</ul>
+
+
+<h2>组合大招</h2>
+
+<h3>Tip 8:tags的组合技巧</h3>
+
+<ul>
+<li>见 Tip5 - 标签tag 推送</li>
+<li>可以再服务器端来统计分析用户行为，然后将指定的tags发送至手机，手机接收后再为用户打上对应的tags</li>
+</ul>
+
+
+<h3>Tip 9:通知 + 消息的组合技巧</h3>
+
+<ul>
+<li>首先来看通知和消息的特性对比</li>
+</ul>
+
+
+<table>
+<thead>
+<tr>
+<th>XX </th>
+<th>  通知  </th>
+<th>             消息</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>送达时间 </td>
+<td> 可能存在几秒延迟  </td>
+<td> 几乎没延迟</td>
+</tr>
+<tr>
+<td>获取时机  </td>
+<td> 处于前台或后台 能获取内容</td>
+<td>仅处于前台能获取内容</td>
+</tr>
+<tr>
+<td>离线内容</td>
+<td> 保留一段时间，过期会抛弃，无法查询历史内容</td>
+<td>始终保留，可查询全部历史内容</td>
+</tr>
+<tr>
+<td>系统展示</td>
+<td>会展示（静默推送或App处于前台不展示）</td>
+<td>不展示</td>
+</tr>
+</tbody>
+</table>
+
+
+<p><em>由于各自的特性都存在差异，因此二者结合使用使得App推送性能最大化的必然选择：</em></p>
+
+<ul>
+<li>情景一</li>
+</ul>
+
+
+<p>QQ/微信聊天，会同时下发一组通知+消息，如果用户没有启动QQ,虽有延迟但必须能够先收到通知，在收到通知的提醒之后，用户打开App,此时收到了离线消息，即使更新UI，与好友即使地发送/接收消息，（在收到通知后，断网，然后启动APP，你会发现此时手机里并不会显示刚刚通知的内容，因为它是依靠拉取消息来刷新页面的，而不是不够稳定的通知）</p>
 ]]></content>
   </entry>
   
@@ -6763,1694 +8524,6 @@ Swift的两段时构造过程跟Objective-C中的构造过程类似。最主要�
 
 
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Mac上如何把视频转成.Gif]]></title>
-    <link href="http://andrew-anlu.github.io/blog/2016/04/29/macshang-ru-he-ba-shi-pin-zhuan-cheng-dot-gif/"/>
-    <updated>2016-04-29T12:56:45+08:00</updated>
-    <id>http://andrew-anlu.github.io/blog/2016/04/29/macshang-ru-he-ba-shi-pin-zhuan-cheng-dot-gif</id>
-    <content type="html"><![CDATA[<p>之前看到很多github上的开源项目都带.gif的演示效果，感觉很好，今天就试着制作了一下，今天把我的制作过程记录下来，方便他人参考。</p>
-
-<!--more-->
-
-
-<h2>录制视频</h2>
-
-<p>mac上自带的Quicktime就可以录制视频，选择录制屏幕</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160429-0.png" alt="1" /></p>
-
-<p>录制完之后是 .mov 的后缀视频文件</p>
-
-<h2>通过命令行转换</h2>
-
-<p>在苹果系统上，可以通过命令行的方式转换视频，首先假定你的机器上已经安装了<a href="http://www.brew.sh">homebrew</a>.</p>
-
-<p>然后打开终端，安装<a href="http://baike.baidu.com/link?url=H-RabHoLq9tR0Zxn-jduRSC7NAlSBkEjjsRnXEJ7Rw9RFE6dUNBnYyXidoiXNGCyOWKdcAtQMg-J8x_hFPSg5K">ffmpeg</a>插件</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ brew install ffmpeg</span></code></pre></td></tr></table></div></figure>
-
-
-<p>然后定位到正确的目录，（有视频文件的那个目录，比如 Desktop）,假定你的视频名字是<code>ScreenFlow.mov</code>,你运行下面的命令就能生成GIF:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ ffmpeg -i ScreenFlow.mov -pix_fmt rgb24 output.gif</span></code></pre></td></tr></table></div></figure>
-
-
-<p>你会注意到生成文件很大，可以通过<a href="http://baike.baidu.com/link?url=WENMRejdDuoS2eXPiXrnvF2ohwpbTAe5oW_SOTsr2k099YbjyU4wCi-ngV31jzxvP0TvC-INM0FBcUk1sEDWQK"> image magick</a>工具来减少大小</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ brew install imagemagick</span></code></pre></td></tr></table></div></figure>
-
-
-<p>运行:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ convert -layers Optimize output.gif output_optimized.gif</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>通过软件生成.GIF</h2>
-
-<p><a href="http://gifbrewery.com">GifBrewery</a>是一款GIF动态图片制作工具. 支持将视频文件剪裁输出成GIF动态图片。</p>
-
-<p>并且支持裁剪视频的长度，本人感觉挺好用的。</p>
-
-<h2>上传到云端</h2>
-
-<p>最后把制作好的.gif图片上传到云端就行了，比如 dropbox,七牛,阿里云等。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[ViewController转场动画]]></title>
-    <link href="http://andrew-anlu.github.io/blog/2016/04/28/viewcontrollerzhuan-chang-dong-hua/"/>
-    <updated>2016-04-28T15:54:40+08:00</updated>
-    <id>http://andrew-anlu.github.io/blog/2016/04/28/viewcontrollerzhuan-chang-dong-hua</id>
-    <content type="html"><![CDATA[<h2>自定义转场动画</h2>
-
-<p>ios7中最让我激动的特性之一就是提供了新的API来支持自定义ViewController之间的转场动画。</p>
-
-<!--more-->
-
-
-<p>在开始研究新的API之间，我们先看看ios7中 navigation controller之间默认的行为发生了那些改变:在navigation controller中，切换两个view controller的动画变得更有交互性。比方说你想要pop一个view controller出去，你可以用手指从屏幕的左边缘开始拖动，慢慢地把当前的viewcontroller向右拖出屏幕去.</p>
-
-<p>接下来，我们来看看这个新API。很有趣，这部分API大量的使用了协议而不是具体的对象。这初看起来有点奇怪，但是我更喜欢这样的设计，因为这种设计给我们这些开发者更大的灵活性。下面，让我们来做件简单的事情:在Navigation Controller中，实现一个自定义的push动画效果，为了完成这个任务，需要实现UINavigationControllerDelegate中的新方法:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>- (id&lt;UIViewControllerAnimatedTransitioning&gt;)
-</span><span class='line'>                   navigationController:(UINavigationController *)navigationController
-</span><span class='line'>        animationControllerForOperation:(UINavigationControllerOperation)operation
-</span><span class='line'>                     fromViewController:(UIViewController*)fromVC
-</span><span class='line'>                       toViewController:(UIViewController*)toVC
-</span><span class='line'>{
-</span><span class='line'>    if (operation == UINavigationControllerOperationPush) {
-</span><span class='line'>        return self.animator;
-</span><span class='line'>    }
-</span><span class='line'>    return nil;
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>从上面的代码可以看出，我们可以根据不同的操作(push或pop)返回不同的animator.我们可以把anmitor存到一个属性中，从而在多个操作之间实现共享，或者我们也可以为每个操作都创建一个新的animator对象，这里的灵活性很多。</p>
-
-<p>为了让动画运行起来，我们创建一个自定义类，并且实现<code>UIViewControllerAnimatedTransitioning</code>这个协议:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>@interface Animator : NSObject &lt;UIViewControllerAnimatedTransitioning&gt;
-</span><span class='line'>
-</span><span class='line'>@end</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这个协议要求我们实现两个方法，其中一个定义了动画的持续时间:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>- (NSTimeInterval)transitionDuration:(id &lt;UIViewControllerContextTransitioning&gt;)transitionContext
-</span><span class='line'>{
-</span><span class='line'>    return 0.25;
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>另一个方法描述整个动画的执行效果 ：</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>- (void)animateTransition:(id&lt;UIViewControllerContextTransitioning&gt;)transitionContext
-</span><span class='line'>{
-</span><span class='line'>    UIViewController* toViewController = [transitionContext viewControllerForKey:UITransitionContextToViewControllerKey];
-</span><span class='line'>    UIViewController* fromViewController = [transitionContext viewControllerForKey:UITransitionContextFromViewControllerKey];
-</span><span class='line'>    [[transitionContext containerView] addSubview:toViewController.view];
-</span><span class='line'>    toViewController.view.alpha = 0;
-</span><span class='line'>
-</span><span class='line'>    [UIView animateWithDuration:[self transitionDuration:transitionContext] animations:^{
-</span><span class='line'>        fromViewController.view.transform = CGAffineTransformMakeScale(0.1, 0.1);
-</span><span class='line'>        toViewController.view.alpha = 1;
-</span><span class='line'>    } completion:^(BOOL finished) {
-</span><span class='line'>        fromViewController.view.transform = CGAffineTransformIdentity;
-</span><span class='line'>        [transitionContext completeTransition:![transitionContext transitionWasCancelled]];
-</span><span class='line'>
-</span><span class='line'>    }];
-</span><span class='line'>
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>从上面的例子汇总，你可以看到如何运用洗衣的：这个方法中通过接受一个类型为<code>id&lt;UIViewControllerContextTransitioning&gt;</code>的参数，来获取transition context.值的注意的是，执行完动画之后，我们需要调用transitionContext的<code>completeTransition :</code>这个方法来更新ViewController的状态。剩下的代码和ios7之前的一样了，我们从transition context 中得到了需要做转场的两个View controller,然后使用最简单的Uiview animation来实现转场动画。这就是全部代码了，我们已经实现了缩放效果的转场动画了。</p>
-
-<p>注意，这里只是为push操作实现了自定义效果的转场动画，对于pop操作，还是会使用默认的滑动效果，另外，上面我们实现的转场动画无法交互，下面我们就来看看解决这个问题。</p>
-
-<h2>交互式的转场动画</h2>
-
-<p>想要动画变地交互非常简单，我们只需要覆盖另一个UINavigationControllerDelegate的方法:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>- (id &lt;UIViewControllerInteractiveTransitioning&gt;)navigationController:(UINavigationController*)navigationController
-</span><span class='line'>                          interactionControllerForAnimationController:(id &lt;UIViewControllerAnimatedTransitioning&gt;)animationController
-</span><span class='line'>{
-</span><span class='line'>    return self.interactionController;
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>注意，在非交互式动画效果中，该方法返回nil.</p>
-
-<p>这里返回的interaction controller是<code>UIPercentDrivenInteractionTransition</code>类的一个实例，开发者不需要任何配置就可以工作。我们创建了一个拖动收拾(Pan REcognizer),下面是处理该手势的代码:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>if (panGestureRecognizer.state == UIGestureRecognizerStateBegan) {
-</span><span class='line'>    if (location.x &gt;  CGRectGetMidX(view.bounds)) {
-</span><span class='line'>        navigationControllerDelegate.interactionController = [[UIPercentDrivenInteractiveTransition alloc] init];
-</span><span class='line'>        [self performSegueWithIdentifier:PushSegueIdentifier sender:self];
-</span><span class='line'>    }
-</span><span class='line'>} </span></code></pre></td></tr></table></div></figure>
-
-
-<p>只有当用户从屏幕的右半部分开始触摸的时候，我们才把下一次动画效果设置为交互的（通过设置interactionController这个属性来实现），然后执行方法performSegueWithIdentifier:（如果你不是使用的storyboards,那么就直接调用pushViewController&hellip;这类方法）。为了让转场动画持续进行，我们需要调用 interaction controller的一个方法:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>else if (panGestureRecognizer.state == UIGestureRecognizerStateChanged) {
-</span><span class='line'>    CGFloat d = (translation.x / CGRectGetWidth(view.bounds)) * -1;
-</span><span class='line'>    [interactionController updateInteractiveTransition:d];
-</span><span class='line'>} </span></code></pre></td></tr></table></div></figure>
-
-
-<p>该方法会根据用户手指拖动的距离计算一个百分比，切换的动画效果也随着这个百分比来走，最酷的是，interaction controller会和animation controller一起协作，我们只使用了简单的UIView animation的动画效果，但是interaction controller却控制了动画的执行进度，我们并不需要吧interaction controller和Animation controller关联起来，因为所有这些系统都以一种解耦的方式自动地替我们完成了。</p>
-
-<p>最后,我们需要更具用户收拾的停止状态来判断该操作是结束还是取消，先调用interaction controller 中对应的方法:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>else if (panGestureRecognizer.state == UIGestureRecognizerStateEnded) {
-</span><span class='line'>    if ([panGestureRecognizer velocityInView:view].x &lt; 0) {
-</span><span class='line'>        [interactionController finishInteractiveTransition];
-</span><span class='line'>    } else {
-</span><span class='line'>        [interactionController cancelInteractiveTransition];
-</span><span class='line'>    }
-</span><span class='line'>    navigationControllerDelegate.interactionController = nil;
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>注意，当切换完成或者取消的时候，记得把interaction controller设置为nil.因为如果下一次的转场是非交互的，我们不应该返回这个旧的interaction controller。</p>
-
-<p>现在我们已经实现了一个完全自定义的可交互的转场动画了。通过简单的手势识别和UIKIT提供的一个类，用几行代码就达到完成了。对于大部分的应用场景，你读到这就够用了，使用上面提到的方法就可以达到你想要的动画效果了。但如果你想更深入了解转场动画或者交互效果进行深度定制，请继续阅读下面的内容。</p>
-
-<h3>完整工程下载</h3>
-
-<p><a href="https://github.com/TLiOSDemo/CustomTransitionController/archive/master.zip">完整的代码在这里下载</a></p>
-
-<h2>使用GPUImage定制动画</h2>
-
-<p>下面我们就看看如何真正的，彻底的定制动画效果。这一次我们不实用UIviw animation,甚至连Core Animation也不用，完全自己来实现所有的动画效果。</p>
-
-<p>我们使用 <a href="https://github.com/BradLarson/GPUImage">GPUImage</a>来实现一个非常漂亮的动画效果，这里我们实现的转场动画效果是：两个View controller像素化，然后相互消融在一起。实现方法是先对两个view controller进行截屏，然后再用GPUImage的图片滤镜（filter）处理这两张截图。</p>
-
-<p>首先，我们先创建一个自定义类，这个类实现了UIViewControllerAnimatedTransitioning和UIViewControllerInteractiveTransitioning这两个协议：</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>@interface GPUImageAnimator : NSObject
-</span><span class='line'>  &lt;UIViewControllerAnimatedTransitioning,
-</span><span class='line'>   UIViewControllerInteractiveTransitioning&gt;
-</span><span class='line'>
-</span><span class='line'>@property (nonatomic) BOOL interactive;
-</span><span class='line'>@property (nonatomic) CGFloat progress;
-</span><span class='line'>
-</span><span class='line'>- (void)finishInteractiveTransition;
-</span><span class='line'>- (void)cancelInteractiveTransition;
-</span><span class='line'>
-</span><span class='line'>@end</span></code></pre></td></tr></table></div></figure>
-
-
-<p>为了加速动画的运行，我们可以图片一次加载到GPU中，然后所有的处理和绘图都直接在GPU上执行，不需要再传送到CPU上处理（这种数据传输很慢）。通过使用GPUImageview，我们就可以直接使用OPenGL画图。</p>
-
-<p>创建滤镜链(Filter chain)也非常的直观，我们可以直接在样例代码的setup方法中看到如何构造它。比较有挑战的是如何让滤镜也<code>动</code>起来。GPUImage没有直接提供给我们动画效果，因此我们需要每渲染一帧就更新一下滤镜来实现动态的滤镜效果。使用<em>CADisplayLink</em>可以完成这个工作：</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>self.displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(frame:)];
-</span><span class='line'>[self.displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];</span></code></pre></td></tr></table></div></figure>
-
-
-<p>在frame方法中，我们可以根据时间来更新动画进度，并相应地更新滤镜:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>- (void)frame:(CADisplayLink*)link
-</span><span class='line'>{
-</span><span class='line'>    self.progress = MAX(0, MIN((link.timestamp - self.startTime) / duration, 1));
-</span><span class='line'>    self.blend.mix = self.progress;
-</span><span class='line'>    self.sourcePixellateFilter.fractionalWidthOfAPixel = self.progress *0.1;
-</span><span class='line'>    self.targetPixellateFilter.fractionalWidthOfAPixel = (1- self.progress)*0.1;
-</span><span class='line'>    [self triggerRenderOfNextFrame];
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>好了，基本上这样就完成了。如果你想要实现交互式的转场效果，那么在这里，就不能使用时间，而是要根据手势来更新动画进度，其它的代码基本差不多。</p>
-
-<p>这个功能非常强大，你可以使用GPUImage中任何已有的滤镜，或者写一个自己的OpenGL来达到你想要的效果。</p>
-
-<h2>结论</h2>
-
-<p>本文只探讨了在navigation controller中的两个view controller之间的转场动画，但是这些做法在tab bar  controller或者任何你自己定义的view controller容器中也是通用的。另外，在ios7中，<em>UIcollectionViewController</em>也进行了扩展，现在你可以在布局之间进行自动以及交互的动画切换，背后使用的也是同样的机制。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[自定义AsyncDisplayKit-Node]]></title>
-    <link href="http://andrew-anlu.github.io/blog/2016/04/26/zi-ding-yi-asyncdisplaykit-node/"/>
-    <updated>2016-04-26T15:13:13+08:00</updated>
-    <id>http://andrew-anlu.github.io/blog/2016/04/26/zi-ding-yi-asyncdisplaykit-node</id>
-    <content type="html"><![CDATA[<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/ASDK_NodeHierarchy.png" alt="node" /></p>
-
-<p>假设你已经读过<a href="http://andrew-anlu.github.io/blog/2016/04/15/asyndisplaykitru-men-pian/">AsyncDisplayKit入门</a>,下面我们将继续介绍AsyncDisplayKit.</p>
-
-<!--more-->
-
-
-<p>这篇教程将解释如何充分利用框架探索AsyncDisplayKit节点的层次结构，通过这样做，你将会更加熟悉AsyncDisplayKit这个有名的框架，并且会使你的app程序异常平滑，同时能够构建灵活的和可重用的ui</p>
-
-<p>这AsyncDisplayKit中一个核心概念就是<code>node</code>,正如你所知，AsyncDisplayKit nodes 是一个线程安全的抽象于UIview之上的，（UIview不是线程安全的）,你可以学习更多AsyncDisplayKit在<a href="http://asyncdisplaykit.org/">AsyncDisplayKit’s Quick Start introduction</a></p>
-
-<p>好消息是你已经知道了UIKit,那么你已经了解AsyncDisplayKit一些属性和方法了，因为API是很相似的。随后，你将会学到:</p>
-
-<ul>
-<li>如何去创建你自己的 AsDisplayNode</li>
-<li>如何嵌套一个node到一个单个Node容器中，并且管理和重用</li>
-<li>如何用一个Node层次结构支持View的层次结构，因为你自动减少在主线程绘制的机会，保持你的界面平滑和响应</li>
-</ul>
-
-
-<p>下面是你将要做的：你将要创建一个容器Node,并且添加两个子Node-其中一个是图片node,其中一个是文本node,你将会看到容器是如何测量他们的子Node尺寸和大小的.最后，你将会转化一个已经存在的UIview容器为一个ASDisplaytNode子类。</p>
-
-<p>效果图如下:</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/ASDK_NodeHierarchies-7-e1434332214236.jpg" alt="node" /></p>
-
-<h2>开始</h2>
-
-<p>这个app,你将要创建一个卡片展示世界上一个奇观-泰姬陵</p>
-
-<p>下载<a href="http://www.raywenderlich.com/wp-content/uploads/2015/06/Wonders-Starter.zip">开始工程</a></p>
-
-<p>这个工程只有一个ViewController,这个工程是用 cocoaPods构建的，所以你必须安装 pods,然后创建 Podfile,引入 AsyncDisplayKit.</p>
-
-<blockquote><p><em>注意</em>
-如果你不了解 Pods,请学习<a href="http://www.raywenderlich.com/64546/introduction-to-cocoapods-2">Introduction to CocoaPods Tutorial</a></p></blockquote>
-
-<p>打开  ViewController.swift，然后注意到这个view controller只有一个常量<code>card</code>,它保存了一个泰姬陵的模型对象，你将会使用这个模型创建一个卡片的node去展示。</p>
-
-<p>编译运行工程，你将会看到一个空的黑色屏幕
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/ASDK_NodeHierarchies-1-281x500.jpg" alt="logo" /></p>
-
-<h2>创建并且显示一个容器Node</h2>
-
-<p>现在你要开始构建你的第一个Node层次结构，它是非常相似的和创建一个UIview的层次结构</p>
-
-<p>打开 Wonders-Bridging-Header.h，然后添加如下代码:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>#import &lt;AsyncDisplayKit/ASDisplayNode+Subclasses.h&gt;</span></code></pre></td></tr></table></div></figure>
-
-
-<p><code>ASDisplayNode+Subclasses.h</code>是AsDisplayNode的一个内部方法，你需要在<code>ASDisplayNode</code>子类中实现这个header中定义的方法，但是你只能调用这些方法在你的 ASDisplayNode的子类中，这是和<code>UIGestureRecognizer</code>模式很相似的。</p>
-
-<p>打开CardNode.swift，然后添加ASDisplayNode子类实现:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>class CardNode: ASDisplayNode {}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>定义了一个新的ASDisplayNode子类，你将会把它作为一个容器去处理用户的交互</p>
-
-<p>打开ViewController.swift,在viewDidLoad()中实现如下:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>override func viewDidLoad() {
-</span><span class='line'>  super.viewDidLoad()
-</span><span class='line'>  // Create, configure, and lay out container node
-</span><span class='line'>  let cardNode = CardNode()
-</span><span class='line'>  cardNode.backgroundColor = UIColor(white: 1.0, alpha: 0.27)
-</span><span class='line'>  let origin = CGPointZero
-</span><span class='line'>  let size = CGSize(width: 100, height: 100)
-</span><span class='line'>  cardNode.frame = CGRect(origin: origin, size: size)
-</span><span class='line'>  // Create container node’s view and add to view hierarchy
-</span><span class='line'>  view.addSubview(cardNode.view)
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>上面的代码创建了一个新的卡片node,它定位在左上角并且高宽都是100.
-不用担心之前的约束，你将会定位到中心在这个view controller中。</p>
-
-<p>编译运行 ：</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/ASDK_NodeHierarchies-2-281x500.jpg" alt="logo" /></p>
-
-<p>太好了！你已经有了一个自定义的node在屏幕上显示，下一步是给你的子node取名为 <code>CardNode</code>,并且计算它的尺寸。在view中居中这是必须要知道的，你应该理解node布局引擎的工作原理。</p>
-
-<h2>Node布局引擎</h2>
-
-<p>下一步是询问Node去计算自己的尺寸通过调用<code>measure(constrainedSize:)</code>,你将会通过方法中constrainedSize参数去告诉node去计算一个尺寸去适应constrainedSize</p>
-
-<p>通俗的说,这意味着计算大小不能大于限制大小。例如,考虑下面的图
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/ASDK_measure.png" alt="logo" /></p>
-
-<p>这个展示了一个约束的尺寸使用确定的宽度和高度，这个计算尺寸是和宽度相等的，但是比高度要小，它可能和宽度和高度都相等，或者比宽度和高度都要小，但是宽度和高度都不允许比约束的尺寸要大。</p>
-
-<p>这个工作和UIView&rsquo;s<code>sizeThatFits(size:)</code>方法很相似。但是不同之处在于<code>measure(constrainedSize:)</code>计算它的尺寸，允许你访问缓存
-node的calculatedSize属性。</p>
-
-<p>一个例子就是当计算的高度和宽度的尺寸比约束尺寸更小的时候：
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/ASDK_constrained2.png" alt="lgo" /></p>
-
-<p>这里图片的尺寸是更小比约束的尺寸，没有任何的sizing-to-fit，这里计算的尺寸比约束尺寸更小。</p>
-
-<p>原因就是AsyncDisplayKit经常需要花费时间去计算尺寸，读取一个图片从硬盘中，可能会非常慢，通过合并尺寸到nodeApi,这个是线程安全的操作，这意味着计算尺寸可以在后台线程中运行！优雅的！它是一个有用的特性让你的UI程序平滑如黄油一般。</p>
-
-<p>一个Node将会运行计算尺寸加入它没有存储值的话，假如这个约束尺寸提供是不同的，约束尺寸常常决定缓存的计算大小。</p>
-
-<p>在程序中，工作如下:</p>
-
-<ul>
-<li>measure(constrainedSize:)返回一个存储你的尺寸或者进行一个计算尺寸通过调用calculateSizeThatFits(constrainedSize:)</li>
-<li>你替换所有的尺寸计算通过<code>calculateSizeThatFits(constrainedSize:)</code>在你的ASDisplayNode子类中</li>
-</ul>
-
-
-<blockquote><p><em>注意</em>
-calculateSizeThatFits(constrainedSize:)是ASDisplayNode的内部方法，你不应该在外部调用它</p></blockquote>
-
-<h2>测量Node的大小</h2>
-
-<p>现在是时候测量你的自己的node大小了。</p>
-
-<p>打开CardNode.swift,然后替换这个类中的代码:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>class CardNode: ASDisplayNode {
-</span><span class='line'> 
-</span><span class='line'>  override func calculateSizeThatFits(constrainedSize: CGSize) -&gt; CGSize {
-</span><span class='line'>    return CGSize(width: constrainedSize.width * 0.2, height: constrainedSize.height * 0.2)
-</span><span class='line'>  }
-</span><span class='line'> 
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>到现在为止，这个方法返回的大小是约束提供尺寸的20%.</p>
-
-<p>打开ViewController.swift,删除viewDidLoad() 中的实现，然后实现下面的<code>createCardNode(containerRect:)</code>方法:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>/* Delete this method
-</span><span class='line'> 
-</span><span class='line'>override func viewDidLoad() {
-</span><span class='line'>  super.viewDidLoad()
-</span><span class='line'>  // 1
-</span><span class='line'>  let cardNode = CardNode()
-</span><span class='line'>  cardNode.backgroundColor = UIColor(white: 1.0, alpha: 0.27)
-</span><span class='line'>  let origin = CGPointZero
-</span><span class='line'>  let size = CGSize(width: 100, height: 100)
-</span><span class='line'>  cardNode.frame = CGRect(origin: origin, size: size)
-</span><span class='line'> 
-</span><span class='line'>  // 2
-</span><span class='line'>  view.addSubview(cardNode.view)
-</span><span class='line'>}
-</span><span class='line'>*/
-</span><span class='line'> 
-</span><span class='line'>func createCardNode(#containerRect: CGRect) -&gt; CardNode {
-</span><span class='line'>  // 3
-</span><span class='line'>  let cardNode = CardNode()
-</span><span class='line'>  cardNode.backgroundColor = UIColor(white: 1.0, alpha: 0.27)
-</span><span class='line'>  cardNode.measure(containerRect.size)
-</span><span class='line'> 
-</span><span class='line'>  // 4
-</span><span class='line'>  let size = cardNode.calculatedSize
-</span><span class='line'>  let origin = containerRect.originForCenteredRectWithSize(size)
-</span><span class='line'>  cardNode.frame = CGRect(origin: origin, size: size)
-</span><span class='line'>  return cardNode
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>上面的代码做的工作如下:</p>
-
-<ol>
-<li>删除之前创建的代码，配置和布局代码</li>
-<li>删除之前的代码，把node加入到view的层次结构中</li>
-<li>createCardNode(containerRect:) 创建了一个卡片Node使用相同的背景颜色和容器node,它用作一个容器去约束卡片node的大小，所以这个卡片Node不能比containerRect’的尺寸更大</li>
-<li>通过originForCenteredRectWithSize(size:) 方法设置卡片到中心位置。</li>
-</ol>
-
-
-<p>定位到createCardNode(containerRect:) 这个方法，替换viewDidLoad():</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>override func viewDidLoad() {
-</span><span class='line'>  super.viewDidLoad()
-</span><span class='line'>  let cardNode = createCardNode(containerRect: UIScreen.mainScreen().bounds)
-</span><span class='line'>  view.addSubview(cardNode.view)
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>当视图加载的时候，createCardNode(containerRect:)创建一个新的CardNode,这个卡片的Node不能比主屏幕的bounds尺寸更大。</p>
-
-<p>在这个观点中，这个ViewController的视图还没有加载出来，因此，它不是安全的对用于ViewContrller的bounds尺寸。所以你使用主屏幕的尺寸去约束卡片Node的大小。</p>
-
-<p>运行起来，尽管达不到优雅，因为这个视图控制器横跨了整个屏幕，稍后，我们将添加适当的方法，现在，它工作还可以。</p>
-
-<p>编译运行，你将会看到你的node在正中心了.
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/ASDK_NodeHierarchies-3-281x500.jpg" alt="logo" /></p>
-
-<h2>异步节点设置和布局</h2>
-
-<p>有时它会花费人们很多时间去解析复杂的层次结构，假如这是在主线程发生，这将会阻塞主线程，假如你想取悦用户的话，你不能让用户一直等待，之前用户是不能和程序有任何交互的。</p>
-
-<p>因为这个原因，你将会在后台线程创建设置nodes，这样你能避免阻塞主线程。</p>
-
-<p>在createCardNode(containerRect:)和viewDidLoad():中实现addCardViewAsynchronously(containerRect:)</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>func addCardViewAsynchronously(#containerRect: CGRect) {
-</span><span class='line'>  dispatch_async(dispatch_get_global_queue(QOS_CLASS_BACKGROUND, 0)) {
-</span><span class='line'>    let cardNode = self.createCardNode(containerRect: containerRect)
-</span><span class='line'>    dispatch_async(dispatch_get_main_queue()) {
-</span><span class='line'>      self.view.addSubview(cardNode.view)
-</span><span class='line'>    }
-</span><span class='line'>  }
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p><code>addCardViewAsynchronously(containerRect:)</code>创建这个<code>CardNode</code>在一个线程队列中，这是很好的，因为nodes是线程安全的！创建好之后，配置这个Node,然后异步调用主线程把Node添加到视图控制器中&ndash;毕竟，UIKit不是线程安全的！</p>
-
-<blockquote><p><em>注意</em>
-一旦你创建了Node的视图，所有访问node的节点只在主线程</p></blockquote>
-
-<p>重新实现viewDidLoad()通过调用<code>addCardViewAsynchronously(containerRect:):</code></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>override func viewDidLoad() {
-</span><span class='line'>  super.viewDidLoad()
-</span><span class='line'>  addCardViewAsynchronously(containerRect: UIScreen.mainScreen().bounds)
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这将不再阻塞主线程，确保用户界面是可以随时响应的。</p>
-
-<p>编译运行，和之前一样，不过所有的操作都是在后台线程执行的</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/ASDK_NodeHierarchies-3-281x500.jpg" alt="logo" /></p>
-
-<h2>约束节点大小</h2>
-
-<p>记得之前我你会使用一个更优雅的解决方案节点不仅仅依靠屏幕尺寸的大小
-?现在我来兑换我的诺言</p>
-
-<p>打开 ViewController.swift，添加下面的属性：</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>var cardViewSetupStarted = false</span></code></pre></td></tr></table></div></figure>
-
-
-<p>然后替换viewDidLoad()为viewWillLayoutSubviews():</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>/* Delete this method
-</span><span class='line'>override func viewDidLoad() {
-</span><span class='line'>  super.viewDidLoad()
-</span><span class='line'>  addCardViewAsynchronously(containerRect: UIScreen.mainScreen().bounds)
-</span><span class='line'>}
-</span><span class='line'>*/
-</span><span class='line'> 
-</span><span class='line'>override func viewWillLayoutSubviews() {
-</span><span class='line'>  super.viewWillLayoutSubviews()
-</span><span class='line'>  if !cardViewSetupStarted {
-</span><span class='line'>    addCardViewAsynchronously(containerRect: view.bounds)
-</span><span class='line'>    cardViewSetupStarted = true
-</span><span class='line'>  }
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>替换掉了住屏幕的尺寸，这上面的逻辑是视图控制器的尺寸去约束卡片的尺寸。</p>
-
-<p>现在它是线程安全的,去用这个视图控制器的尺寸，当viewWillLayoutSubviews()替换调viewDidLoad()。这一次在这个声明周期中，这个视图控制器已经设置好了它的尺寸。</p>
-
-<p>这种加载方式是很出众的，因为一个视图控制器能被设置任何尺寸,你不想依赖视图控制器去横跨整个屏幕</p>
-
-<p><img src="http://www.raywenderlich.com/wp-content/uploads/2015/06/screen_size_tyranny.png" alt="log" /></p>
-
-<p>这个视图可能会加载多次，所以viewWillLayoutSubviews()能被调用多次，你仅仅想创建这个CardNode一次，所以这就是为什么你需要一个cardViewSetupStarted标识去证明这个视图控制创建多次。</p>
-
-<p>编译运行：</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/ASDK_NodeHierarchies-3-281x500.jpg" alt="logo" /></p>
-
-<h2>Node层次结构</h2>
-
-<p>现在你有一个空的Node容器在屏幕上，现在你想展示一些内容，方式的就是你添加一些子node到这个Node容器中，下面的结构图展示了简单的Node结构图</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/ASDK_Nodes.png" alt="node" /></p>
-
-<p>添加子Node看起来将会非常像你在UIview中添加子View的过程。</p>
-
-<p>第一步你需要添加一个图片的node,但是首先你的需要了解容器Node是如何布局子Node的。</p>
-
-<h2>子Node的布局</h2>
-
-<p>你现在知道了如何去测量容器的尺寸和如何去计算容器尺寸去布局容器内的node视图，但是这个容器node是如何布局它们的子Node呢？</p>
-
-<p>有以下两步:</p>
-
-<ol>
-<li>第一，你测量每个子Node的尺寸在<code>calculateSizeThatFits(constrainedSize:).</code>中，这将确保每一个子Node都缓存一个计算好的尺寸</li>
-<li>在UIKIt的主线程布局中，AsyncDisplayKit将会调用<code>layout()</code>在你的自定义的ASDisplayNode子类中，<code>layout()</code>的工作就像UIview的 <code>layoutSubivews()</code>，除了这个<code>layout()</code>不会计算所有子视图的尺寸，布局()简单查询计算每个节点的大小</li>
-</ol>
-
-
-<p>回到UI上，这个泰姬陵卡片尺寸将会和它的图片大小一样，并且这个标题将会适合它的大小。最简单的方式就是去测量这个<code>泰姬陵图片</code>node的大小并且使用这个结果去约束文本node的尺寸，所以这个文本node将会适合图片尺寸的大小</p>
-
-<p>接下来，你将要使用lay out去布局你的卡片子Node,让我们开始</p>
-
-<h2>添加一个子Node</h2>
-
-<p>打开CardNode.swift,然后添加下面的代码在CardNode</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>// 1
-</span><span class='line'>let imageNode: ASImageNode
-</span><span class='line'> 
-</span><span class='line'>// 2
-</span><span class='line'>init(card: Card) {
-</span><span class='line'>  imageNode = ASImageNode()
-</span><span class='line'>  super.init()
-</span><span class='line'>  setUpSubnodesWithCard(card)
-</span><span class='line'>  buildSubnodeHierarchy()
-</span><span class='line'>}
-</span><span class='line'> 
-</span><span class='line'>// 3
-</span><span class='line'>func setUpSubnodesWithCard(card: Card) {
-</span><span class='line'>  // Set up image node
-</span><span class='line'>  imageNode.image = card.image
-</span><span class='line'>}
-</span><span class='line'> 
-</span><span class='line'>// 4
-</span><span class='line'>func buildSubnodeHierarchy() {
-</span><span class='line'>  addSubnode(imageNode)
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>上面的代码做的工作如下:</p>
-
-<ol>
-<li>图片Node属性:这行代码添加一个图片Node的属性，去引用卡片图像的子Node</li>
-<li>初始化:这个设计的初始化使用一个卡片模型保存卡片的图像和文本</li>
-<li>设置子Node:这个方法使用卡片模型的图像去保存开始项目中的子Node图片</li>
-<li>容器层次结构:你设置Node的层次结构就像你能设置视图的层次结构一样，这个方法创建卡片的层次结构通过添加一个子Node来实现。</li>
-</ol>
-
-
-<p>下一步，实现calculateSizeThatFits(constrainedSize:):</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>override func calculateSizeThatFits(constrainedSize: CGSize) -&gt; CGSize {
-</span><span class='line'>  // 1 
-</span><span class='line'>  imageNode.measure(constrainedSize)
-</span><span class='line'> 
-</span><span class='line'>  // 2 
-</span><span class='line'>  let cardSize = imageNode.calculatedSize
-</span><span class='line'> 
-</span><span class='line'>  // 3 
-</span><span class='line'>  return cardSize
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>上面的代码做的工作如下:</p>
-
-<ol>
-<li>这个卡片的尺寸就会匹配背景图片的大小，这个测量背景图片的尺寸会适合内嵌的约束尺寸，所有Node的子类都会被AsyncDisplay框架感知并且知道如何设置它们的尺寸，包括AsImageNode</li>
-<li>这行代码临时存储图片计算的尺寸，特别说明的是，它使用图片Node测量尺寸正如卡片Node尺寸去约束子NOde，当添加更多的子Node的时候，你将会使用这个值</li>
-<li>返回这个卡片Node的计算好的尺寸</li>
-</ol>
-
-
-<p>下一步，覆盖layout():</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>override func layout() {
-</span><span class='line'>  imageNode.frame =
-</span><span class='line'>    CGRect(origin: CGPointZero, size: imageNode.calculatedSize).integerRect
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这个图片的逻辑位置在左上角，坐标轴原点，它也确保了这个图片Node的frame没有任何多余的值，所以你能避免像素边界显示问题</p>
-
-<p>注意这个方法是如何使用图片的Node去缓存计算尺寸的在布局的过程中。</p>
-
-<p>因为这个图片Node的尺寸决定了卡片Node的尺寸，这个图片将会横跨这个卡片</p>
-
-<p>回到ViewController.swift，然后添加一个createCardNode(containerRect:), 替换到之前初始化的<code>CardNode</code>：</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>let cardNode = CardNode(card: card)</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这行代码使用新的初始化去添加一个卡片Node,这个卡片值将会在初始化的时候被传入，并且存储这个泰姬陵的卡片模型</p>
-
-<p>编译运行:
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/ASDK_NodeHierarchies-6-281x500.jpg" alt="t" /></p>
-
-<p>漂亮，你成功的创建了容器Node并且呈现了Node的层次结构，当然，这个很简单，但是它是一个完成的Node层次！</p>
-
-<h2>添加更多的子Node</h2>
-
-<p>也许你已经注意到了，没有添加标题，不用担心，让我们开始添加吧。</p>
-
-<p>打开CardNode.swift，然后添加下面的属性titleTextNode在类中：</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>let titleTextNode: ASTextNode</span></code></pre></td></tr></table></div></figure>
-
-
-<p>在<code>init(card:)</code>方法中初始化<code>titleTextNode</code>，在super.init()这行代码之前:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>titleTextNode = ASTextNode()</span></code></pre></td></tr></table></div></figure>
-
-
-<p>添加下面的这行代码在<code>setUpSubnodesWithCard(card:):</code></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>titleTextNode.attributedString = NSAttributedString.attributedStringForTitleText(card.name)
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这行代码给titleTextNode设置了富文本内容，<code>attributedStringForTitleText(text:)</code>是一个帮助方法被加到了NSAttributedString扩展属性中。在之前的开始工程中，它创建了富文本使用提供的标题。</p>
-
-<p>下一步，在<code>buildSubnodeHierarchy():</code>的结尾增加如下代码:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>addSubnode(titleTextNode)</span></code></pre></td></tr></table></div></figure>
-
-
-<p>要确保它是在添加到图片Node的后面，不然图片将会遮盖住标题。</p>
-
-<p>在内置的方法<code>calculateSizeThatFits(constrainedSize:)</code>中，添加如下代码:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>titleTextNode.measure(cardSize)</span></code></pre></td></tr></table></div></figure>
-
-
-<p>使用子Node的测量尺寸来作为卡片的约束尺寸</p>
-
-<p>添加如下的布局代码layout():</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>titleTextNode.frame =
-</span><span class='line'>  FrameCalculator.titleFrameForSize(titleTextNode.calculatedSize, containerFrame: imageNode.frame)
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这行代码计算标题Node的frame通过工具方法FrameCalculator</p>
-
-<p>编译运行:
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/ASDK_NodeHierarchies-7-281x500.jpg" alt="test" /></p>
-
-<p>至此，你已经构建了完整的子Node层次结构，使用了容器Node,并且添加了两个子Node</p>
-
-<h2>完整工程</h2>
-
-<p><a href="https://github.com/TLSwiftDemo/Wonders/archive/master.zip">完整工程在这里下载</a></p>
-
-<p>have fun 😀~</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[自定义ColletionView布局]]></title>
-    <link href="http://andrew-anlu.github.io/blog/2016/04/24/zi-ding-yi-colletionviewbu-ju/"/>
-    <updated>2016-04-24T21:05:32+08:00</updated>
-    <id>http://andrew-anlu.github.io/blog/2016/04/24/zi-ding-yi-colletionviewbu-ju</id>
-    <content type="html"><![CDATA[<p>UICollectionView在ios6中第一次被引入，也是UIKit <a href="http://oleb.net/blog/2012/09/uicollectionview/">视图类中的一颗新星</a>
-。它和UITableview共享一套API设计，但也在UItableView上做了一些扩展。UICOllectionView最强大，同时显著超出UITableView的特色就是其完全灵活的布局结构。这这篇文章中，<!--more--> 我们将会实现一个相当复杂的自定义Collection view布局，并且顺便讨论一下这个类设计的重要部分，项目的实例代码在 <a href="https://github.com/objcio/issue-3-collection-view-layouts">GitHub</a>上。</p>
-
-<h2>布局对象(Layout Objects)</h2>
-
-<p>UITableView和UICollectionView都是 data-source和delegate驱动的。他们在显示其子视图集的过程中仅扮演容器角色,且对子视图集真正的内容毫不知情。</p>
-
-<p>UICollectioNView在此之上进行了进一步抽象。它将子视图的位置，大小和外观的控制权拖过给一个单独的布局对象。通过提供一个自定义布局对象，你技术可以实现任何你能想象到的布局。布局继承自UICollectionVieLayout抽象基类.IOS6中以UICollectionViewFloyLayout类的形式提出了一个具体的布局实现。</p>
-
-<p>我们可以使用flow layout实现一个标准的gridview,这可能是colle tion view中最常见的使用案例了。尽管大多数人都这么想，但是Apple很聪明，没有明确的命名这个类为UIColletionViewGridLayout,而使用了更为通用的术语 flow layout,更好的描述了该类的功能：它通过一个接一个的放置cell来建立自己的布局，当需要的时候，插入横排或竖排的分栏符。通过自定义滚动方向，大小和cell之间的间距，flow layout 也可以在单行或单列中布局cell。实际上，UITableView的布局可以想象成flow layout的一种特殊情况。</p>
-
-<p>在你准备自己写一个UICollectionViewLayout的子类之前，你需要问你自己，你是否能够使用UICollectionViewFlowlayout实现你心里的布局。这个类是<a href="https://developer.apple.com/library/ios/documentation/uikit/reference/UICollectionViewFlowLayout_class/Reference/Reference.html#//apple_ref/occ/cl/UICollectionViewFlowLayout">很容易定制的</a>,并且可以继承本身进行进一步的定制，感兴趣的看<a href="https://developer.apple.com/library/ios/documentation/WindowsViews/Conceptual/CollectionViewPGforIOS/UsingtheFlowLayout/UsingtheFlowLayout.html#//apple_ref/doc/uid/TP40012334-CH3-SW4">这篇文章</a></p>
-
-<h2>Cells和其他Views</h2>
-
-<p>为了适应任意布局,collection view简历了一个类似，但比 table view更灵活的视图层级，像往常一样，你的主要内容显示在cell中，cell可以被任意分组到section中。CollectionView的cell必须是UICollectionViewCell的子类。除了cell，collection view额外管理着两种视图:supplementary views和decoration views.</p>
-
-<p>collection view中的Supplemnetary views相当于table view的section header和footer views.像cells一样，他们的内容都有数据源对象驱动，然而和tableview 中用法不一样，supplementary view并不一定会作为header或footer view;他们的数量和位置完全由布局控制.</p>
-
-<p>Decoration views纯粹为一个装饰品。他们完全属于布局对象，并被布局对象管理，他们并不从dataSource 获取的contents.当布局对象指定需要一个decoration view的时候，collection view会自动创建，并将布局对象提供的布局参数应用到上面去。并不需要为自定义视图准备任何内容。</p>
-
-<p>Supplementary views和decoration views必须是UICollectionReusableView的子类。布局使用的每个视图类都需要在collection view中注册，这样当data Source让它们从reuse pool中出列时，它们才能够创建新的实例。如果你是使用的interface Builder，则可以通过在可视化编辑器中拖拽一个cell到collection view上完成cell在collection view中的注册。同样的方法也可以用在supplementary view上，前提是你使用了UIcollectionviewFlowLayout.如果没有，你只能通过调用 <code>registerClass:</code>或者<code>registerNib:</code>方法手动注册视图类了。你需要在<code>viewDidload</code>中做这些操作.</p>
-
-<h2>自定义布局</h2>
-
-<p>作为一个非常有意义的自定义collection view布局的例子，我们不妨想一个典型的日历应用程序中的周视图。日历一次显示一周，星期中的每一天现在列中，每一个日历事件将会在我们的colleectio view中以一个cell显示，位置和大小代表事件起始日期事件和持续时间。</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/calendar-collection-view-layout.png" alt="test" />
-一般有两种类型的 collection view布局:</p>
-
-<ol>
-<li>独立于内容的布局计算.这正是你所知道的像UITableview和UIcollectionViewFlowLayout这些情况。每个cell的位置和外观不是基于其显示的内容，但所有cell的显示顺序是基于内容的顺序。可以把默认的flow layout作为例子。每个cell都是基于前一个cell的放置(或者如果没有足够的空间，则从下一行开始).布局对象不必访问实际数据来计算布局.</li>
-<li>基于内容的布局计算。我们的日历视图正式这样类型的例子。为了计算显示事件的气势和街二叔事件，布局对象需要直接访问 collection view的数据源。在很多情况下，布局对象不仅需要取出当前可见cell的数据，还需要从所有记录中取出一些决定当前那些cell可见的数据。</li>
-</ol>
-
-
-<p>在我们的日历示例中，布局对象如果访问某一个矩形内的cells的属性，那就必须迭代数据源提供的所有事件来决定那些位于要求的时间窗口个中。与一些相对简单，数据源独立计算的flow layout比起来，这足够计算出cell在一个矩形内的index paths了（假设网格中所有的cells的大小都一样）.</p>
-
-<p>如果有一个依赖内容的布局，那就是暗示你需要些自定义的布局类了，同时不能使用自定义的UICOllectionViewFlowLayout，所以这正是我们需要做的事情。</p>
-
-<p><a href="https://developer.apple.com/library/ios/documentation/uikit/reference/UICollectionViewLayout_class/Reference/Reference.html">UICollectionViewLayout文档</a>列出了子类需要重写的方法.</p>
-
-<h2>collectionViewContentSize</h2>
-
-<p>由于 collection view对它的content并不知情，所以布局首先要提供的信息就是滚动区域的大小，这样collection view才能正确的管理滚动。布局对象必须在此时计算它内容的总大小，包括supplementary views和decoration views。注意，尽管大多数经典的collection view限制在一个轴方向上滚动(正如UIcollectionviewFlowLayout一样)，但是这不是必须的。</p>
-
-<p>在我们的日历示例中，我们想要视图垂直的滚动。比如，如果我们想要在垂直空间上一个小时占去100点，这样显示一整天的内容高度就是2400点。注意，我们不能够水平滚动，这就意味这我们collectionview只能显示一周。为了能够在日历中的多个星期间分页，我们可以在一个独立的scroll view中（可以使用U<a href="https://developer.apple.com/library/ios/documentation/uikit/reference/UIPageViewControllerClassReferenceClassRef/UIPageViewControllerClassReference.html">IPageViewController</a>）中使用多个 collection view（一周一个）,或者坚持使用一个collection view并且返回足够大的内容宽度，这回使得用户感觉在两个方向上滑动自由。</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>- (CGSize)collectionViewContentSize
-</span><span class='line'>{
-</span><span class='line'>    // Don't scroll horizontally
-</span><span class='line'>    CGFloat contentWidth = self.collectionView.bounds.size.width;
-</span><span class='line'>
-</span><span class='line'>    // Scroll vertically to display a full day
-</span><span class='line'>    CGFloat contentHeight = DayHeaderHeight + (HeightPerHour * HoursPerDay);
-</span><span class='line'>
-</span><span class='line'>    CGSize contentSize = CGSizeMake(contentWidth, contentHeight);
-</span><span class='line'>    return contentSize;
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>为了简单起见，我选择布局在一个非常简单的模型上：假定每周天数相同，每天时长相同，也就是说天数用0-6表示。在一个真实的日历程序中，布局将会为自己的几段大量使用基于 <code>NSCalendaar</code>的日期</p>
-
-<h2>layoutAttributesForElementsInRect：</h2>
-
-<p>这是任何布局类中最重要的方法了，同时可能也是最容易让人迷惑的方法。collection view调用这个方法并传递一个自身坐标系统中的矩形过去。这个矩形代表了这个视图的可见矩形区域(也即是它的bounds)，你需要准备好处理传给你的任何矩形。</p>
-
-<p>你的视线必须返回一个包含 UICollectionviewLayoutAttributes对象的数组，为每一个cell包含一个这样的对象，supplementary View或decoration view在矩形区域内是可见的。UICollectionViewLayoutAttributes类包含了colletion view内item的所有相关的布局属性。默认情况下，这个类包含 frame,center,size,transform3D,alpha,Zindex和hidden属性。如果你的布局想要控制其他视图的属性(比如背景颜色)，你可以创建一个UICollectionViewLayoutAttributes的子类，然后加上你自己的属性。</p>
-
-<p>布局属性对象(Layout attributes objects)通过indexPath属性和他们对应的cell,supplementary view或者decoration view关联在一起。collection view为所有items从布局对象中请求到布局属性后，它将会实例化所有视图，并将对应的属性应用到每个视图上去。</p>
-
-<p>注意!这个方法涉及到所有类型的视图，也就是cell,supplementary views和decoration views.一个幼稚的实现可能会选择忽略传入的矩形，并且为collection view中所有的视图返回布局属性。在原型设计和开发布局阶段，这是一个有效的方法。但是，这将会性能产生非常坏的影响，特别是可见cell远少于所有cell数量的时候，collection view和布局对象将会为那些不可见的而试图做额外不必要的工作。</p>
-
-<p>你的视线需要做这几步:</p>
-
-<ol>
-<li>创建一个空的可变数组来存放所有的布局属性</li>
-<li>确定index paths中那些cells的frame完全或部分位于矩形中。这个计算需要你从collection view的数据源中取出你需要显示的数据。然后在循环中调用你视线的<code>layoutattributesForItemIndexPath:</code>方法为每个index path创建并配置一个合适的布局属性对象，并将每个对象添加到数组中。</li>
-<li>如果你的布局包含supplementary views,计算矩形内可见supplementary view的index paths.在循环中调用你实现的<code>layoutAttributesForSupplementaryViewOfKind:atIndexPath:</code>,并且将这些对象加到数组中。通过为kind参数传递你选择的不同字符，你可以却分出不同种类的supplementary views(比如headers和footers)。当需要创建视图时，collectionview会将kind字符传回到你的数据源。记住supplermentary 和decoration views的数量和种类完全有布局控制。你不会受到headers和footers的限制.</li>
-<li>如果布局包含decoration views，计算矩形内可见decoration views的index paths.在循环中调用你实现的<code>layoutAttributesForDecorationViewOfKind:atIndexPath:</code>
-，并且将这些对象加到数组中</li>
-<li>返回数组</li>
-</ol>
-
-
-<p>我们自定义的布局没有使用 decoration views,但是使用了两种supplermentary views(column headers和row headers):</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>- (NSArray *)layoutAttributesForElementsInRect:(CGRect)rect
-</span><span class='line'>{
-</span><span class='line'>    NSMutableArray *layoutAttributes = [NSMutableArray array];
-</span><span class='line'>    // Cells
-</span><span class='line'>    // We call a custom helper method -indexPathsOfItemsInRect: here
-</span><span class='line'>    // which computes the index paths of the cells that should be included
-</span><span class='line'>    // in rect.
-</span><span class='line'>    NSArray *visibleIndexPaths = [self indexPathsOfItemsInRect:rect];
-</span><span class='line'>    for (NSIndexPath *indexPath in visibleIndexPaths) {
-</span><span class='line'>        UICollectionViewLayoutAttributes *attributes =
-</span><span class='line'>        [self layoutAttributesForItemAtIndexPath:indexPath];
-</span><span class='line'>        [layoutAttributes addObject:attributes];
-</span><span class='line'>    }
-</span><span class='line'>
-</span><span class='line'>    // Supplementary views
-</span><span class='line'>    NSArray *dayHeaderViewIndexPaths = [self indexPathsOfDayHeaderViewsInRect:rect];
-</span><span class='line'>    for (NSIndexPath *indexPath in dayHeaderViewIndexPaths) {
-</span><span class='line'>        UICollectionViewLayoutAttributes *attributes =
-</span><span class='line'>        [self layoutAttributesForSupplementaryViewOfKind:@"DayHeaderView"
-</span><span class='line'>                               atIndexPath:indexPath];
-</span><span class='line'>        [layoutAttributes addObject:attributes];
-</span><span class='line'>    }
-</span><span class='line'>
-</span><span class='line'>    NSArray *hourHeaderViewIndexPaths = [self indexPathsOfHourHeaderViewsInRect:rect];
-</span><span class='line'>    for (NSIndexPath *indexPath in hourHeaderViewIndexPaths) {
-</span><span class='line'>        UICollectionViewLayoutAttributes *attributes =
-</span><span class='line'>        [self layoutAttributesForSupplementaryViewOfKind:@"HourHeaderView"
-</span><span class='line'>                               atIndexPath:indexPath];
-</span><span class='line'>        [layoutAttributes addObject:attributes];
-</span><span class='line'>    }
-</span><span class='line'>    return layoutAttributes;
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>layoutAttributesFor…IndexPath</h2>
-
-<p>有时，collection view会为某个特殊的cell,supplementary 或者decoration view向布局对象请求布局属性，而非所有可见的对象。这就是当其他三个方法开始起作用时，你实现的<code>layoutAttributesForItemAtIndexPath:</code>需要创建并返回一个单独的布局属性对象，这样才能正确的格式化传给你的index path 所对应的cell.</p>
-
-<p>你可以通过调用<code>+[UICollectionViewLayoutAttributes layoutAttributesForCellWithIndexPath:]</code>这个方法，然后根据index path修改属性。为了得到需要显示在这个index path内的数据，你可能需要访问collection view的数据源。到目前为止，至少确保设置了frame尚需经，除非你所有的cell都位于彼此上方。</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>- (UICollectionViewLayoutAttributes *)layoutAttributesForItemAtIndexPath:(NSIndexPath *)indexPath
-</span><span class='line'>{
-</span><span class='line'>    CalendarDataSource *dataSource = self.collectionView.dataSource;
-</span><span class='line'>    id event = [dataSource eventAtIndexPath:indexPath];
-</span><span class='line'>    UICollectionViewLayoutAttributes *attributes =
-</span><span class='line'>    [UICollectionViewLayoutAttributes layoutAttributesForCellWithIndexPath:indexPath];
-</span><span class='line'>    attributes.frame = [self frameForEvent:event];
-</span><span class='line'>    return attributes;
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>如果你正在使用自动布局，你可能会赶到惊讶，我们正在直接修改布局参数的frame属性，而不是和约束共事，但这正是UIcollectionViewLayout的工作。尽管你坑你使用自动布局来定义collection view的frame和它内部每个cel的布局，但cells的frames还是需要通过老式的方法计算出来。</p>
-
-<p>类似的，<code>layoutAttributesForSupplementaryViewOfKind:atIndexPath:</code>和<code>layoutAttributesForDecorationViewOfKind:atIndexPath:</code>方法分别需要为supplementary 和decoration views做相同的事。只有你的布局包含这样的视图你才需要实现这两个方法。UICollectionViewlayoutAttributes包含另外两个工厂方法，</p>
-
-<p><code>+layoutAttributesForSupplementaryViewOfKind:withIndexPath:</code> 和 <code>+layoutAttributesForDecorationViewOfKind:withIndexPath:</code>，用他们来创建正确的布局属性对象</p>
-
-<h2>shouldInvalidateLayoutForBoundsChange:</h2>
-
-<p>最后，当collection view的bounds改变时，布局需要告诉collection view是否需要重新计算布局。我的猜想是：当collectionview改变大小时，大多数布局会被作废，比如设备旋转的时候。因此，一个优质的实现可能只会简单的返回YES。芮然实现功能很重要，但是scrollview的bounds在滚动时也会改变，这意味着你的布局美妙会被丢弃多次。根据计算的复杂性判断，这将会对性能产生很大的影响。</p>
-
-<p>当collection view的宽度改变时，我们自定义的布局必须被丢弃，但这滚动并不会影响到布局。幸运的是，collection view将它的bounds传给<code>shouldInvalidateLayoutForBoundsChange:</code>方法，这样我们便能比较视图当前的bounds和新的bounds来确定返回值</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>- (BOOL)shouldInvalidateLayoutForBoundsChange:(CGRect)newBounds
-</span><span class='line'>{
-</span><span class='line'>    CGRect oldBounds = self.collectionView.bounds;
-</span><span class='line'>    if (CGRectGetWidth(newBounds) != CGRectGetWidth(oldBounds)) {
-</span><span class='line'>        return YES;
-</span><span class='line'>    }
-</span><span class='line'>        return NO;
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>动画</h2>
-
-<h3>插入和删除</h3>
-
-<p>UITableview中的cell自带了一套非常漂亮的插入和删除的动画。但是当为UIcollectionView增加和删除cell定义动画功能时，UIKit工程师们遇到这样一个问题：如果Collection view的布局是完全可变的，那么预先定义好的动画就没办法和开发者自定义的布局很好的融合。他们提出了一个优雅的方法：当一个cell(或者supplementary 或者 decoration View)被插入到collection view中时，collection View不仅向其布局请求cell正常正常状态下的布局尚需经，同时还请求其初始的布局尚需经，比如，需要在开始有插入动画的cell。CollectionView会简单的创建一个anmiation block,并在这个block中，将所有cell的属性从初始状态改变到常态</p>
-
-<p>通过提供不同的初始布局属性，你可以完全自定义插入动画。比如设置初始的alpha为0将会产生一个淡入的动画。同时设置一个平移或者缩放将会产生移动缩放的效果。</p>
-
-<p>同样的原理应用到删除上，这次动画是从常态到一些列你设置的最终布局属性。这些逗你需要在布局类中为initial或final布局参数实现的方法:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>initialLayoutAttributesForAppearingItemAtIndexPath:
-</span><span class='line'>
-</span><span class='line'>initialLayoutAttributesForAppearingSupplementaryElementOfKind:atIndexPath:
-</span><span class='line'>
-</span><span class='line'>initialLayoutAttributesForAppearingDecorationElementOfKind:atIndexPath:
-</span><span class='line'>
-</span><span class='line'>finalLayoutAttributesForDisappearingItemAtIndexPath:
-</span><span class='line'>
-</span><span class='line'>finalLayoutAttributesForDisappearingSupplementaryElementOfKind:atIndexPath:
-</span><span class='line'>
-</span><span class='line'>finalLayoutAttributesForDisappearingDecorationElementOfKind:atIndexPath:</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>布局间切换</h2>
-
-<p>可以通过类似的方式将一个collection view布局动态的切换到另外一个布局。当发送一个<code>setCollectionViewLayout:animated:</code>消息时，collection view会为cells在新的布局中查询新的布局参数，然后动态的将每个cell从旧参数变换到新的布局参数。你不需要做任何事情。</p>
-
-<h2>结论</h2>
-
-<p>根据自定义collection view布局的复杂性，写一个通常很不容易。确切的说，本质上这和从头写一个完整的实现相同布局自定义视图类一样困难了。因为所涉及的计算需要确定去那些子视图是当前可见的，以及他们的位置。尽管如此，使用UIcollectionview还是给你带来了一些很好的效果，比如cell重用，自动支持动画，更不要提整洁的独立布局，子视图管理。</p>
-
-<p>自定义collection view布局也是向<a href="http://objccn.io/issue-1-1/">轻量级view Controller</a>迈出了很好的异步，正如你的view controller不要包含任何布局代码。应该和一二个独立的dataSource类结合在一起，collection view的视图控制器将很难再包含任何代码</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[OHHTTPStubs介绍]]></title>
-    <link href="http://andrew-anlu.github.io/blog/2016/04/22/ohhttpstubsjie-shao/"/>
-    <updated>2016-04-22T17:18:29+08:00</updated>
-    <id>http://andrew-anlu.github.io/blog/2016/04/22/ohhttpstubsjie-shao</id>
-    <content type="html"><![CDATA[<p><a href="https://github.com/AliSoftware/OHHTTPStubs">OHHTTPStubs</a>是一个模拟网络请求的一个框架，它使用起来非常方便和强大，它能帮你</p>
-
-<ol>
-<li>测试你的app仿真一个服务器（比如加载一个本地文件）,模拟网络慢的情况等</li>
-<li>使用伪造的网络数据编写单元测试</li>
-</ol>
-
-
-<!--more-->
-
-
-<h2>简单用法</h2>
-
-<h2>在Objc中</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>[OHHTTPStubs stubRequestsPassingTest:^BOOL(NSURLRequest *request) {
-</span><span class='line'>  return [request.URL.host isEqualToString:@"mywebservice.com"];
-</span><span class='line'>} withStubResponse:^OHHTTPStubsResponse*(NSURLRequest *request) {
-</span><span class='line'>  // Stub it with our "wsresponse.json" stub file (which is in same bundle as self)
-</span><span class='line'>  NSString* fixture = OHPathForFile(@"wsresponse.json", self.class);
-</span><span class='line'>  return [OHHTTPStubsResponse responseWithFileAtPath:fixture
-</span><span class='line'>            statusCode:200 headers:@{@"Content-Type":@"application/json"}];
-</span><span class='line'>}];</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>在swift中</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>stub(isHost("mywebservice.com")) { _ in
-</span><span class='line'>  // Stub it with our "wsresponse.json" stub file (which is in same bundle as self)
-</span><span class='line'>  let stubPath = OHPathForFile("wsresponse.json", self.dynamicType)
-</span><span class='line'>  return fixture(stubPath!, headers: ["Content-Type":"application/json"])
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>语法讲解</h2>
-
-<p><code>OHHTTPStubs stubRequestsPassingTest:</code>方法创建了模拟服务器，<code>request</code>是请求的标准判断，比如</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>[request.URL.host isEqualToString:@"mywebservice.com"]</span></code></pre></td></tr></table></div></figure>
-
-
-<p>意思就是如果请求的url是<code>mywebservice.com</code>，我们就返回response,要不然不执行</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'> NSString* fixture = OHPathForFile(@"wsresponse.json", self.class);
-</span><span class='line'>  return [OHHTTPStubsResponse responseWithFileAtPath:fixture
-</span><span class='line'>            statusCode:200 headers:@{@"Content-Type":@"application/json"}];</span></code></pre></td></tr></table></div></figure>
-
-
-<p>返回一个respoinse,其中包含了返回的数据，</p>
-
-<ol>
-<li>获取的一个本地文件</li>
-<li>返回的状态码 200  (200表示正确返回)</li>
-<li>headers：返回的头,如果是json一般是:@{@&ldquo;Content-Type&rdquo;:@&ldquo;application/json&rdquo;}</li>
-</ol>
-
-
-<h1>快速开始一个Demo</h1>
-
-<h2>创建一个空工程</h2>
-
-<p>用xcode创建一个工程，用pods创建一个Podfile</p>
-
-<p>内容如下:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>pod 'OHHTTPStubs', '~&gt; 5.0.0'
-</span><span class='line'>
-</span><span class='line'>target :OHHTTPStubsDemoTests, :exclusive =&gt; true do
-</span><span class='line'>    link_with 'OHHTTPStubsDemoTests'
-</span><span class='line'>    
-</span><span class='line'>    pod 'OHHTTPStubs'
-</span><span class='line'>end</span></code></pre></td></tr></table></div></figure>
-
-
-<p>执行 <code>pod install</code></p>
-
-<p>成功安装OHHTTPStubs后，在OHHTTPStubsDemoTests目录中编写测试类:</p>
-
-<h3>创建session</h3>
-
-<p>在顶部声明一个变量session</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>@property (nonatomic,strong) NSURLSession *session;</span></code></pre></td></tr></table></div></figure>
-
-
-<p>在setUp方法中，创建该变量实例:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>self.session=[NSURLSession sharedSession];</span></code></pre></td></tr></table></div></figure>
-
-
-<p>在 testExample()方法中：</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-<span class='line-number'>46</span>
-<span class='line-number'>47</span>
-<span class='line-number'>48</span>
-<span class='line-number'>49</span>
-<span class='line-number'>50</span>
-<span class='line-number'>51</span>
-<span class='line-number'>52</span>
-<span class='line-number'>53</span>
-<span class='line-number'>54</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>/**
-</span><span class='line'> *  返回自定义的普通文本
-</span><span class='line'> */
-</span><span class='line'>- (void)testExample {
-</span><span class='line'>    
-</span><span class='line'>    //开始模拟服务器
-</span><span class='line'>    [OHHTTPStubs stubRequestsPassingTest:^BOOL(NSURLRequest * _Nonnull request) {
-</span><span class='line'>        //发送请求的url后缀必须是.com结尾的
-</span><span class='line'>        return [request.URL.pathExtension isEqualToString:@"com"];
-</span><span class='line'>    } withStubResponse:^OHHTTPStubsResponse * _Nonnull(NSURLRequest * _Nonnull request) {
-</span><span class='line'>        //创建一个字符串
-</span><span class='line'>        NSData * stubData = [@"hello world" dataUsingEncoding:NSUTF8StringEncoding];
-</span><span class='line'>        //响应数据
-</span><span class='line'>        /**
-</span><span class='line'>         *  responseWithData:返回的数据
-</span><span class='line'>            statusCode:状态码,200表示成功
-</span><span class='line'>            headers:http的header
-</span><span class='line'>         */
-</span><span class='line'>        return [OHHTTPStubsResponse responseWithData:stubData statusCode:200 headers:@{@"Content-Type":@"text/plain"}];
-</span><span class='line'>    }];
-</span><span class='line'>    
-</span><span class='line'>    
-</span><span class='line'>    //在XCT测试框架中，这个表示期望值，因为这个期望值是支持异步测试的，我们是异步请求，所以一定要是使用XCTestExpectation这个特性
-</span><span class='line'>     XCTestExpectation *expectation=[self expectationWithDescription:@"sessionDataTask expectation"];
-</span><span class='line'>    
-</span><span class='line'>    //创建session任务
-</span><span class='line'>    NSURLSessionDataTask *dataTask=[self.session dataTaskWithURL:[NSURL URLWithString:@"hello.com"] completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-</span><span class='line'>        
-</span><span class='line'>        //解析返回的字符串
-</span><span class='line'>        NSString *resultStr=[[NSString alloc]initWithData:data encoding:NSUTF8StringEncoding];
-</span><span class='line'>        
-</span><span class='line'>        NSLog(@"返回的数据:%@",resultStr);
-</span><span class='line'>        
-</span><span class='line'>        XCTAssert(resultStr!=nil);
-</span><span class='line'>        
-</span><span class='line'>        //断言返回的字符串是hello world,如果不是，则断言失败
-</span><span class='line'>        XCTAssertTrue([resultStr isEqualToString:@"hello world"]);
-</span><span class='line'>        
-</span><span class='line'>        //在想异步测试的地方加上下面这行代码
-</span><span class='line'>        [expectation fulfill];
-</span><span class='line'>    }];
-</span><span class='line'>    //启动任务
-</span><span class='line'>    [dataTask resume];
-</span><span class='line'>    
-</span><span class='line'>    
-</span><span class='line'>    //使用XCTestExpectation,必须设置如下的waitForExpectationsWithTimeout方法，如果超时则失败
-</span><span class='line'>    [self waitForExpectationsWithTimeout:4 handler:^(NSError * _Nullable error) {
-</span><span class='line'>        if(error){
-</span><span class='line'>            NSLog(@"出错了:%s",__FUNCTION__);
-</span><span class='line'>        }
-</span><span class='line'>    }];
-</span><span class='line'>   
-</span><span class='line'>    
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这里面使用到了 <code>XCTestExpectation</code>，这是特性是用来测试异步程序代码的。在想测试异步代码的地方加上<code>[expectation fulfill];</code>,
-最后，要加上<code>waitForExpectationsWithTimeout</code>方法，它们是配对出现的。</p>
-
-<p>OHHTTPStubs创建了模拟服务器后，下面发的任何网络请求都会被模拟服务器返回，正如上面的代码所示，测试结果:
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160422-3.png" alt="test" />
-断言成功！</p>
-
-<h2>添加本地文件</h2>
-
-<ol>
-<li>在本地创建一个stub.txt的文本文件，内容自定</li>
-<li>在本地创建一个stub.jpg的图片，图片自定</li>
-</ol>
-
-
-<p>图片
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160422-5.png" alt="1" /></p>
-
-<p>文本
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160422-4.png" alt="2" /></p>
-
-<h3>创建文本的TextStub</h3>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>/**
-</span><span class='line'> *  创建文本的TextStub
-</span><span class='line'> */
-</span><span class='line'>-(void)createTextStub{
-</span><span class='line'>    // #1
-</span><span class='line'>    static id&lt;OHHTTPStubsDescriptor&gt; textStub = nil;
-</span><span class='line'>    
-</span><span class='line'>    // #2
-</span><span class='line'>    textStub= [OHHTTPStubs stubRequestsPassingTest:^BOOL(NSURLRequest * _Nonnull request) {
-</span><span class='line'>        return [request.URL.pathExtension isEqualToString:@"txt"];
-</span><span class='line'>    } withStubResponse:^OHHTTPStubsResponse * _Nonnull(NSURLRequest * _Nonnull request) {
-</span><span class='line'>        
-</span><span class='line'>        NSString *path = OHPathForFile(@"stub.txt",self.class);
-</span><span class='line'>        
-</span><span class='line'>       //#3
-</span><span class='line'>        return [[OHHTTPStubsResponse responseWithFileAtPath:path
-</span><span class='line'>                                                 statusCode:200 headers:@{@"Content-Type":@"text/plain"}]
-</span><span class='line'>                requestTime:1.0f
-</span><span class='line'>                responseTime:OHHTTPStubsDownloadSpeedWifi];
-</span><span class='line'>        
-</span><span class='line'>    }];
-</span><span class='line'>    //#4
-</span><span class='line'>    textStub.name = @"text stub";
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>上面代码意义如下:</p>
-
-<ol>
-<li>声明一个返回的OHHTTPStubsDescriptor,这是创建模拟服务器的返回结果描述</li>
-<li>开始创建模拟服务器</li>
-<li>返回response，其中设置了返回数据，状态码，请求时间等</li>
-<li>给textStub起个名字</li>
-</ol>
-
-
-<h2>测试文本的模拟服务器</h2>
-
-<p>创建一个testStubTextTask方法:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>/**
-</span><span class='line'> *  测试文本的Stub任务
-</span><span class='line'> */
-</span><span class='line'>-(void)testStubTextTask{
-</span><span class='line'>    //创建文本的模拟服务器
-</span><span class='line'>    [self createTextStub];
-</span><span class='line'>    //创建一个期望值
-</span><span class='line'>    XCTestExpectation *expection=[self expectationWithDescription:@"high expection"];
-</span><span class='line'>    
-</span><span class='line'>    NSURLSession *session=[NSURLSession sharedSession];
-</span><span class='line'>    
-</span><span class='line'>    NSString *urlString=@"stub.txt";
-</span><span class='line'>    NSURLSessionDataTask *dataTask = [session dataTaskWithURL:[NSURL URLWithString:urlString] completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-</span><span class='line'>        
-</span><span class='line'>        NSString* receivedText = [[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding];
-</span><span class='line'>        NSLog(@"返回的结果:%@",receivedText);
-</span><span class='line'>        
-</span><span class='line'>        XCTAssert(receivedText!=nil);
-</span><span class='line'>        
-</span><span class='line'>        [expection fulfill];
-</span><span class='line'>    }];
-</span><span class='line'>    
-</span><span class='line'>    [dataTask resume];
-</span><span class='line'>    
-</span><span class='line'>    [self waitForExpectationsWithTimeout:5 handler:^(NSError * _Nullable error) {
-</span><span class='line'>        if(error){
-</span><span class='line'>            NSLog(@"出错了:%@",error.description);
-</span><span class='line'>        }
-</span><span class='line'>    }];
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>创建图片的stub</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>/**
-</span><span class='line'> *  创建Image的stub
-</span><span class='line'> */
-</span><span class='line'>-(void)createImageStub{
-</span><span class='line'>    static id&lt;OHHTTPStubsDescriptor&gt; imageStub = nil;
-</span><span class='line'>    
-</span><span class='line'>    imageStub=[OHHTTPStubs stubRequestsPassingTest:^BOOL(NSURLRequest * _Nonnull request) {
-</span><span class='line'>        return [request.URL.pathExtension isEqualToString:@"png"];
-</span><span class='line'>    } withStubResponse:^OHHTTPStubsResponse * _Nonnull(NSURLRequest * _Nonnull request) {
-</span><span class='line'>        return [OHHTTPStubsResponse responseWithFileAtPath:OHPathForFile(@"stub.jpg", self.class) statusCode:200 headers:@{@"Content-Type":@"image/jpeg"}];
-</span><span class='line'>    }];
-</span><span class='line'>    
-</span><span class='line'>    imageStub.name=@"Image stub";
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>测试Image的模拟服务器</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>/**
-</span><span class='line'> *  测试Image的模拟服务器
-</span><span class='line'> */
-</span><span class='line'>- (void)testImageStubTask{
-</span><span class='line'>    
-</span><span class='line'>    [self createImageStub];
-</span><span class='line'>    
-</span><span class='line'>    XCTestExpectation *expection=[self expectationWithDescription:@"Image Expection"];
-</span><span class='line'>    
-</span><span class='line'>    NSURLSessionDataTask *dataStask=[self.session dataTaskWithURL:[NSURL URLWithString:@"test.png" relativeToURL:nil] completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-</span><span class='line'>        
-</span><span class='line'>        UIImage *image=[UIImage imageWithData:data];
-</span><span class='line'>        
-</span><span class='line'>        NSLog(@"返回的image:%@",image.description);
-</span><span class='line'>        
-</span><span class='line'>        XCTAssert(image!=nil);
-</span><span class='line'>        
-</span><span class='line'>        [expection fulfill];
-</span><span class='line'>        
-</span><span class='line'>    }];
-</span><span class='line'>    
-</span><span class='line'>    [dataStask resume];
-</span><span class='line'>    
-</span><span class='line'>    [self waitForExpectationsWithTimeout:3 handler:^(NSError * _Nullable error) {
-</span><span class='line'>        if(error){
-</span><span class='line'>            NSLog(@"出错了:%@",error.description);
-</span><span class='line'>        }
-</span><span class='line'>    }];
-</span><span class='line'>    
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>完整工程</h2>
-
-<p><a href="https://github.com/TLOpenSpring/OHHTTPStubsDemo/archive/master.zip">完整工程在这里下载</a></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Xcode更新后插件失效的解决方案]]></title>
-    <link href="http://andrew-anlu.github.io/blog/2016/04/22/xcodegeng-xin-hou-cha-jian-shi-xiao-de-jie-jue-fang-an/"/>
-    <updated>2016-04-22T16:17:45+08:00</updated>
-    <id>http://andrew-anlu.github.io/blog/2016/04/22/xcodegeng-xin-hou-cha-jian-shi-xiao-de-jie-jue-fang-an</id>
-    <content type="html"><![CDATA[<p>Xcode的插件对于开发者来说无疑是一把利器，让开发者能够将更多的时间和精力放在代码上面。但是开发者都会遇到一个问题，就是每次Xcode更新到最新的版本，之前的插件全部都失效了，需要重新安装一遍很是麻烦。</p>
-
-<!--more-->
-
-
-<p>插件失效的原因:</p>
-
-<blockquote><blockquote><ul>
-<li>系统安装了一个Xcode</li>
-<li>开发者未正确的将自己的DVTPlugInCompatibilityUUID添加到插件中</li>
-<li>成功安装了插件，但是却在Xcode识别插件的时候，选了 Skip Bundle</li>
-</ul>
-</blockquote></blockquote>
-
-<h2>终端指令实现</h2>
-
-<p>//获取DVTPlugInCompatibilityUUID字段</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>defaults read /Applications/Xcode.app/Contents/Info DVTPlugInCompatibilityUUID
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>找到插件的目录</h2>
-
-<ol>
-<li>打开xcode插件所在的目录:<code>~/Library/Application Support/Developer/Shared/Xcode/Plug-ins</code>,打开路径的快捷键是shift＋command＋g 然后输入上面的地址</li>
-<li>选择已经安装的插件，例如:VVDocumenter-Xcode，右键显示包内容</li>
-<li>找到info.plist文件，找到DVTPlugInCompatibilityUUIDs的项目，添加一个Item,value的值为之前的Xcode的UUID,(或者直接在item0中value修改也可以)保存</li>
-</ol>
-
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160422-1.png" alt="step2" /></p>
-
-<h2>重启xcode</h2>
-
-<p>重启Xcode时会提示“Load bundle”、 “Skip Bundle”，这里必须选择“Load bundle”，不然插件无法使用</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160422-0.png" alt="step1" /></p>
-
-<h2>效果如下</h2>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160422-2.png" alt="s" /></p>
 ]]></content>
   </entry>
   

@@ -216,12 +216,253 @@
 <ul>
 <li>就是我们在手机上平时见到的推送通知</li>
 <li>包括声音，横幅，角标，自定义字段</li>
+<li><p>App:</p>
+
+<ul>
+<li>处于前台，不会显示横幅，可通过 <code>didReceiveRemoteNotification</code>（ios7 before）,<code>didReceiveRemoteNotification:fetchCompletionHandler:</code>(ios7 after)获取通知内容</li>
+<li>处于后台，会展示横幅，无法获取通知内容</li>
+<li>处于退出，会展示横幅，无法获取通知内容</li>
+<li>点击图标启动，无法获取通知内容</li>
+<li>点击通知横幅启动，在<code>didFinishLaunchingWithOptions</code>获取通知内容</li>
 </ul>
 </li>
+</ul>
+</li>
+<li>通知内容类似如下:</li>
+</ul>
+
+
+<pre><code class="``">  {
+"_j_msgid" = 200806057;  // 第三方附带的 id，用于统计点击
+aps =     {
+  alert = "显示内容";
+  badge = 1;  // App 角标，可推送 n、+n、-n 来实现角标的固定、增加、减少
+  sound = default;  // 推送声音，默认系统三全音，如需使用自己的声音，需要将声音文件拖拽&amp;拷贝至 Xcode 工程目录任意位置，并在推送时指定其文件名
+};
+key1 = value1;  // 自定义字段，可设置多组，用于处理内部逻辑
+key2 = value2;
+}
+</code></pre></li>
+<li><p>后台推送</p>
+
+<ul>
+<li>各种显示效果跟普通推送完全一样</li>
+<li>必须携带<code>content-available</code> = 1</li>
+<li>必须携带 alter ,badge ,sound 至少一个字段</li>
+<li>仅 ios7以后支持</li>
+<li>必须在Xcode工程中 <code>TARGETS – Capabilities – Background Modes – Remote notifications</code>开启该功能，具体可参照 <a href="http://docs.jiguang.cn/client/ios_tutorials/#ios-7-background-remote-notification"> iOS 7 Background Remote Notification</a></li>
 </ul>
 </li>
 </ul>
 
+
+<h3>App</h3>
+
+<ul>
+<li>处于前台，可通过<code>didReceiveRemoteNotification</code>(iOS7 before) ，didReceiveRemoteNotification:fetchCompletionHandler: （iOS 7 after）获取通知内容</li>
+<li>处于后台，可通过<code>didReceiveRemoteNotification:fetchCompletion Handler:</code>获取通知内容，获取情况中于普通推送的唯一不同点，此时iOS系统允许开发者在App处于后台的情况下没执行一些代码，大概提供几分钟的时间，可以用来偷偷地刷新UI，切换页面，下载更新包等等操作</li>
+<li>处于退出，无法获取通知内容</li>
+<li>点击图标启动，无法获取通知内容</li>
+<li>点击推送横幅启动，在<code>didFinishLaunchingWithOptions</code>获取通知内容</li>
+</ul>
+
+
+<p><em>通知内容类似如下:</em></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{
+</span><span class='line'>  "_j_msgid" = 2090737306;
+</span><span class='line'>  aps =     {
+</span><span class='line'>    alert = "显示内容";
+</span><span class='line'>    badge = 1;
+</span><span class='line'>    "content-available" = 1;  // 必带字段
+</span><span class='line'>    sound = default;
+</span><span class='line'>  };
+</span><span class='line'>  key1 = value1;
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>静默推送</h3>
+
+<ul>
+<li>没有任何展示效果</li>
+<li>必须携带<code>"content-available" = 1</code>，因此静默必然是后台的</li>
+<li>必须不携带 alert,badge,sound</li>
+<li>可携带自定义字段</li>
+</ul>
+
+
+<p><em>App:</em></p>
+
+<ul>
+<li>处于前台，可以通过<code>didReceiveRemoteNotification</code>(iOS7 before),<code>didReceiveRemoteNotification:fetchCompletionHandler:</code> (ios 7 after)获取通知内容</li>
+<li>处于后台，可通过<code>didReceiveRemoteNotification:fetchCompletion Handler:</code>获取通知内容，获取情况中与普通推送的唯一不同点，此时iOS系统允许开发者在App处于后台的情况下，执行一些代码，大概提供几分钟的时间，可以用来偷偷的刷新UI,切换页面，下载更新包等等操作</li>
+<li>处于退出，无法获取通知内容</li>
+</ul>
+
+
+<p><em>通知内容类似如下:</em></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{
+</span><span class='line'>    "_j_msgid" = 3938587719;
+</span><span class='line'>    aps =     {
+</span><span class='line'>        alert = "";
+</span><span class='line'>        "content-available" = 1;  // 必带字段
+</span><span class='line'>    };
+</span><span class='line'>    key1 = value1;
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>推送目标篇</h2>
+
+<p>别名，标签，RegistrationID均是第三方提供的用于更方便地指定推送目标的功能</p>
+
+<h3>Tip6:推送根据目标的不同可以分为:</h3>
+
+<ul>
+<li>广播
+
+<ul>
+<li>无差别发送给所有用户</li>
+</ul>
+</li>
+<li><p>别名alias推送</p>
+
+<ul>
+<li>第三方提供的功能</li>
+<li>一个手机的一款App只能设置一个 alias(可修改)</li>
+<li>建议对每一个用户都取不同的别名，以此来确定唯一的用户</li>
+<li>推送时可指定多个alias来发送同一内容</li>
+<li>仅指定alias的用户能够收到推送</li>
+</ul>
+</li>
+<li><p>标签tag推送</p>
+
+<ul>
+<li>第三方提供的功能</li>
+<li>可以设置多个，可增加，清空</li>
+<li>用于指定多样的属性，如 『1000』+『daily』+『discount』 可用于表示月消费超过 1k、喜欢购买日用品、偏好折扣商品的用户</li>
+<li>如果要删除，需要在上次设置时，将设置的tags保存至<code>NSUserDefaults</code>，本次剔除不需要的tag后，再重新设置</li>
+<li>推送时可指定多个tag来发同一个内容</li>
+<li>手机如果设置了推送指定的多个 tag 中任一个tag，都能够收到推送消息。如指定 『1000』+『globe』+『original』 （千元级消费者、全球购、原价），那么设置了 『100』+『globe』+『discount』（百元级消费者、全球购、折扣价）的用户可以收到该推送消息。</li>
+</ul>
+</li>
+<li><p>Registration ID 推送</p>
+
+<ul>
+<li>第三方提供的功能</li>
+<li>在Tip 3的第三步时将<code>deviceToken</code>提供给第三方之后，其服务器会自动生成的指向该手机的唯一id</li>
+<li>可在推送时指定多个id来下发消息</li>
+<li>可用于对核心用户，旗舰用户的精准推送</li>
+</ul>
+</li>
+</ul>
+
+
+<h2>应用消息篇</h2>
+
+<h3>Tip 7:应用内消息和推送通知的区别，消息:</h3>
+
+<ul>
+<li>不需要Apple推送证书</li>
+<li>由第三方服务器下发，而不是APNS</li>
+<li>相比通知，更快速，几乎没有延迟，可用于IM消息的即使传达</li>
+<li>能够长时间保留离线消息，可获取所有历史消息内容</li>
+<li>通过长连接技术下发消息，因此：
+
+<ul>
+<li>手机必须启动并与第三方服务器简历连接</li>
+<li>如果手机启动立刻切换到后台，很可能连接没有建立</li>
+<li>手机必须处于前台才能收到消息</li>
+<li>手机从后台切回前台，会自动重新简历连接，并收到离线消息</li>
+</ul>
+</li>
+<li>没有任何展示（横幅，通知中心，角标，声音），因此可以：
+
+<ul>
+<li>完全自定义字段实现UI效果</li>
+<li>完全在静默的情况下处理App内部逻辑</li>
+<li>使用一些App Store审核不会通过的功能，在审核时关闭功能，上架后通过接收消息，开启相关功能</li>
+</ul>
+</li>
+</ul>
+
+
+<h2>组合大招</h2>
+
+<h3>Tip 8:tags的组合技巧</h3>
+
+<ul>
+<li>见 Tip5 - 标签tag 推送</li>
+<li>可以再服务器端来统计分析用户行为，然后将指定的tags发送至手机，手机接收后再为用户打上对应的tags</li>
+</ul>
+
+
+<h3>Tip 9:通知 + 消息的组合技巧</h3>
+
+<ul>
+<li>首先来看通知和消息的特性对比</li>
+</ul>
+
+
+<table>
+<thead>
+<tr>
+<th>XX </th>
+<th>  通知  </th>
+<th>             消息</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>送达时间 </td>
+<td> 可能存在几秒延迟  </td>
+<td> 几乎没延迟</td>
+</tr>
+<tr>
+<td>获取时机  </td>
+<td> 处于前台或后台 能获取内容</td>
+<td>仅处于前台能获取内容</td>
+</tr>
+<tr>
+<td>离线内容</td>
+<td> 保留一段时间，过期会抛弃，无法查询历史内容</td>
+<td>始终保留，可查询全部历史内容</td>
+</tr>
+<tr>
+<td>系统展示</td>
+<td>会展示（静默推送或App处于前台不展示）</td>
+<td>不展示</td>
+</tr>
+</tbody>
+</table>
+
+
+<p><em>由于各自的特性都存在差异，因此二者结合使用使得App推送性能最大化的必然选择：</em></p>
+
+<ul>
+<li>情景一</li>
+</ul>
+
+
+<p>QQ/微信聊天，会同时下发一组通知+消息，如果用户没有启动QQ,虽有延迟但必须能够先收到通知，在收到通知的提醒之后，用户打开App,此时收到了离线消息，即使更新UI，与好友即使地发送/接收消息，（在收到通知后，断网，然后启动APP，你会发现此时手机里并不会显示刚刚通知的内容，因为它是依靠拉取消息来刷新页面的，而不是不够稳定的通知）</p>
 </div>
 
 
@@ -280,6 +521,8 @@
         <a class="basic-alignment left" href="/blog/2016/09/10/zu-he-yu-ji-cheng/" title="Previous Post: 组合与继承">&laquo; 组合与继承</a>
       
       
+        <a class="basic-alignment right" href="/blog/2016/10/09/sheng-ji-xcode8hou-zhu-yi-de-wen-ti/" title="Next Post: 升级Xcode8后注意的问题">升级Xcode8后注意的问题 &raquo;</a>
+      
     </p>
   </footer>
 </article>
@@ -306,23 +549,23 @@
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2016/09/21/iostui-song/">iOS推送</a>
+        <a href="/blog/2016/10/28/zi-ding-yi-uicollectionviewlayout/">自定义UICollectionViewLayout</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/09/10/zu-he-yu-ji-cheng/">组合与继承</a>
+        <a href="/blog/2016/10/24/ios10-uicollectionview-xin-te-xing/">Ios10 UICollectionView 新特性</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/09/10/zu-he-ji-cheng/">组合继承</a>
+        <a href="/blog/2016/10/17/ios10-usernotifications/">Ios10 UserNotifications</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/07/19/view-layerxie-zuo/">View-Layer协作</a>
+        <a href="/blog/2016/10/10/gua-pei-ios10/">适配iOS10</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/07/19/zi-ding-yi-viewcontroller-rong-qi-zhuan-chang/">自定义 ViewController 容器转场</a>
+        <a href="/blog/2016/10/09/ioszhong-de-nei-cun-fen-pei/">IOS中的内存分配</a>
       </li>
     
   </ul>
@@ -332,12 +575,12 @@
 	<ul id="categories">
 		<li class='category'><a href='/blog/categories/cocoapods/'>cocoapods (1)</a></li>
 <li class='category'><a href='/blog/categories/git/'>git (3)</a></li>
-<li class='category'><a href='/blog/categories/ios/'>ios (25)</a></li>
+<li class='category'><a href='/blog/categories/ios/'>ios (27)</a></li>
 <li class='category'><a href='/blog/categories/life/'>life (1)</a></li>
 <li class='category'><a href='/blog/categories/mac/'>mac (2)</a></li>
 <li class='category'><a href='/blog/categories/nodejs/'>nodejs (2)</a></li>
 <li class='category'><a href='/blog/categories/octopress/'>octopress (2)</a></li>
-<li class='category'><a href='/blog/categories/swift/'>swift (13)</a></li>
+<li class='category'><a href='/blog/categories/swift/'>swift (16)</a></li>
 <li class='category'><a href='/blog/categories/xcode/'>xcode (1)</a></li>
 
 	</ul>
