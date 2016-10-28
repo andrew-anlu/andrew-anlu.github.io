@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Swift | 安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/blog/categories/swift/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-10-28T20:03:22+08:00</updated>
+  <updated>2016-10-28T20:07:26+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -19,6 +19,9 @@
     <updated>2016-10-28T14:34:50+08:00</updated>
     <id>http://andrew-anlu.github.io/blog/2016/10/28/zi-ding-yi-uicollectionviewlayout</id>
     <content type="html"><![CDATA[<p>UICollectionView，自从ios6之后就被引入到开发中，现在已经变成了最流程的UI元素之一，它最吸引人的特性就是将数据和布局进行分离，依靠分离的数据元素去处理布局，这个布局对象是决定占位元素和视图的元素。</p>
+
+<!--more-->
+
 
 <p>你可能已经习惯了默认的flow layout布局，它是一个默认实现的被UIKit,它是由基本的表格布局组成的。当然你也可以自定义布局，你可以按照自己的喜好来对视图进行重排。自定义布局是非常强大和灵活的。</p>
 
@@ -89,6 +92,9 @@
 <li>针对self=sizing的改进</li>
 <li>Interactive recording重排</li>
 </ol>
+
+
+<!--more-->
 
 
 <p>这个功能在iOS9的时候介绍过了，苹果在iOS10的API里面大大增强了这一个功能</p>
@@ -432,6 +438,9 @@ collectionView.refreshControl = refreshControl
     <content type="html"><![CDATA[<h2>UICOllecitonViewCell的优化</h2>
 
 <p>在ios10之前，UIcollectionView上面如果有大量的Cell,当用户活动很快的时候，整个UIcollectionView有很卡顿，为什么会造成这样的问题，这里涉及到iOS系统的重用机制，当cell准备加载进到屏幕的时候，整个cell都已经加载完成，等待在屏幕外面了，也就是整整一行cell都已经加载完毕，这就是造成卡顿的主要原因，专业术语叫掉帧</p>
+
+<!--more-->
+
 
 <p>iOS10之前的UIcollectionViewCell的生命周期是这样的:</p>
 
