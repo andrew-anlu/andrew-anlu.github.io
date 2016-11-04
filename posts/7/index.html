@@ -5,11 +5,13 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Xcode更新后插件失效的解决方案 - 安路的技术博客</title>
+  <title>安路的技术博客</title>
   <meta name="author" content="安路">
 
   
-  <meta name="description" content="Xcode的插件对于开发者来说无疑是一把利器，让开发者能够将更多的时间和精力放在代码上面。但是开发者都会遇到一个问题，就是每次Xcode更新到最新的版本，之前的插件全部都失效了，需要重新安装一遍很是麻烦。 插件失效的原因: 系统安装了一个Xcode &hellip;">
+  <meta name="description" content="前言 怎么样写出漂亮的博客，一直是我的追求。终于我找到了octopress，它不仅效率高，而且美观大方，部署免费，完全符合我的要求。
+它是基于Jekyll
+博客站点生成系统，它简化的步骤大大提高了写博客的效率。我总结大概有以下几个优点： * 命令行操作 * 纯文本 * 可定制 * 纯静态 * &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +20,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://andrew-anlu.github.io/blog/2016/04/22/xcodegeng-xin-hou-cha-jian-shi-xiao-de-jie-jue-fang-an/">
+  <link rel="canonical" href="http://andrew-anlu.github.io/posts/7/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="安路的技术博客" type="application/atom+xml">
@@ -64,12 +66,15 @@
 </nav>
   <div id="main">
     <div id="content">
-      <div>
-<article class="hentry" role="article">
+      <div class="blog-index">
   
+  
+  
+    <article>
+      
   <header>
     
-      <h1 class="entry-title">Xcode更新后插件失效的解决方案</h1>
+      <h1 class="entry-title"><a href="/blog/2015/08/04/ru-he-yong-octopressda-jian-bo-ke/">如何用Octopress搭建博客</a></h1>
     
     
       <p class="meta">
@@ -78,131 +83,50 @@
 
 
 
-<time class='entry-date' datetime='2016-04-22T16:17:45+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>22</span><span class='date-suffix'>nd</span>, <span class='date-year'>2016</span></span> <span class='time'>4:17 pm</span></time>
+<time class='entry-date' datetime='2015-08-04T18:46:00+08:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>4</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>6:46 pm</span></time>
         
-           | <a href="#disqus_thread"
-             data-disqus-identifier="http://andrew-anlu.github.io">Comments</a>
+           | <a href="/blog/2015/08/04/ru-he-yong-octopressda-jian-bo-ke/#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io/blog/2015/08/04/ru-he-yong-octopressda-jian-bo-ke/">Comments</a>
         
       </p>
     
   </header>
 
 
-<div class="entry-content"><p>Xcode的插件对于开发者来说无疑是一把利器，让开发者能够将更多的时间和精力放在代码上面。但是开发者都会遇到一个问题，就是每次Xcode更新到最新的版本，之前的插件全部都失效了，需要重新安装一遍很是麻烦。</p>
+  <div class="entry-content"><h2>前言</h2>
 
-<!--more-->
+<p>怎么样写出漂亮的博客，一直是我的追求。终于我找到了<a href="http://octopress.org">octopress</a>，它不仅效率高，而且美观大方，部署免费，完全符合我的要求。
+它是基于<a href="http://baike.baidu.com/link?url=Lu9thoMJP1Bbf_Hwe6MWLzKhh32sQXd3Odl-jJg_F8463VDw5B1Uyobo-w-5zbnmKMqW5PB0vmu9qb4jjBHH1a">Jekyll</a>
+博客站点生成系统，它简化的步骤大大提高了写博客的效率。我总结大概有以下几个优点：</p>
 
+<pre><code>   * 命令行操作
+   * 纯文本
+   * 可定制
+   * 纯静态
+   * 利用git版本管理
+   * 简洁的Ruby框架
+   * 经典的Markdown语法
+</code></pre>
 
-<p>插件失效的原因:</p>
-
-<blockquote><blockquote><ul>
-<li>系统安装了一个Xcode</li>
-<li>开发者未正确的将自己的DVTPlugInCompatibilityUUID添加到插件中</li>
-<li>成功安装了插件，但是却在Xcode识别插件的时候，选了 Skip Bundle</li>
-</ul>
-</blockquote></blockquote>
-
-<h2>终端指令实现</h2>
-
-<p>//获取DVTPlugInCompatibilityUUID字段</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>defaults read /Applications/Xcode.app/Contents/Info DVTPlugInCompatibilityUUID
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>找到插件的目录</h2>
-
-<ol>
-<li>打开xcode插件所在的目录:<code>~/Library/Application Support/Developer/Shared/Xcode/Plug-ins</code>,打开路径的快捷键是shift＋command＋g 然后输入上面的地址</li>
-<li>选择已经安装的插件，例如:VVDocumenter-Xcode，右键显示包内容</li>
-<li>找到info.plist文件，找到DVTPlugInCompatibilityUUIDs的项目，添加一个Item,value的值为之前的Xcode的UUID,(或者直接在item0中value修改也可以)保存</li>
-</ol>
-
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160422-1.png" alt="step2" /></p>
-
-<h2>重启xcode</h2>
-
-<p>重启Xcode时会提示“Load bundle”、 “Skip Bundle”，这里必须选择“Load bundle”，不然插件无法使用</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160422-0.png" alt="step1" /></p>
-
-<h2>效果如下</h2>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160422-2.png" alt="s" /></p>
 </div>
-
-
-  <footer>
-    <p class="meta">
-      
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2015/08/04/ru-he-yong-octopressda-jian-bo-ke/">阅读全文 &rarr;</a>
+    </footer>
   
 
-<span class="byline author vcard">Posted by <span class="fn">安路</span></span>
 
-      
-
-
-
-
-<time class='entry-date' datetime='2016-04-22T16:17:45+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>22</span><span class='date-suffix'>nd</span>, <span class='date-year'>2016</span></span> <span class='time'>4:17 pm</span></time>
-      
-
-<span class="categories">
+    </article>
   
-    <a class='category' href='/blog/categories/xcode/'>xcode</a>
-  
-</span>
-
-
-    </p>
+  <div class="pagination">
     
-      <div class="sharing">
-  
-  
-  
-
-<!-- JiaThis Button BEGIN -->
-<div class="jiathis_style_32x32">
-	<a class="jiathis_button_qzone"></a>
-	<a class="jiathis_button_tsina"></a>
-	<a class="jiathis_button_tqq"></a>
-	<a class="jiathis_button_weixin"></a>
-	<a class="jiathis_button_renren"></a>
-	<a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank"></a>
-	<a class="jiathis_counter_style"></a>
-</div>
-<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
-<!-- JiaThis Button END -->
-<br><br>
-<!-- UY BEGIN -->
-<div id="uyan_frame"></div>
-<script type="text/javascript" src="http://v2.uyan.cc/code/uyan.js?uid=2052593"></script>
-<!-- UY END -->
-
-</div>
-
+    <a href="/blog/archives">Blog Archives</a>
     
-    <p class="meta">
-      
-        <a class="basic-alignment left" href="/blog/2016/04/21/ce-shi-bing-fa-cheng-xu/" title="Previous Post: 测试并发程序">&laquo; 测试并发程序</a>
-      
-      
-        <a class="basic-alignment right" href="/blog/2016/04/22/ohhttpstubsjie-shao/" title="Next Post: OHHTTPStubs介绍">OHHTTPStubs介绍 &raquo;</a>
-      
-    </p>
-  </footer>
-</article>
-
-  <section>
-    <h1>Comments</h1>
-    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a class="next" href="/posts/6">Newer &rarr;</a>
+    
+  </div>
 </div>
-  </section>
-
-</div>
-
 <aside class="sidebar">
   
     <section>
@@ -299,7 +223,6 @@
   
 </aside>
 
-
     </div>
   </div>
   <footer role="contentinfo"><!--返回顶部开始-->
@@ -324,10 +247,7 @@
       var disqus_shortname = 'Andrewswift1987';
       
         
-        // var disqus_developer = 1;
-        var disqus_identifier = 'http://andrew-anlu.github.io/blog/2016/04/22/xcodegeng-xin-hou-cha-jian-shi-xiao-de-jie-jue-fang-an/';
-        var disqus_url = 'http://andrew-anlu.github.io/blog/2016/04/22/xcodegeng-xin-hou-cha-jian-shi-xiao-de-jie-jue-fang-an/';
-        var disqus_script = 'embed.js';
+        var disqus_script = 'count.js';
       
     (function () {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;

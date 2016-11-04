@@ -4,7 +4,7 @@
   <title><![CDATA[安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-11-04T19:51:01+08:00</updated>
+  <updated>2016-11-04T20:22:50+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -12,6 +12,15 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[iOS中常见的面试题二]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/11/04/ioszhong-chang-jian-de-mian-shi-ti-er/"/>
+    <updated>2016-11-04T20:22:42+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/11/04/ioszhong-chang-jian-de-mian-shi-ti-er</id>
+    <content type="html"><![CDATA[
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Ios中常见的面试题及答案]]></title>
@@ -958,6 +967,71 @@
 
 
 <h2>定时器与线程的区别：</h2>
+
+<ul>
+<li>定时器：可以执行多次，默认在主线程中</li>
+<li>线程：只能执行一次</li>
+</ul>
+
+
+<h2>Apple设备尺寸和编程尺寸</h2>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20161104-0.png" alt="1" />
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20161104-1.png" alt="2" />
+<img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20161104-2.png" alt="3" /></p>
+
+<h2>TCP和UPD的区别和联系</h2>
+
+<ul>
+<li>TCP为传输控制层协议，为面向连接，可靠地，点到点的通信</li>
+<li>UPD为用户数据报协议，非连接的不可靠的点到多点的通信</li>
+<li>TCP侧重可靠传输，UPD侧重于快速传输</li>
+</ul>
+
+
+<h2>TCP连接的三次握手</h2>
+
+<ul>
+<li>第一次握手：客户端发送syn包到服务器，并进入SYN_SEND状态，等待服务器确认</li>
+<li>第二次握手：服务器收到syn包，必须确认客户的SYN,同时自己也发送一个SYN包，即SYN+ACK包，此时服务器进入SYN+RECV状态；</li>
+<li>第三次握手：客户端收到服务器的SYN_ACK包，向服务器发送确认包ACK,此发送完毕，客户端和服务器进入ESTABLISHED状态，完成三次状态</li>
+</ul>
+
+
+<h2>Scoket连接和HTTP连接的区别:</h2>
+
+<ul>
+<li>HTTP协议是基于TCP连接的，是应用层协议，主要解决如何包装数据。Scoket是对TCP/IP协议的封装，scoket本身并不是协议，而是一个调用接口(API)，通过Socket,我们才能使用TCP/IP协议</li>
+<li>HTTP连接:短连接，客户端向服务器发送一次请求，服务器响应后连接断开，节省资源。服务器不能主动给客户端响应（除非采用HTTP长连接技术），iPHone主要类NSURLSession</li>
+<li>Socket连接：长连接，客户端跟服务器端直接使用Scoket进行连接，没有规定连接后断开，因此客户端和服务器保持连接通道，双方可以主动发送数据，一般多用于游戏.Socket默认连接超时时间是30秒，默认大小是8k</li>
+</ul>
+
+
+<h2>http协议的特点，关于http请求Get和Post的区别</h2>
+
+<p>Get和post的区别：</p>
+
+<ul>
+<li>HTTP超文本传输协议，是短链接，是客户端主动发送请求，服务器做出响应，服务器响应之后，链接断开，Http是一个属于应用层面面向对象的协议，http有两类报文：请求报文和响应报文</li>
+<li>http请求报文：一个http请求报文由请求行，请求头部，空行和请求数据4部分组成</li>
+<li>http响应报文：由三部分组成：状态航，消息报头，响应正文</li>
+<li>GET请求：参数在地址后拼接，没有请求数据，不安全（因为所有的参数都拼接在地址后面），不适合传输大量数据，长度有限制，为1024个字节</li>
+<li>Post请求：参数在请求数据区放着，相对Get更安全，并且数据大小没有限制，把提交的数据放置在HTTP包的包体中</li>
+<li>GET提交的数据会在地址栏显示出来，而Post请求，地址栏不会改变</li>
+</ul>
+
+
+<p><em>传输数据的大小 ：</em>
+* Get提交时，传输数据就会受到URL长度限制，Post由于不是通过URL传值，理论上不受限制</p>
+
+<p><em>安全性：</em></p>
+
+<ul>
+<li>Post的安全性要比Get的安全性高；</li>
+<li>通过Get提交数据，用户名和密码将明文出现在URL上，比如登录界面有可能被浏览器缓存</li>
+<li>HTTPS：安全超文本传输协议(Secure Hypertext Transfer Protocol),它是一个安全通信通道，基于http 开发，用于客户计算机和服务器之间交换信息，使用安全套接字(SSI)进行信息交换，即HTTP的安全版</li>
+</ul>
+
 ]]></content>
   </entry>
   
@@ -1419,6 +1493,9 @@
     <updated>2016-10-17T09:53:08+08:00</updated>
     <id>http://andrew-anlu.github.io/blog/2016/10/17/ios10-usernotifications</id>
     <content type="html"><![CDATA[<p>ios10以前杂乱的和通知相关的API都被统一了，现在开发者可以使用独立的UserNotificaitons.framework来集中管理和使用iOS系统中通知的功能。在此基础上，Apple还增加了撤回单条通知，更新已展示通知，中途修改通知内容，在通知中展示图片视频，自定义通知UI等一系列功能。</p>
+
+<!--more-->
+
 
 <p>对于开发者来说，想比较于之前版本，iOS10提供了一套非常易用通知处理接口，是SDK的一次重大重构，而之前的绝大部分通知相关API都已经被标为弃用(deprecated)</p>
 
@@ -8748,305 +8825,6 @@ Swift的两段时构造过程跟Objective-C中的构造过程类似。最主要�
 
 
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[CATransform3D]]></title>
-    <link href="http://andrew-anlu.github.io/blog/2016/05/04/catransform3d/"/>
-    <updated>2016-05-04T17:25:54+08:00</updated>
-    <id>http://andrew-anlu.github.io/blog/2016/05/04/catransform3d</id>
-    <content type="html"><![CDATA[<h1>图层的几个坐标系</h1>
-
-<p>对于ios来说，坐标系的(0,0)点在左下角，就是越往下，Y值越大。越向右，X值就越大.</p>
-
-<!--more-->
-
-
-<p>一个图层的frame,它是position,bounds,anchorPoint和transform尚需经的一部分。</p>
-
-<p>设置一个新的frame将会相应的改变图层的position和bounds,但是frame本身并没有保存。</p>
-
-<h3>position</h3>
-
-<p>是一个CGPoint值，它指定图层相当于它父图层的位置，该值基于父图层的坐标系</p>
-
-<h3>bounds</h3>
-
-<p>是一个CGRect值，指定图层的大小(bounds.size)和图层的原点(bounds.origin)，这个坐标系是基于自身的。如果改变bounds的origin,那么在该图层的子图层，左边会跟着改变。也就是说，改变自身的坐标系，本身在福图层的位置不变，但它上面的自图层位置变化</p>
-
-<h3>anchorPoint</h3>
-
-<p>是一个CGPoint值，它是指定了一个基于bounds的符合坐标系的位置。锚点(anchor point)制定了bounds相对于position的值，同时也作为一个变化时候的中心点。锚点使用空间坐标系取值范围是0-1之间的数。默认是0.5,也就是图标的中心点，如果是(0,0)那么图层向左上方移动。如果是(1,1)就向右下方移动。</p>
-
-<p>看下面的两个图，就能够清晰的看出锚点变化所带来的不一样。（此图为Mac OS 坐标系，如果是iOS，那么（0，0）点在图的左上方。</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/1511481-ec88270eb7d8c9a0.png" alt="1" /></p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/1511481-bfe77d9ab6636ce0.png" alt="2" /></p>
-
-<p>对于anchorPoint的解释在ios中如图:</p>
-
-<p>下图中的红点位置就是锚点的位置，默认是(0.5,0.5)。在对图像进行变化时，都是按照这个店来进行缩放，偏移等。</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/1511481-76ff5832ae84e2f6.png" alt="1" /></p>
-
-<p>一旦修改锚点位置为:(0,0),那么图像就会变成下图.各种变换就会按照这个点来运动.</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/1511481-e6bcb36d43e12c4d.png" alt="2" /></p>
-
-<p>所以说在ios系统中，锚点的坐标系是:左上角为(0,0),右下角为(1,1)。</p>
-
-<p>根据此图，再理解上面的定义，就直观多了。</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/1511481-47294f41d81081da.png" alt="1" /></p>
-
-<h1>图层的几何变换</h1>
-
-<p>可以通过矩阵来改变一个图层的几何形状。</p>
-
-<p><em>CATransform3D</em>的数据结构定义了一个同质的三维变换(4*4 CGFloat值的矩阵),用于图层的旋转，缩放，偏移和应用的透视。</p>
-
-<p>图层的2歌属性指定了变换矩阵:transform和sublayerTransform。</p>
-
-<h3>transform</h3>
-
-<p>是结合anchorPoint的位置来对图层和图层上的子图层进行变化</p>
-
-<h3>sublayerTransform</h3>
-
-<p>是结合anchorPoint的位置来对图层的子图层进行变化，不包括本身</p>
-
-<h3>CATransform3DIdentity</h3>
-
-<p>是单位矩阵，该矩阵没有缩放，旋转，歪斜，透视。该矩阵应用到图层上，就是设置默认值。</p>
-
-<h1>变换函数</h1>
-
-<h3>CATransform3DMakeTranslation</h3>
-
-<p>官方文档:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>Returns a transform that translates by '(tx, ty, tz)'. t' = [1 0 0 0; 0 1 0 0; 0 0 1 0; tx ty tz 1].
-</span><span class='line'>
-</span><span class='line'>CATransform3D CATransform3DMakeTranslation (CGFloat tx, CGFloat ty, CGFloat tz)。</span></code></pre></td></tr></table></div></figure>
-
-
-<p>对于CATransform3D来说，它是一个4*4的 CGFloat的矩阵。而上面的值:<code>[1 0 0 0; 0 1 0 0; 0 0 1 0; tx ty tz 1].</code>给竖起来后，就发现:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>1    0    0    0
-</span><span class='line'>
-</span><span class='line'>0    1    0    0
-</span><span class='line'>
-</span><span class='line'>0    0    1    0
-</span><span class='line'>
-</span><span class='line'>tx   ty   tz   1</span></code></pre></td></tr></table></div></figure>
-
-
-<p>竖起来就很明显了。</p>
-
-<p>CATransform3D又是一个结构，他有自己的一个公式，可以进行套用.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>struct CATransform3D
-</span><span class='line'>
-</span><span class='line'>{
-</span><span class='line'>
-</span><span class='line'>CGFloat    m11（x缩放）,    m12（y切变）,      m13（旋转）,   m14（）;
-</span><span class='line'>
-</span><span class='line'>CGFloat    m21（x切变）,    m22（y缩放）,      and（）   ,   m24（）;
-</span><span class='line'>
-</span><span class='line'>CGFloat    m31（旋转）  ,    m32（ ）  ,      m33（z轴缩放）   ,   m34（透视效果，要操作的这个对象要有旋转的角度，否则没有效果。正直/负值都有意义）;
-</span><span class='line'>
-</span><span class='line'>CGFloat    m41（x平移）,    m42（y平移）,      m43（z平移） ,   m44（）;
-</span><span class='line'>
-</span><span class='line'>};
-</span><span class='line'>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>根据这个公式就一目了然了。</p>
-
-<p>CATransform3D CATransform3DMakeTranslation (CGFloat tx, CGFloat ty, CGFloat tz)参数的意思就是 <em>tx:：x平移。  ty：y平移。  tz：z平移</em></p>
-
-<p>CATransform3D CATransform3DMakeTranslation (CGFloat tx, CGFloat ty, CGFloat tz)</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>tx：X轴偏移位置，往下为正数。
-</span><span class='line'>
-</span><span class='line'>ty：Y轴偏移位置，往右为正数。
-</span><span class='line'>
-</span><span class='line'>tz：Z轴偏移位置，往外为正数。</span></code></pre></td></tr></table></div></figure>
-
-
-<p>举个栗子:</p>
-
-<p>如果有两个图层，一个是绿色的，一个是红色的，先加载绿色，后加载红色</p>
-
-<p>tx,ty的偏移就先不说了</p>
-
-<p>如果绿色的tz为-10，红色的tz为0，效果如下:</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/1511481-7d642630070e7554.png" alt="1" /></p>
-
-<p>如果绿色的tz为0,红色的tz为-10，效果如下:</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/1511481-29ecdd06f03578f4.png" alt="2" /></p>
-
-<p>对于tz来说，tz越大，那么图层就越靠近屏幕，值越小，图层越往里（离屏幕越远）</p>
-
-<h4>CATransform3D CATransform3DTranslate (CATransform3D t, CGFloat tx, CGFloat ty, CGFloat tz);</h4>
-
-<p>t:就是上一个函数，其它都一样
-就可以理解为函数的叠加，效果的叠加</p>
-
-<h4>CATransform3D CATransform3DMakeScale (CGFloat sx, CGFloat sy, CGFloat sz);</h4>
-
-<p><em>sx:</em> x轴缩放，代表一个缩放比例，一般都是0-1之间的数字
-<em>sy:</em> y轴上缩放
-<em>sz:</em> 整体比例变换时，也就是m11(sx) == m22(sy)时，若m33(sz) > 1时，图形整体缩小，若0&lt;1,图形整体放大，若m33(sz) &lt; 0时，发生关于原点的对称等比变换。</p>
-
-<p>当sx = 1时，sy = 1时，如图:
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/1511481-04771b49561f6d76.png" alt="1" /></p>
-
-<p>当sx=0.5,sy=0.5时，如图:</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/1511481-6023b3794fd9917d.png" alt="2" /></p>
-
-<h4>CATransform3D CATransform3DScale (CATransform3D t, CGFloat sx, CGFloat sy, CGFloat sz)</h4>
-
-<p>t：就是上一个函数。其他的都一样。</p>
-
-<p>就可以理解为：函数的叠加，效果的叠加</p>
-
-<h4>CATransform3D CATransform3DMakeRotation (CGFloat angle, CGFloat x, CGFloat y, CGFloat z);</h4>
-
-<p>旋转效果</p>
-
-<p>angle：旋转的弧度，所以要把角度转换成弧度：角度 * M_PI / 180</p>
-
-<p>x:向X轴方向旋转。值范围-1 &mdash; 1之间</p>
-
-<p>y:向Y轴方向旋转。值范围-1 &mdash; 1之间</p>
-
-<p>z:向Z轴方向旋转。值范围-1 &mdash; 1之间</p>
-
-<p>原始图像如下:</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160505-1.png" alt="1" /></p>
-
-<p>例如：向X轴旋转60度</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160505-2.png" alt="1" /></p>
-
-<p>向Y轴旋转60度</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160505-3.png" alt="1" /></p>
-
-<p>向z轴方向旋转60度</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160505-4.png" alt="test" /></p>
-
-<p>向x轴和y轴都旋转60度，就是沿着对角线旋转</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160505-5.png" alt="t" /></p>
-
-<h4>CATransform3D CATransform3DRotate (CATransform3D t, CGFloat angle, CGFloat x, CGFloat y, CGFloat z);</h4>
-
-<p>t:就是上一个函数
-可以理解为函数的叠加，效果的叠加</p>
-
-<h4>CATransform3D CATransform3DInvert (CATransform3D t);</h4>
-
-<p>翻转效果</p>
-
-<p>原始效果如下:</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160505-6.png" alt="test" /></p>
-
-<p>调用翻转后的效果:</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20160505-7.png" alt="result" /></p>
-
-<h4>CGAffineTransform CATransform3DGetAffineTransform (CATransform3D t);</h4>
-
-<p>仿射效果</p>
-
-<p>就是把一个CATransform3D对象转化成一个CGAffineTransform对象，也就是把CATransform3D矩阵转化成CGAffineTransform矩阵</p>
-
-<p>变换函数同时提供了可以比较一个变换矩阵是否是单位矩阵，或者两个矩阵是否相等。</p>
-
-<h4>bool CATransform3DEqualToTransform (CATransform3D a, CATransform3D b);</h4>
-
-<p>判断两个变换的矩阵是否相等</p>
-
-<p>也可以通过修改数据结构和键值来设置变换效果</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>struct CATransform3D
-</span><span class='line'>
-</span><span class='line'>{
-</span><span class='line'>
-</span><span class='line'>CGFloat m11, m12, m13, m14；
-</span><span class='line'>
-</span><span class='line'>CGFloat m21, m22, m23, m24；
-</span><span class='line'>
-</span><span class='line'>CGFloat m31, m32, m33, m34；
-</span><span class='line'>
-</span><span class='line'>CGFloat m41, m42, m43, m44；
-</span><span class='line'>
-</span><span class='line'>}
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>可以直接修改其中一个值，来达到相同的效果</p>
-
-<p>或者修改键值</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>[myLayer setValue:[NSNumber numberWithInt:0] forKeyPath:@"transform.rotation.x"];</span></code></pre></td></tr></table></div></figure>
-
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/1511481-43f4b4134597cd19.png" alt="e" /></p>
 ]]></content>
   </entry>
   

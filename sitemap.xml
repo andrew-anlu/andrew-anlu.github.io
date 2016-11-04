@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
+<loc>http://andrew-anlu.github.io/blog/2016/11/04/ioszhong-chang-jian-de-mian-shi-ti-er/</loc>
+<lastmod>2016-11-04T20:22:42+08:00</lastmod>
+</url>
+<url>
 <loc>http://andrew-anlu.github.io/blog/2016/11/03/ioszhong-chang-jian-de-mian-shi-ti-ji-da-an/</loc>
 <lastmod>2016-11-03T17:50:01+08:00</lastmod>
 </url>
@@ -287,5 +291,8 @@
 </url>
 <url>
 <loc>http://andrew-anlu.github.io/posts/6/</loc>
+</url>
+<url>
+<loc>http://andrew-anlu.github.io/posts/7/</loc>
 </url>
 </urlset>

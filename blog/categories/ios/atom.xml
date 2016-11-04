@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Ios | 安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/blog/categories/ios/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-11-04T19:51:01+08:00</updated>
+  <updated>2016-11-04T20:22:50+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -19,6 +19,9 @@
     <updated>2016-10-17T09:53:08+08:00</updated>
     <id>http://andrew-anlu.github.io/blog/2016/10/17/ios10-usernotifications</id>
     <content type="html"><![CDATA[<p>ios10以前杂乱的和通知相关的API都被统一了，现在开发者可以使用独立的UserNotificaitons.framework来集中管理和使用iOS系统中通知的功能。在此基础上，Apple还增加了撤回单条通知，更新已展示通知，中途修改通知内容，在通知中展示图片视频，自定义通知UI等一系列功能。</p>
+
+<!--more-->
+
 
 <p>对于开发者来说，想比较于之前版本，iOS10提供了一套非常易用通知处理接口，是SDK的一次重大重构，而之前的绝大部分通知相关API都已经被标为弃用(deprecated)</p>
 
