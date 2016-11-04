@@ -4,7 +4,7 @@
   <title><![CDATA[安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-10-28T20:07:26+08:00</updated>
+  <updated>2016-11-04T19:51:01+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -12,6 +12,954 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Ios中常见的面试题及答案]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/11/03/ioszhong-chang-jian-de-mian-shi-ti-ji-da-an/"/>
+    <updated>2016-11-03T17:50:01+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/11/03/ioszhong-chang-jian-de-mian-shi-ti-ji-da-an</id>
+    <content type="html"><![CDATA[<h2>ios中深拷贝和浅拷贝</h2>
+
+<p>在ios开发中，经常涉及到深拷贝和浅拷贝的问题，针对深拷贝和浅拷贝，为了方便大家的理解，专门总结如下:</p>
+
+<!--more-->
+
+
+<ul>
+<li>理解1</li>
+</ul>
+
+
+<p>浅拷贝是拷贝操作后，并没有进行真正的复制，而是另一个指针也指向了同一个地址。深拷贝，拷贝操作后，是真正的复制了一份，另一个指针指向了拷贝后的地址。如下图：A代表原有的指针，B代表拷贝的指针。（图一为浅拷贝，图二为深拷贝）</p>
+
+<p><img src="http://img.blog.csdn.net/20141218004439540?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvY3NkbkFhcm9u/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center" alt="1" /></p>
+
+<p><img src="http://img.blog.csdn.net/20141218004554327?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvY3NkbkFhcm9u/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center" alt="2" /></p>
+
+<p>从上图中可以看到，浅拷贝（浅复制）中如果其中A指针改变了所指向的地址的内容，那么B指针也指向了被修改的内容，如果有些地方用到B指针，即便A指向的内容发生变化，也不希望B收到影响，则需要用深拷贝，真正复制一份A指向的内容，B指向复制后的值，这样即使A指向的内容变化了，B也不会产生影响。好比：浅复制好比你的影子，你完蛋，你的影子也完蛋。深复制好比你和你的克隆人，你完蛋，你的克隆人依然活着。</p>
+
+<ul>
+<li>理解2</li>
+</ul>
+
+
+<p>深拷贝和浅拷贝的本质是地址相同，就是浅拷贝，地址不同就是深拷贝。</p>
+
+<p>iOS开发过程中，大体上会区分为对象和容器两个概念，对象的copy是浅拷贝，mutableCopy是深拷贝。容器也参照如上方法，但是需要记住，容器的包含对象的拷贝,无论使用copy,还是mutableCopy都将是浅拷贝，想要实现对象的深拷贝，必须自己提供拷贝的方法。</p>
+
+<ul>
+<li>理解3</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'> NSArray *array=[NSArray arrayWithObjects:@"one",@"two", nil];       
+</span><span class='line'> NSMutableArray *array1=[array copy];        
+</span><span class='line'>[array1 addObject:@"three"];  </span></code></pre></td></tr></table></div></figure>
+
+
+<p>//这段代码是错误的，array1通过copy进行的是浅拷贝，即并没有真正复制array，而是也指向了array,此时array是不可变数组，无法进行新数据的添加</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>NSArray *array=[NSArray arrayWithObjects:@"one",@"two", nil];       
+</span><span class='line'>NSMutableArray *array2=[array mutableCopy];        
+</span><span class='line'>[array2 addObject:@"three"];  </span></code></pre></td></tr></table></div></figure>
+
+
+<p>这段代码是正确的，array2通过mutableCopy进行的是深拷贝，即把array真正复制了一份，并且复制后，变味了NSMutableArray,此时array2是可变数组，可以添加数据</p>
+
+<blockquote><p>注意点:<em>(1)</em> 当使用mutableCopy时，不管源对象是否可变，副本是可变的，并且实现真正意义上的拷贝。当我们使用copy一个可变对象时，副本对象是不可变的。</p>
+
+<p><em>(2)</em>要想实现对象的自定义拷贝，必须实现NSCopying,NSMutableCopying协议，实现该协议的copyWithZone方法和mutableCopyWithZone方法。深拷贝和浅拷贝的区别就在于copyWithZone方法的实现。</p></blockquote>
+
+<h2>NSString属性什么时候用copy,什么时候用Strong?</h2>
+
+<p>我们定义一个类，并且为其声明两个字符串属性，如下所示：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>@interface TestStringClass ()
+</span><span class='line'>@property (nonatomic, strong) NSString *strongString;
+</span><span class='line'>@property (nonatomic, copy) NSString *copyedString;
+</span><span class='line'>@end</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上面的代码声明了两个字符串属性，其中一个内存特性是strong,一个是copy.下面我们来看看它们的区别。</p>
+
+<p>首先，我们用一个不可变字符串来为这两个属性赋值,</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (void)test {
+</span><span class='line'>    NSString *string = [NSString stringWithFormat:@"abc"];
+</span><span class='line'>    self.strongString = string;
+</span><span class='line'>    self.copyedString = string;
+</span><span class='line'>    NSLog(@"origin string: %p, %p", string, &string);
+</span><span class='line'>    NSLog(@"strong string: %p, %p", _strongString, &_strongString);
+</span><span class='line'>    NSLog(@"copy string: %p, %p", _copyedString, &_copyedString);
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>输出结果为:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>origin string: 0x7fe441592e20, 0x7fff57519a48
+</span><span class='line'>strong string: 0x7fe441592e20, 0x7fe44159e1f8
+</span><span class='line'>copy string: 0x7fe441592e20, 0x7fe44159e200</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们可以看到，这种情况下，不管是strong还是copy属性的对象，其指向的地址都是同一个，即为string执行的地址，如果我们换做MRC环境，打印string的引用计数的话，会看到其引用计数是3,即String操作和copy做做都使原字符串对象的引用计数值+1.</p>
+
+<p>接下来，我们把string由不可变改为可变对象，看看会是什么结果，即将下面这一句</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>NSString *string = [NSString stringWithFormat:@"abc"];</span></code></pre></td></tr></table></div></figure>
+
+
+<p>改成:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>NSMutableString *string = [NSMutableString stringWithFormat:@"abc"];</span></code></pre></td></tr></table></div></figure>
+
+
+<p>其输出结果为:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>origin string: 0x7ff5f2e33c90, 0x7fff59937a48
+</span><span class='line'>strong string: 0x7ff5f2e33c90, 0x7ff5f2e2aec8
+</span><span class='line'>copy string: 0x7ff5f2e2aee0, 0x7ff5f2e2aed0</span></code></pre></td></tr></table></div></figure>
+
+
+<p>可以发现，此时copy属性字符串已不再指向string字符串对象，而是深拷贝了string字符串，并让<em>copyedString对象指向这个字符串，在MRC环境下，打印两者的引用计数，可以看到string对象的引用计数是2，而</em>copyedString的引用计数是1</p>
+
+<p>此时，我们如果去修改string字符串的话，可以看到：因为<em>strongString和string都是指向同一个对象，所以</em>strongString的值会跟随者改变（需要注意的是，此时 <em>strongString 的类型实际上是NSmutableString,而不是NSString）而</em>copyedString指向的是另一个对象，所以并不会改变。</p>
+
+<h3>结论</h3>
+
+<p>由于NSMutableString是NSString的子类，所以一个NSString指针可以指向NSMutableString对象，让我们的StrongString指针指向一个可变字符串是OK的。</p>
+
+<p>而上面的例子可以看得出，当源字符串是NSString时，由于字符串是不可变的，所以，不管是Strong还是copy属性的对象，都是指向源对象，copy操作只是做了次浅拷贝。</p>
+
+<p>当源字符串是NSMUtableSring时，strong属性只是增加了源字符串的引用计数，而copy属性则是对源字符串做了次深拷贝，产生了一个新的对象，且copy属性对象指向这个新的对象。另外需要注意的是，这个copy属性对象的类型始终是NSString,而不是NSMutableString,因此其实不可变的。</p>
+
+<p>这里还有一个性能问题，即在源字符串是NSMutableString,strong是单纯的增加对象的引用计数，而copy操作是智行了一次深拷贝，所以性能上会有所差异，而如果源字符串是NSString时，则没有这个问题。</p>
+
+<h2>OC的理解和特性</h2>
+
+<ul>
+<li>OC 作为一门面向对象的语言，自然具有面向对象的语言特性：封装，继承，多台，它既有静态语言的特性（如C++），又有动态语言的效率（动态绑定，动态加载）。总体来讲，OC确实是一门不错的编程语言</li>
+<li><p>OC具有相当多的动态特性，表现为三个方面：动态类型（Dynamic typing）,动态绑定(Dynamic binding)和动态加载(Dynamic loading).动态-必须运行时（run time）才会做的事情</p></li>
+<li><p>动态类型：即运行时再决定对象的类型，这种动态特性在日常的应用中非常常见，简单说就是id类型，事实上，由于静态类型的固定性和可预知性，从而使用的更加广泛，静态类型是强类型，而动态类型属于弱类型，运行时决定接受者</p></li>
+<li>动态绑定：基于动态类型，在某个实例对象被确定后，其类型便被确定了，该对象对对那个的属性和响应消息也被完全确定。</li>
+<li>动态加载：根据需求加载所需要的资源，最基本就是不同机型的适配，例如，在Retain设备上加载@2x的图片，而在老一些的普通苹果设备上加载原图，让程序在运行时添加代码模块以及其他资源，用户可根据需要加载一些可执行代码和资源，而不是在启动时就加载所有组件，可执行代码可以含有和程序运行时整合的新类</li>
+</ul>
+
+
+<h2>简述内存管理的基本原则</h2>
+
+<ul>
+<li>之前：OC内存管理遵循“谁创建，谁释放，谁引用，谁管理”的机制，当创建活引用一个对象的时候，需要向它发送alloc,copy,retain消息，当释放该对象时需要发送release消息，当对象引用计数为0时，系统将释放该对象，这是OC的手动管理机制(MRC)</li>
+<li>目前：ios5之后引用自动管理机制-自动引用计数（ARC），管理机制和手动机制一样，只是不再需要调用retain,release,autorelease,它编译时的特性，当你使用arc时，在适当位置插入release和 autorelease;它引用strong和weak关键字，strong修饰的指针变量指向对象时，当指针指向新值或者指针不复存在，相关联的对象就会自动释放，而weak修饰的指针比那两指向对象，当对象的拥有者指向新值或者不存在时weak修饰的指针会自动设置为nil</li>
+<li>如果使用alloc,copy(mutableCopy)或者retain一个对象时，你就有义务向它发送一条release或者autorelease消息，其它方法创建的对象，不需要由你来管理内存。</li>
+<li>向一个对象发送一条autorelease消息，这个对象并不会立即销毁，而是将这个对象放入了自动释放池，待池子释放时，它会向池子中每个对象发送一条release消息，以此来释放对象</li>
+<li>向一个对象发送release消息，并不意味着这个对象被销毁了，而是当这个对象的引用计数为0时，系统才会调用dealloc方法，释放该对象和对象本身所拥有的实例。</li>
+</ul>
+
+
+<h2>其它注意事项</h2>
+
+<ul>
+<li>如果一个对象有一个<em>Strong类型的指针指向着，找个对象就不会被释放。如果一个指针指向超出了它的作用域，就会被指向nil.如果一个指针被指向nil,那么它原来指向的对象就被释放了，当一个视图控制器被释放时，它内部的全部指针会被指向nil.&ldquo;不管是全局变量还是局部变量用</em>Strong描述就行&rdquo;</li>
+<li>局部变量：出了作用域，指针会被设置为nil</li>
+<li>方法内部创建对象，外部使用需要添加_autorelease</li>
+<li>连线的时候，用_weak描述</li>
+<li>代理使用unsafe_unretained就相当于assign</li>
+<li>block中为了避免循环引用问题，使用_weak描述</li>
+<li>声明属性时，不要以new开头，如果非要以new开头命名属性的名字，需要自己定制get方法名，如</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>@property(getter=theString) NSString * newString;</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>如果要使用自动释放池，用@autoreleasepool{}</li>
+<li>ARC只能管理Foundation框架的变量，如果程序中把Foundation中的变量强制换成Core Foundation中的变量需要交换管理权</li>
+<li>在非ARC工程中采用ARC去编译某些类:<code>-fobjc-arc</code></li>
+<li>在ARC工程下采用非ARC去比哪一某些类:<code>-fno-fobjc-arc</code></li>
+</ul>
+
+
+<h2>如何理解MVC设计模式</h2>
+
+<p>mvc是一种架构模式，M表示Model，V表示视图View,C表示控制器Controller:
+* Model负责存储，定义，操作数据
+* View用来展示数据，和用户进行交互
+* Controller是Model和View的协调者，Controller把MOdel中的数据拿过来给View用，Controller可以直接与Model和View进行通信，而View不能和Controller直接通信。View与Controller通信需要利用代理协议的方式，当有数据更新时，Model也要与Controller进行通信，这个时候要用Notification和KVO,这个方式就像一个广播一样，Model刚发送信号，Contrller设置坚挺接受信号，当有数据更新时就发信号给Controller,Model和View不能直接进行通信，这样会违背MVC设计模式</p>
+
+<h2>如何理解MVVM设计模式</h2>
+
+<ul>
+<li>ViewModel层，就是View和Model层的粘合剂，他是一个放置用户输入验证逻辑，视图显示逻辑，发起网络请求和其它业务逻辑处理极好的地方，说白了，就是把原来ViewCOntroller层的业务逻辑和页面逻辑等剥离出来放到ViewModel层</li>
+<li>View层，就是ViewController层，它的任务就是从ViewModel层获取数据，然后显示</li>
+</ul>
+
+
+<h2>Objective-C 中是否支持垃圾回收机制？</h2>
+
+<ul>
+<li>OC是支持垃圾回收机制的,但是Apple的移动终端中，是不支持GC的，Mac桌面系统开发中是支持的。</li>
+<li>移动端开发是支持ARC的，ARC是在ios5之后推出的新技术，它与GC机制是不同的，我们在编写代码时，不需要想对象发送release或者autorelease方法，也不可以调用dealloc方法，编译器会在合适的位置自动给用户生成release消息，ARC的特点是自动引用计数简化了内存管理的难度</li>
+</ul>
+
+
+<h2>ARC下Assign和weak的区别</h2>
+
+<p>weak比assign对了一个功能就是当属性所指向的对象消失的时候（也就是内存引用计数为0）会自动赋值nil,这个再向weak修饰的属性发送消息就不会导致野指针操作crash.</p>
+
+<p>在arc模式下编程时，指针变量一定要用weak修饰，只有基本数据类型和结构体需要用assign，例如delegate,一定要用weak修饰。</p>
+
+<ul>
+<li>区别：如果用weak声明的变量在栈中就会自动清空，赋值为nil，如果用assign声明的变量在栈中可能不会自动赋值为nil,就会造成野指针错误</li>
+</ul>
+
+
+<h2>协议的基本概念和协议中方法默认什么类型</h2>
+
+<p>OC中的协议是一个方法列表。它的特点是可以被任何类使用（实现），但它并不是类，自身不会实现这样方法，而是有其它人来实现协议，经常用来实现委托对象，如果一个类采用了一个协议，那么它必须实现协议中必须需要实现的方法，在协议中的方法默认是必须实现的（@required）,添加关键字@optional,表明一旦采用该协议，这些可选的方法是可以不实现的</p>
+
+<h2>简述类目Category的有点和缺点</h2>
+
+<h3>优点</h3>
+
+<ul>
+<li>不需要通过增加子类而增加现有类的行为或方法，且类目中的方法与原始类方法基本没有区别：</li>
+<li>通过类目可以将庞大的一个类的方法进行划分，从而便于代码的日后的维护，更新及提高代码的阅读性</li>
+</ul>
+
+
+<h3>缺点</h3>
+
+<ul>
+<li>无法向类目中添加实例变量，如果需要添加实例变量，只能通过定义子类的方式</li>
+<li>类目中的方法与原始类以及父类方法相比具有更高优先级，如果覆盖弗雷的方法，可能导致super消息的断裂，因此，最好不要覆盖原始类中的方法。</li>
+</ul>
+
+
+<h2>循环引用产生额原因，以及解决方法</h2>
+
+<ul>
+<li>产生原因：如下图所示，对象A和对象B相互引用了对方作为自己的成员变量，只有自己销毁的时候才能将成员变量的引用计数减去1.对象A的销毁依赖于对象B的销毁，同事对象B销毁也依赖于对象A的销毁，从而形成了循环引用，此时，即使外界没有任何指针访问它，它也无法释放。
+<img src="http://devstorepic.qiniudn.com/FvDA-QQdrUBpndLKOmJgy6-vqM0F" alt="2" /></li>
+</ul>
+
+
+<p>对个对象之间依然会存在循环引用问题，形成一个环，在编程中，形成的环越大越不容易察觉，如下图所示：</p>
+
+<p><img src="http://devstorepic.qiniudn.com/Fk4cV48OjN9tUl-lDiU_ap5WWGUl" alt="1" /></p>
+
+<h3>解决方法</h3>
+
+<ul>
+<li>事先知道存在循环引用的地方，在合理的位置主动断开一个引用，让对象回收</li>
+<li>使用weak声明</li>
+</ul>
+
+
+<h2>键路径(keyPath),键值编码(KVC),键值观察(KVO)</h2>
+
+<h3>键路径</h3>
+
+<ul>
+<li>在一个给定的实体中，同一个属性的所有值具有相同的数据类型</li>
+<li>键-值编码技术用于进行这样的查找-它是一种间接访问对象属性的机制。键路径是一个由点做分隔符组成的字符串，用于指定一个连接在一起的对象性质序列。第一个键的性质是由先前的性质决定的，接下来每个键的值也是相对于前面的性质</li>
+<li><p>键路径使您可以以独立于模型实现的方式指定相关对象的性质。通过键路径，您可以指定对象图中的一个任意深度的路径，使其指向相关对象的特定属性</p>
+
+<h3>键值编码KVC</h3></li>
+<li><p>键值编码是一种间接访问对象的属性使用字符串来标识属性，而不是通过调用存取的方法，直接或通过实例变量访问的机制，非对象类型的变量将被自动封装或者解封成对象，很多情况下会简化程序代码；</p></li>
+<li>KVC的缺点：一旦使用KVC，你的编译器无法检查出错误，即不会对设置的键，键路径进行错误检查，且执行效率要地域合成存取器方法和自定的setter和getter方法，因为使用KVC键值编码，它必须先解析字符串，然后在设置或者访问对象的实例变量
+
+<h3>键值观察KVO</h3></li>
+<li>键值观察机制是一种能使的对象获取到其他对象属性变化的通知，极大的简化了代码</li>
+<li>实现KVO键值观察模式，被观察的对象必须使用KVC键值编码来修改它的实例变量，这样才能被观察者观察到，因此，KVC是KVO的基础</li>
+</ul>
+
+
+<h3>Demo</h3>
+
+<p>比如我自定义一个Button</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[self addObserver:self forKeyPath:@"highlighted" options:0 context:nil]; #pragma mark KVO 
+</span><span class='line'>- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context { 
+</span><span class='line'>     if ([keyPath isEqualToString:@"highlighted"] ) { 
+</span><span class='line'>      [self setNeedsDisplay]; } 
+</span><span class='line'>  }</span></code></pre></td></tr></table></div></figure>
+
+
+<p>对于系统是根据keypath去取的到相应的值发生改变，理论上来说是和KVC机制的道理是一样的。</p>
+
+<h3>KVC机制通过key找到value的原理</h3>
+
+<ul>
+<li>当通过KVC调用对象时，比如：<code>[self valueForKey:@”someKey”]</code>,程序会自动视图通过下面几种不同的方式解析这个调用。</li>
+<li>首先查找对象是否带有somekey这个方法，如果没找到，会继续查找对象是否带有somekey这个实例变量，如果还没有找到，程序会继续视图调用<code>-(id) valueForUndefinedKey:</code>这个方法，如果这个方法还是没有被实现的话，程序会抛出一个<code>NSUndefinedKeyException</code>错误</li>
+<li>补充：KVC在查找方法的时候，不仅会超照somekey这个方法，还会查找getsomeKey这个方法，前面加一个get,或者<em>someKey以</em>getsomeKey这几种形式，同时，查找实例变量的时候也会不仅仅查找somekey这个变量，也会查找_someKey这个变量是否存在</li>
+<li>设计<code>valueForUndefinedKey</code>方法的主要目的是当你使用-(id)valueForKey方法从对象中请求值时，对象能够在错误发生前，有最后的机会响应这个请求。</li>
+</ul>
+
+
+<h2>在Objective-C中如何实现KVO</h2>
+
+<ul>
+<li>注册观察者（注意：观察者和被观察者不会被保留也不会被释放）</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (void)addObserver:(NSObject *)observer forKeyPath:(NSString *)keyPath 
+</span><span class='line'>options:(NSKeyValueObservingOptions)options 
+</span><span class='line'>context:(void *)context;
+</span><span class='line'>
+</span><span class='line'>- (void)observeValueForKeyPath:(NSString *)keyPath 
+</span><span class='line'>ofObject:(id)object change:(NSDictionary *)change   context:(void *)context;
+</span><span class='line'>
+</span><span class='line'>- (void)removeObserver:(NSObject *)observer 
+</span><span class='line'>forKeyPath:(NSString *)keyPath;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>KVO 中谁要监听谁注册，然后响应进行处理，使得观察者与被观察者完全解耦。KVO只检测类中的属性，并且属性都是通过NSString来查找，编译器不会检错和补位，全部取决于自己</li>
+</ul>
+
+
+<h2>代理的作用</h2>
+
+<ul>
+<li>代理又叫委托，是一种设计模式，代理是对象与对象之间的通信交互，代理解除了对象之间的耦合性</li>
+<li>改变或传递控制链，允许一个类在某些特定时刻通知到其他类，而不需要获取到哪些类的指针，可以减少框架的复杂度</li>
+<li>另外一点，代理可以理解为java中回调监听机制的一种类似</li>
+<li>代理的属性常常是assign的原因：防止循环引用，以至于对象无法得到正确的释放</li>
+</ul>
+
+
+<h2>NSNotification、Block、Delegate和KVO的区别</h2>
+
+<ul>
+<li>代理是一种回调机制，且是一对一的关系，通知是一对多的关系，一个对向所有的观察者提供变更通知</li>
+<li>效率：Delegate比NSNotification高</li>
+<li>Delegate和Block一般是一对一的通信</li>
+<li>Delegate需要定义协议方法，代理对象实现协议方法，并且需要建立代理关系才可以实现通信</li>
+<li>Block:Block更加简洁，不需要定义繁琐的协议方法，但通信事件比较多的话，建议使用Delegate;</li>
+</ul>
+
+
+<h2>Objective-C中可修改和不可修改类型</h2>
+
+<ul>
+<li>可修改不可修改的集合类，就是可动态添加修改和不可动态添加修改</li>
+<li>比如NSArray和NSMutableArray,前者在初始化后的内存控件就是固定不变的，而后者可以添加修改等，可以动态申请的内存空间</li>
+</ul>
+
+
+<h2>当我们调用一个静态方法时，需要对对象进行release吗？</h2>
+
+<p>不需要，静态方法（类方法）创建一个对象时，对象已被放入自动释放池。在自定释放池被释放时，很有可能被销毁</p>
+
+<h2>当我们释放我们的对象时，为什么需要调用[super dealloc]方法，它的位置又是如何的呢？</h2>
+
+<ul>
+<li>因为子类的某些实例是继承自父类的，因此需要调用<code>[super dealloc]</code>方法，来释放父类拥有的实例，其实也就是子类本身的，一般来说我们优先释放子类拥有的实例，最后释放父类所拥有的实例</li>
+</ul>
+
+
+<h2>对谓词的认识</h2>
+
+<ul>
+<li>Cocoa中提供乐意一个<code>NSPredicate</code>类，该类主要用于指定过滤器的条件，每一个对象通过谓词进行筛选，判断条件是否匹配</li>
+</ul>
+
+
+<h2>static，self，super关键字的作用</h2>
+
+<ul>
+<li>函数体内static变量的作用范围为该函数体，不同于auto变量，该变量的内存只被分配了一次，因此其值在下次调用时扔维持上次的值</li>
+<li>在模块内的static全局变量可以被模块内所有函数访问，但不能被模块外其他函数访问</li>
+<li>在模块内的static函数只可被这一模块内的其他函数调用，这个函数的使用范围被限制在声明</li>
+<li>在类中的static成员变量属于整个类所拥有过，对类的所有对象只有一份拷贝</li>
+<li>self：当前消息的接受者</li>
+<li>super：向父类发送消息</li>
+</ul>
+
+
+<h2>include与#import的区别、#import 与@class 的区别</h2>
+
+<ul>
+<li>include和#import其效果相同，都是查询勒种定义的行为</li>
+<li>import不会引起交叉编译，确保头文件只会被导入一次</li>
+<li>@class的表明，只定义了类的名称，而具体类的行为是未知的，一般用于.h文件</li>
+<li>@class比#import编译效率更高</li>
+<li>此外@class和#import的主要区别在于解决引用死锁的问题</li>
+</ul>
+
+
+<h2>@public、@protected、@private @ fileprivate, open 它们的含义与作用</h2>
+
+<ul>
+<li>@public:对象的实例变量的作用域在任意地方都可以被访问</li>
+<li>@protected:对象的实例变量作用域在本类和子类都可以被访问到</li>
+<li>@private：实例变量的作用域只能在本类中访问</li>
+</ul>
+
+
+<h3>fileprivate</h3>
+
+<p>在原有的swift中的private其实并不是真正的私有，如果一个变量定义为private,在同一个文件中的其他类依然是可以访问到的。这个场景在使用extension的时候很明显</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>class User {
+</span><span class='line'>    private var name = "private"
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>extension User{
+</span><span class='line'>    var accessPrivate: String {
+</span><span class='line'>        return name
+</span><span class='line'>    }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样带来了两个问题：</p>
+
+<ul>
+<li>当我们标记为private时，意思为真的私有还是文件内共享呢？</li>
+<li>当我们如果意图为真正的私有时，必须保证这个类或者结构体在一个单独的文件内，否则可能同文件里其它的代码访问到</li>
+</ul>
+
+
+<p>由此，在swift3中，新增加了一个<code>fileprivate</code>来显示表明，这个元素的访问权限为文件内私有，过去的private对应现在的fileprivate,现在private则是真正的私有，离开了这个类或者结构体的作用域外面就无法访问到</p>
+
+<h3>open</h3>
+
+<p>open则是弥补public语义上的不足。
+现在public有两层含义:</p>
+
+<ul>
+<li>这个元素可以在其他作用域被访问</li>
+<li>这个元素可以在其他作用域被继承或者ovrride</li>
+</ul>
+
+
+<p>继承是一件危险的事情，尤其对于一个framework或者module的设计者而言，在自身的module内，类或者属性对于作者而言是清晰的，能否被继承或者ovrride都是可控制的。但是对于使用它的人，作者有时会希望传达出这个类或者属性不应该被继承或者修改，这个对应的就是final.</p>
+
+<p>final的问题在于标记之后，在任何地方都不能被ovrride,而对于lib的设计者而言，希望得到的是在module内可以ovrride,在被import到其他地方后其他用户使用的时候不能被ovrride.</p>
+
+<p>这就是<code>open</code>产生的初衷，通过open和public标记区别一个元素在其他module中是只能被访问还是可以被ovrride.</p>
+
+<p>例子:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>/// ModuleA:
+</span><span class='line'>
+</span><span class='line'>// 这个类在ModuleA的范围外是不能被继承的，只能被访问
+</span><span class='line'>public class NonSubclassableParentClass {
+</span><span class='line'>
+</span><span class='line'>    public func foo() {}
+</span><span class='line'>
+</span><span class='line'>    // 这是错误的写法，因为class已经不能被继承，
+</span><span class='line'>    // 所以他的方法的访问权限不能大于类的访问权限
+</span><span class='line'>    open func bar() {}
+</span><span class='line'>
+</span><span class='line'>    // final的含义保持不变
+</span><span class='line'>    public final func baz() {}
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>// 在ModuleA的范围外可以被继承
+</span><span class='line'>open class SubclassableParentClass {
+</span><span class='line'>    // 这个属性在ModuleA的范围外不能被override
+</span><span class='line'>    public var size : Int
+</span><span class='line'>
+</span><span class='line'>    // 这个方法在ModuleA的范围外不能被override
+</span><span class='line'>    public func foo() {}
+</span><span class='line'>
+</span><span class='line'>    // 这个方法在任何地方都可以被override
+</span><span class='line'>    open func bar() {}
+</span><span class='line'>
+</span><span class='line'>    ///final的含义保持不变
+</span><span class='line'>    public final func baz() {}
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>/// final的含义保持不变
+</span><span class='line'>public final class FinalClass { }
+</span><span class='line'>/// ModuleB:
+</span><span class='line'>
+</span><span class='line'>import ModuleA
+</span><span class='line'>
+</span><span class='line'>// 这个写法是错误的，编译会失败
+</span><span class='line'>// 因为NonSubclassableParentClass类访问权限标记的是public，只能被访问不能被继承
+</span><span class='line'>class SubclassA : NonSubclassableParentClass { }
+</span><span class='line'>
+</span><span class='line'>// 这样写法可以通过，因为SubclassableParentClass访问权限为 `open`.
+</span><span class='line'>class SubclassB : SubclassableParentClass {
+</span><span class='line'>
+</span><span class='line'>    // 这样写也会编译失败
+</span><span class='line'>    // 因为这个方法在SubclassableParentClass 中的权限为public，不是`open'.
+</span><span class='line'>    override func foo() { }
+</span><span class='line'>
+</span><span class='line'>    // 这个方法因为在SubclassableParentClass中标记为open，所以可以这样写
+</span><span class='line'>    // 这里不需要再声明为open，因为这个类是internal的
+</span><span class='line'>    override func bar() { }
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>open class SubclassC : SubclassableParentClass {
+</span><span class='line'>    // 这种写法会编译失败，因为这个类已经标记为open
+</span><span class='line'>    // 这个方法override是一个open的方法，则也需要表明访问权限
+</span><span class='line'>    override func bar() { } 
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>open class SubclassD : SubclassableParentClass {
+</span><span class='line'>    // 正确的写法，方法也需要标记为open
+</span><span class='line'>    open override func bar() { }    
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>open class SubclassE : SubclassableParentClass {
+</span><span class='line'>    // 也可以显式的指出这个方法不能在被override
+</span><span class='line'>    public final override func bar() { }    
+</span><span class='line'>}
+</span><span class='line'>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>现在的访问权限则依次为:open,public,internal,fileprivate,private.</p>
+
+<h2>iOS开发中数据持久性有哪几种？</h2>
+
+<p>数据存储的核心都是写文件</p>
+
+<ul>
+<li>属性列表：只有NSString,NSArray,NSdictionary,NSdata可以writeToFile;存储依旧是plist文件，plist文件可以存储7种数据类型：array,dictionary,string,bool,data,date,number</li>
+<li>对象序列化（对象归档）:对象序列化通过序列化的形式，键值关系存储到本地，转化为二进制刘，通过runtime实现自动化归档/解档，实现NSCoding协议必须实现的两个方法:</li>
+<li>编码(对象序列化):把不能直接存储到plist文件中得到数据，转化为二进制数据，NSData,可以存储到本地</li>
+<li>解码:(对象反序列化)把二进制数据转化为本来的类型</li>
+<li>SqlLite数据库：大量有规律的数据使用数据库</li>
+<li>CoreData:通过管理对象进行增删改查操作。它不是一个数据库，不仅可以使用SqlLite数据库来保持数据，也可以使用其他方式来存储数据，如:XML</li>
+</ul>
+
+
+<h3><em>CoreData介绍</em></h3>
+
+<ul>
+<li>CoreData是面向对象的API，COreData是ios中非常重要的一项技术，几乎在所有编写的程序中，CoreData都作为数据存储的基础</li>
+<li>CoreData是苹果官方提供的一套框架，用来解决与对象声明周期管理，对象关系管理和持久化等方面相关的问题</li>
+<li>大多数情况下，我们引用CoreData作为持久化数据的解决方法，并利用它作为持久护士数据映射为内存对象。提供的是对象-关系映射功能，也就是说，CoreData可以将Objective-C对象转为数据，保存到SQL中，然后将保存后的数据还原成OC对象</li>
+</ul>
+
+
+<h3><em>CoreData的特征:</em></h3>
+
+<ul>
+<li>通过CoreData管理应用程序的数据模型，可以极大程度减少需要编写的代码数量</li>
+<li>将对象数据存储在SQLite数据已获得性能优化</li>
+<li>提供NSFetchResultsController类用于管理表视图的数据，即将Core Data的持久化存储在表视图中，并对这些数据进行管理：增删改查</li>
+<li>管理 undo/redo操作</li>
+<li>检查托管对象的属性值是否正确</li>
+</ul>
+
+
+<h3><em>CoreData的6个成员对象</em></h3>
+
+<ol>
+<li>NSManageObject：被管理的数据记录Managed Object Model是描述应用程序数据模型，这个模型包含实体(Entity),特性(Property)，读取请求(Fetch Request)等</li>
+<li>NSManageObjectContext：管理对象的上下文，持久化存储模型对象，参与数据对象进行各种操作的全过程，并检测数据对象的变化，以提供对undo/redo的支持及更新绑定到数据的UI</li>
+<li>NSPersistentStoreCoordinator：连接数据库的Persistent Store Coordinator,相当于数据文件管理器，处理底层的对数据文件的读取和写入，一般我们与这个没有交集</li>
+<li>NSManagedObjectModel：被管理的数据模型，数据结构</li>
+<li>NSFetchRequest：数据请求</li>
+<li>NSEntityDescription：表格实体结构，还需知道. xcdatamodel文件编译后为<code>.momd</code>或者<code>.mom</code>文件。</li>
+</ol>
+
+
+<h3>Core Data 的功能</h3>
+
+<ul>
+<li>对于KVC和KVO完整且自动化的支持，除了为属性整合KVO和KVC访问方法外，还整合了适当的集合访问方法来处理多值关系</li>
+<li>自动验证属性值</li>
+<li>支持跟踪修改和撤销操作</li>
+<li>关系维护，CoreData管理数据的关系传播，包括维护对象之间的一致性</li>
+<li>在内存上和界面上分组，过滤，组织数据</li>
+<li>自动支持对象存储在外部数据仓库的功能</li>
+<li>创建复杂请求：无需动手写SQL语句，在获取请求(Fetch request)中关联 NSPredicate,NSPredicated支持基本功能，想关子查询和其它高级的sql特性。它支持正确的Unicode编码，区域感知查询，排序和正则表达式</li>
+<li>延迟操作：CoreData使用懒加载方式减少内存负载，还支持部分实体化延迟加载和复制队形的数据共享机制</li>
+<li>合并策略：COreData内置版本跟踪和乐观锁来支持多用户写入冲突的解决，其中，乐观锁就是对局冲突进行检测，若冲突就返回冲突的信息</li>
+<li>数据迁移：CoreData的Schema Migration工具尅简化对应数据库结构变化的任务，在某些情况下允许你执行高效率的数据库原地迁移工作</li>
+<li>可选择针对程序Controller层的集成，来支持UI的显示同步core data在iphone os之上，提供NSFetchedResultsController对象来做相关工作，在Mac OS上我们用Cocoa提供的绑定机制来完成的</li>
+</ul>
+
+
+<h2>对象可以被Copy的条件</h2>
+
+<p>只有实现了NSCopying和NSMutableCopying协议的类的对象才能被拷贝分为不可变拷贝和可变拷贝，</p>
+
+<ul>
+<li>NSCopying协议方法为:</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (id)copyWithZone:(NSZone *)zone {
+</span><span class='line'> MyObject *copy = [[[self class] allocWithZone: zone] init]; copy.username = [self.username copyWithZone:zone]; return copy;
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>在某个方法中 self.name = <em>name，name = </em>name 它 们有区别吗,为什么?</h2>
+
+<ul>
+<li>前者是存在内存管理的setter方法赋值，它会对_name对象进行保留或者拷贝操作</li>
+<li>后者是普通赋值</li>
+<li>一般来说，在对象的方法里成员变量和方法都是可以访问的，我们通常会重写setter方法来执行某些额外的工作，比如说，外部传一个模型过来，那么我会直接重写setter方法，当模型传来时，也就意味着数据发生了变化，那么视图也需要更新显示，则在赋值新模型的同时也去刷新UI</li>
+</ul>
+
+
+<h2>解释self=[super init]方法</h2>
+
+<ul>
+<li>容错处理，当父类初始化失败，会返回一个nil,表示初始化事变，由于继承的关系，子类是需要拥有父类的实例和行为，因此，我们必须先初始化父类，然后再初始化子类</li>
+</ul>
+
+
+<h2>定义属性时,什么时候用 assign、retain、copy 以及它们的之间的区别</h2>
+
+<ul>
+<li>assign:普工赋值，一般常用于基本数据类型，常见委托设计模式，一次来防止循环引用（我们成为弱引用）</li>
+<li>retain:保留计数，获得到了对象的所有权，引用计数在原有的基础上加1</li>
+<li>copy:一般认为，是在内存中重新开辟了一个新的内存空间，用来存储新的对象，和原来的对象是两个不同的地址，引用计数分别1.当时当copy对象为不可变对象时，那么copy的作用相当于retain,因此，这样可以节约内存空间</li>
+</ul>
+
+
+<h3>堆和栈的区别</h3>
+
+<ul>
+<li>栈区(stack)由编译器自动分配释放，存放方法（函数）的参数值，局部变量的值等，栈是由低地址扩展的数据结构，是以一块连续的内存的区域。即栈顶的地址和栈的最大容量是系统预先规定好的</li>
+<li>堆区（heap）：一般是由程序员分配释放，弱程序员不释放，程序结束时由OS回收，向高地址扩展的数据结构，是不连续的内存区域，从而堆获得的空间比较灵活</li>
+<li>碎片问题：对于堆来讲，频繁的new/delete势必会造成内存空间的不连续，从而造成大量的碎片，使的程序效率降低。对于栈来讲，则不会存在这个问题，因为栈是先进后出的队列，他们是如此的一一对应，以至于永远都不能有一个内存块从栈中间弹出</li>
+<li>分配方式：堆都是动态分配的，没有静态分配的堆。栈有2种分配方式：静态分配和动态分配。静态分配是编译器完成的，比如局部变量的分配。动态分配是由alloc函数进行分配，但是栈的动态分配和堆是不同的，它的动态分配是由编译器进行释放，无需我们手工实现</li>
+<li>分配效率：栈是机器系统提供的数据结构，计算机会在底层对栈提供支持：分配专门的寄存器放栈的地址，压栈出栈都有专门的指令执行，这就决定了栈的效率比较高。堆是C/C++函数库提供的，它的机制是很复杂的</li>
+<li>全局区(静态区)(static):全局变量和静态变量的存储是放在一块的。初始化的全局变量和静态变量在一块区域，未初始化的全局变量和未初始化的静态变量在相邻的另一块区域。程序结束后由系统释放</li>
+<li>文字常量区：常量字符串就是存放在这里的额，程序结束后由系统释放</li>
+<li>程序代码区：存放函数体的二进制代码</li>
+</ul>
+
+
+<h2>怎样使用performSelector传入3个以上的参数，其中一个为结构体</h2>
+
+<ul>
+<li>因为系统提供的performSelector的API中，并没有提供三个参数，因此，我们只能传数组或者字典，但是数组或者字典只有存入对象类型，而结构体并不是对象类型，我们只能通过对象放入结构作为属性来传过去了。</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'> - (id)performSelector:(SEL)aSelector; 
+</span><span class='line'> - (id)performSelector:(SEL)aSelector withObject:(id)object; 
+</span><span class='line'> - (id)performSelector:(SEL)aSelector withObject:
+</span><span class='line'>    (id)object1 withObject:(id)object2;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>具体实现如下:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>typedef struct HYBStruct {
+</span><span class='line'>int a;
+</span><span class='line'>int b;
+</span><span class='line'>} *my_struct;
+</span><span class='line'>@interface HYBObject : NSObject
+</span><span class='line'>@property (nonatomic, assign) my_struct arg3;
+</span><span class='line'>@property (nonatomic, copy)  NSString *arg1;
+</span><span class='line'>@property (nonatomic, copy) NSString *arg2;
+</span><span class='line'>
+</span><span class='line'>@end
+</span><span class='line'>@implementation HYBObject
+</span><span class='line'>
+</span><span class='line'>// 在堆上分配的内存，我们要手动释放掉- (void)dealloc {
+</span><span class='line'>free(self.arg3);
+</span><span class='line'>
+</span><span class='line'>}@end</span></code></pre></td></tr></table></div></figure>
+
+
+<p>测试:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>my_struct str = (my_struct)(malloc(sizeof(my_struct)));
+</span><span class='line'>str-&gt;a = 1;
+</span><span class='line'>str-&gt;b = 2;
+</span><span class='line'>HYBObject *obj = [[HYBObject alloc] init];
+</span><span class='line'>obj.arg1 = @"arg1";
+</span><span class='line'>obj.arg2 = @"arg2";
+</span><span class='line'>obj.arg3 = str; 
+</span><span class='line'>[self performSelector:@selector(call:) withObject:obj]; 
+</span><span class='line'>// 在回调时得到正确的数据的- (void)call:(HYBObject *)obj { NSLog(@"%d %d", obj.arg3-&gt;a, obj.arg3-&gt;b);
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>UITableViewCell有个UIlabel,显示NSTimer实现的秒表时间，手指滚动cell过程中，label是否刷新，为什么？</h2>
+
+<p>这是否刷新取决于timer加入到run loop中的mode是什么。Mode主要是用来指定事件在运行循环中的优先级的，分为：</p>
+
+<ul>
+<li>NSDefaultRunLoopMode（kCFRunLoopDefaultMode）：默认，空闲状态</li>
+<li>UITrackingRunLoopMode：ScrollView 滑动时切换到该Mode</li>
+<li>UIInitializationRunLoopMode：run loop启动时，会切换到该Mode</li>
+<li>NSRunLoopCommonModes（kCFRunLoopCommonModes）:Mode集合苹果公开提供的Mode有两个：</li>
+<li>NSDefaultRunLoopMode（kCFRunLoopDefaultMode）</li>
+<li>NSRunLoopCommonModes（kCFRunLoopCommonModes）</li>
+<li>在编程中，如果我们把一个NStimer对象以NSDefaultRunLoopMode（kCFRunLoopDefaultMode）添加到主运行循环中的时候，ScrollView滚动的过程中会因为mode的切换，而导致NSTimer将不再被调度，当我们滚动的时候，也希望不调度，那就应该使用该模式。
+但是，我们希望在滚动的时候，定时器也要回调，那就应该使用common mode</li>
+</ul>
+
+
+<h2>对于单元格重用的理解</h2>
+
+<ul>
+<li>当cell滑动屏幕时，系统会把这个单元格添加到重用队列中，等待被重用，当有新单元格从屏幕外划入屏幕内部时，从重用队列中找看有没有可重用的单元格，若有，就直接用，没有就重新创建一个</li>
+</ul>
+
+
+<h2>解决Cell重用的问题</h2>
+
+<ul>
+<li>UITableview通过重用单元格来达到节省内存的额目的，通过为每个单元格制定一个重用标识（reuseidentifier），即指定了单元格的种类，以及当单元格滚出屏幕时，允许恢复单元格以便复用。对于不同种类的单元格使用不同的Id，对于简单的表格，一个标识符就够了</li>
+<li>如一个TableView中又10个单元格，但屏幕最多显示4个，实际上iPHone只为其分配了4个单元格的内存，没有分配10个，当关东单元格时，屏幕内显示的单元格重复使用这4个内存。实际上分配的cell的格式为屏幕最大显示数，当有新的cell进入屏幕时，会随你调用已经滚出屏幕的cell所占的内存，这就是cell的重用</li>
+<li>对于多变的自定义cell,这种重用机制会导致内容出错，为解决这种出错的方法，把原来的</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>UITableViewCell *cell = [tableview dequeueReusableCellWithIdentifier:defineString]
+</span><span class='line'>修改为：UITableViewCell *cell = [tableview cellForRowAtIndexPath:indexPath];</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样就解决掉cell重用机制导致的问题，但是数据量多的情况，会有性能问题</p>
+
+<h2>有a、b、c、d 4个异步请求，如何判断a、b、c、d都完成执行？如果需要a、b、c、d顺序执行，该如何实现？</h2>
+
+<p>对于这4个异步请求，要判断都执行完成最简单的方式就是通过GCD的group来实现：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+</span><span class='line'>dispatch_group_t group = dispatch_group_create();
+</span><span class='line'>dispatch_group_async(group, queue, ^{ /*任务a */ });
+</span><span class='line'>dispatch_group_async(group, queue, ^{ /*任务b */ });
+</span><span class='line'>dispatch_group_async(group, queue, ^{ /*任务c */ }); 
+</span><span class='line'>dispatch_group_async(group, queue, ^{ /*任务d */ }); 
+</span><span class='line'>dispatch_group_notify(group,dispatch_get_main_queue(), ^{ // 在a、b、c、d异步执行完成后，会回调这里});
+</span><span class='line'>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>当然，我们还可以使用非常老套的方法来处理，通过4个变量来标识a,b,c,d四个人物是否完成，然后在runloop中让其等待，当完成时才退出runloop.但是这样做会让后面的代码得不到执行，直到Runloop执行完成</li>
+<li>解释：要求顺序执行，那么可以将任务放到串行队列中，自然就是按顺序来异步执行了。</li>
+</ul>
+
+
+<h2>使用block有什么好处？使用NSTimer写出一个使用block显示（在UIlabel上）秒表的代码</h2>
+
+<ul>
+<li>代码紧凑，传值，回调都很方便，省去了写代理的很多代码</li>
+<li>NSTimer封装成block</li>
+<li>实现方法:</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>NSTimer *timer = [NSTimer scheduledTimerWithTimeInterval:1.0
+</span><span class='line'>                              repeats:YES
+</span><span class='line'>                             callback:^() {
+</span><span class='line'>  weakSelf.secondsLabel.text = ...
+</span><span class='line'>}
+</span><span class='line'>[[NSRunLoop currentRunLoop] addTimer:timer forMode:NSRunLoopCommonModes]</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>线程和进程的区别和联系？</h2>
+
+<ul>
+<li>一个程序至少要有进程，一个进程至少要有一个线程</li>
+<li>进程：资源分配的最小独立单元，进程是具有一定独立功能的程序关于某个数据集合上的一次运行活动，进程是系统进行资源分配和调度的一个独立单位</li>
+<li>线程：进程下的一个分支，是进程的实体，是CPU调度和分派的基本单元，它是比进程更小的能独立运行的基本单位，线程自己基本不拥有系统资源，只拥有一点在运行中不可少的资源（程序计数器，一组寄存器，栈）但是它可与同属一个进程的其他线程共享进程所拥有的全部资源</li>
+<li>进程和线程的主要差别在于他们是不同的操作系统资源管理方式。进程有独立的地址空间，一个进程崩溃后，在保护模式下不会对其他进程产生影响，而线程只是一个进程中的不同的执行路径。线程有自己的堆栈和局部变量，但线程之间没有单独的地址空间，一个线程死掉就等于这个进程死掉，所以多进程的程序要比多线程的程序健壮，但在进程切换时，耗费资源比较大，效率要差一些</li>
+<li>但对于一些要求同事进行并且又要共享某些变量的并发造作，只能用线程，不能用进程</li>
+</ul>
+
+
+<h2>多线程编程</h2>
+
+<ul>
+<li>NSThread:当需要进行一些耗时操作时会把耗时的操作放到线程中，线程同步：多个线程同事访问一个数据会出问题，NSlock,线程同步块，@synchronized(self){}。</li>
+<li>NSOperationQueue操作队列（不需要考虑线程同步问题）。编程的重点都放在main里面，NSInvocationOperation, BSBlockOperation，自定义Operaton.创建一个操作绑定相应的方法，当把操作添加到操作队列中时，操作绑定的方法就会自动执行了，当把操作添加到队列中时，默认会调用main方法。</li>
+<li>GCD（<code>Grand Central Dispatch</code>）宏大的中央调度，串行队列，并发队列，主线程队列</li>
+<li>同步和异步：同步指第一个任务不执行完，不会开始第二个，异步是不管第一个有没有执行完，都开始第二个</li>
+<li>串行和并行：串行是多个任务按照一定的顺序执行，并行是多个任务同事执行</li>
+<li>代码是在分线程执行，在主线程刷新UI</li>
+</ul>
+
+
+<h3>多线程编程是防止主线程堵塞，增加运行效率的最佳方法</h3>
+
+<ul>
+<li>Apple提供了NSOperation这个类，提供了一个优秀的多线程编程方法</li>
+<li>一个NSOperationQueue操作队列，相当于一个线程管理器，而非一个线程，因为你可以设置这个想成管理器可以并行运行的线程数量等</li>
+<li>多线程是一个比较轻量级的方法来实现单个应用程序内多个代码执行路径</li>
+<li>iPhoneOS下的主线程的堆栈大小是1M。第二个线程开始就是512KB，并且该值不能通过编译器开关或线程API函数来更改，只有主线程有直接修改UI的能力</li>
+</ul>
+
+
+<h2>定时器与线程的区别：</h2>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[自定义UICollectionViewLayout]]></title>
@@ -8099,443 +9047,6 @@ Swift的两段时构造过程跟Objective-C中的构造过程类似。最主要�
 
 
 <p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/1511481-43f4b4134597cd19.png" alt="e" /></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Runtime运行时入门]]></title>
-    <link href="http://andrew-anlu.github.io/blog/2016/05/04/runtimeyun-xing-shi-ru-men/"/>
-    <updated>2016-05-04T14:36:36+08:00</updated>
-    <id>http://andrew-anlu.github.io/blog/2016/05/04/runtimeyun-xing-shi-ru-men</id>
-    <content type="html"><![CDATA[<h2>什么是Rumtime</h2>
-
-<p>我们写的代码在程序运行过程中都会被转化成runtime的C代码执行，例如<code>[target dosomething]</code>会被转化成 <code>objc_msgSend(target,@selector(doSomething));</code>.</p>
-
-<!--more-->
-
-
-<p>oc中一切都被设计成了对象，我们都知道一个类被初始化成一个实例，这个实例是一个对象，实际上一个类本质上也是一个对象，在runTime中用结构体表示:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>/// 描述类中的一个方法
-</span><span class='line'>typedef struct objc_method *Method;
-</span><span class='line'>
-</span><span class='line'>/// 实例变量
-</span><span class='line'>typedef struct objc_ivar *Ivar;
-</span><span class='line'>
-</span><span class='line'>/// 类别Category
-</span><span class='line'>typedef struct objc_category *Category;
-</span><span class='line'>
-</span><span class='line'>/// 类中声明的属性
-</span><span class='line'>typedef struct objc_property *objc_property_t;</span></code></pre></td></tr></table></div></figure>
-
-
-<p>类在rumtime中的表示:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>//类在runtime中的表示
-</span><span class='line'>struct objc_class {
-</span><span class='line'>    Class isa;//指针，顾名思义，表示是一个什么，
-</span><span class='line'>    //实例的isa指向类对象，类对象的isa指向元类
-</span><span class='line'>
-</span><span class='line'>#if !__OBJC2__
-</span><span class='line'>    Class super_class;  //指向父类
-</span><span class='line'>    const char *name;  //类名
-</span><span class='line'>    long version;
-</span><span class='line'>    long info;
-</span><span class='line'>    long instance_size
-</span><span class='line'>    struct objc_ivar_list *ivars //成员变量列表
-</span><span class='line'>    struct objc_method_list **methodLists; //方法列表
-</span><span class='line'>    struct objc_cache *cache;//缓存
-</span><span class='line'>    //一种优化，调用过的方法存入缓存列表，下次调用先找缓存
-</span><span class='line'>    struct objc_protocol_list *protocols //协议列表
-</span><span class='line'>    #endif
-</span><span class='line'>} OBJC2_UNAVAILABLE;
-</span><span class='line'>/* Use `Class` instead of `struct objc_class *` */</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>获取列表</h2>
-
-<p>有时会有这样的需求，我们需要知道当前类中每个属性的名字(比如字典转模型，字典的key和模型对象的属性名字不匹配).</p>
-
-<p>我们可以通过runtime的一系列方法获取类的一些信息(包括属性列表，方法列表，成员变量等)</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'> unsigned int count;
-</span><span class='line'>    //获取属性列表
-</span><span class='line'>    objc_property_t *propertyList = class_copyPropertyList([self class], &count);
-</span><span class='line'>    for (unsigned int i=0; i&lt;count; i++) {
-</span><span class='line'>        const char *propertyName = property_getName(propertyList[i]);
-</span><span class='line'>        NSLog(@"property----&gt;%@", [NSString stringWithUTF8String:propertyName]);
-</span><span class='line'>    }
-</span><span class='line'>
-</span><span class='line'>    //获取方法列表
-</span><span class='line'>    Method *methodList = class_copyMethodList([self class], &count);
-</span><span class='line'>    for (unsigned int i; i&lt;count; i++) {
-</span><span class='line'>        Method method = methodList[i];
-</span><span class='line'>        NSLog(@"method----&gt;%@", NSStringFromSelector(method_getName(method)));
-</span><span class='line'>    }
-</span><span class='line'>
-</span><span class='line'>    //获取成员变量列表
-</span><span class='line'>    Ivar *ivarList = class_copyIvarList([self class], &count);
-</span><span class='line'>    for (unsigned int i; i&lt;count; i++) {
-</span><span class='line'>        Ivar myIvar = ivarList[i];
-</span><span class='line'>        const char *ivarName = ivar_getName(myIvar);
-</span><span class='line'>        NSLog(@"Ivar----&gt;%@", [NSString stringWithUTF8String:ivarName]);
-</span><span class='line'>    }
-</span><span class='line'>
-</span><span class='line'>    //获取协议列表
-</span><span class='line'>    __unsafe_unretained Protocol **protocolList = class_copyProtocolList([self class], &count);
-</span><span class='line'>    for (unsigned int i; i&lt;count; i++) {
-</span><span class='line'>        Protocol *myProtocal = protocolList[i];
-</span><span class='line'>        const char *protocolName = protocol_getName(myProtocal);
-</span><span class='line'>        NSLog(@"protocol----&gt;%@", [NSString stringWithUTF8String:protocolName]);
-</span><span class='line'>    }</span></code></pre></td></tr></table></div></figure>
-
-
-<p><em>注意：不要忘记在类的顶部导入头文件<code>#import &lt;objc/runtime.h&gt;</code></em></p>
-
-<h2>方法调用</h2>
-
-<p>让我们看一下在运行时方法的调用</p>
-
-<p>如果用实例对象调用实例方法，回到实例的isa指针指向的对象（也就是类对象）操作。如果调用的是类方法，就回到类对象的isa指针指向的对象（也就是元类对象）中操作。</p>
-
-<ol>
-<li>首先，在相应操作的对象中的缓存方法列表汇总找调用的方法，如果找到，转向相应实现并执行</li>
-<li>如果没有找到，在相应操作的对象 中的方法列表中找调用的方法，如果找到，转向相应的实现执行</li>
-<li>如果没有找到，去父类指针所指向的对象中执行1,2</li>
-<li>以此类推，如果一直到根类还没找到，转向拦截调用</li>
-<li>如果没有重写拦截调用的方法，程序报错</li>
-</ol>
-
-
-<h2>拦截调用</h2>
-
-<p>在方法调用中说到了，如果没有找到方法就会转向拦截调用。
-什么是拦截调用呢</p>
-
-<p>拦截调用就是，在找不到调用的方法程序崩溃之前，你有机会通过重写 NSObject的四个方法来处理.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>+ (BOOL)resolveClassMethod:(SEL)sel;
-</span><span class='line'>+ (BOOL)resolveInstanceMethod:(SEL)sel;
-</span><span class='line'>//后两个方法需要转发到其他的类处理
-</span><span class='line'>- (id)forwardingTargetForSelector:(SEL)aSelector;
-</span><span class='line'>- (void)forwardInvocation:(NSInvocation *)anInvocation;</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>第一个方法是当你调用一个不存在的类或者方法的时候，会调用这个方法，默认返回NO,你可以加上自己的处理然后返回YES</li>
-<li>第二个方法和第一个相似，只不过处理的是实例方法</li>
-<li>第三个方法是将你调用的不存在的方法重定向到一个其他声明了这个方法的类，只需要你返回一个有这个方法的target</li>
-<li>第四个方法是将你调用的不存在的方法打包成<code>NSinvocation</code>传给你，做完你自己的处理后，调用<em>invokeWithTarget:</em>方法让某个target触发这个方法</li>
-</ul>
-
-
-<h2>动态添加方法</h2>
-
-<p>重写了拦截调用的方法并且返回了YES，我们要怎么处理呢?
-有一个办法就是根据传进来的<em>sel</em>类型的selector动态添加一个方法。</p>
-
-<p>首先从外部隐式调用一个不存在的方法:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>//隐式调用方法
-</span><span class='line'>[target performSelector:@selector(resolveAdd:) withObject:@"test"];</span></code></pre></td></tr></table></div></figure>
-
-
-<p>然后，在target对象内部重写拦截调用的方法，动态添加方法：</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>void runAddMethod(id self, SEL _cmd, NSString *string){
-</span><span class='line'>    NSLog(@"add C IMP ", string);
-</span><span class='line'>}
-</span><span class='line'>+ (BOOL)resolveInstanceMethod:(SEL)sel{
-</span><span class='line'>
-</span><span class='line'>    //给本类动态添加一个方法
-</span><span class='line'>    if ([NSStringFromSelector(sel) isEqualToString:@"resolveAdd:"]) {
-</span><span class='line'>        class_addMethod(self, sel, (IMP)runAddMethod, "v@:*");
-</span><span class='line'>    }
-</span><span class='line'>    return YES;
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>其中<code>class_addMethod</code>的四个参数分别是:</p>
-
-<ol>
-<li><em>Class cls</em>给那个类添加方法，本例中是self</li>
-<li><em>SEL name</em>添加的方法，本例中是重写的拦截调用传进来selector</li>
-<li><em>IMP imp</em>方法的实现，C方法的方法实现可以直接获得。如果是OC方法，可以用<code>+ (IMP)instanceMethodForSelector:(SEL)aSelector;</code>获得方法的实现</li>
-<li><code>"v@:*"</code>方法的签名，代表有一个参数的方法，返回值是void,如果是<code>i</code>，就是返回int</li>
-</ol>
-
-
-<h2>关联对象</h2>
-
-<p>现在你准备用系统的一个类，但是系统的类并不能满足你的需求，你需要额外添加一个属性。</p>
-
-<p>这种情况的一般解决办法就是继承。</p>
-
-<p>但是只增加一个属性，就去继承一个类，总是觉得太麻烦</p>
-
-<p>这个时候，runtime的关联属性就发挥它的作用了。</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>//首先定义一个全局变量，用它的地址作为关联对象的key
-</span><span class='line'>static char associatedObjectKey;
-</span><span class='line'>//设置关联对象
-</span><span class='line'>objc_setAssociatedObject(target, &associatedObjectKey, @"添加的字符串属性", OBJC_ASSOCIATION_RETAIN_NONATOMIC); //获取关联对象
-</span><span class='line'>NSString *string = objc_getAssociatedObject(target, &associatedObjectKey);
-</span><span class='line'>NSLog(@"AssociatedObject = %@", string);</span></code></pre></td></tr></table></div></figure>
-
-
-<p><code>objc_setAssociatedObject</code>的四个参数:</p>
-
-<ol>
-<li><em>id object</em> 给谁设置关联对象</li>
-<li><code>const void *key</code>关联对象唯一的key,获取时会用到</li>
-<li><em>id value</em>关联对象</li>
-<li><em>objc_AssociationPolicy</em>关联策略，共有以下几种策略</li>
-</ol>
-
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>enum {
-</span><span class='line'>    OBJC_ASSOCIATION_ASSIGN = 0,
-</span><span class='line'>    OBJC_ASSOCIATION_RETAIN_NONATOMIC = 1, 
-</span><span class='line'>    OBJC_ASSOCIATION_COPY_NONATOMIC = 3,
-</span><span class='line'>    OBJC_ASSOCIATION_RETAIN = 01401,
-</span><span class='line'>    OBJC_ASSOCIATION_COPY = 01403 
-</span><span class='line'>};</span></code></pre></td></tr></table></div></figure>
-
-
-<p>如果你熟悉OC，看名字就能知道几种策略的意思了吧</p>
-
-<p><code>objc_getAssociatedObject</code>用来获取关联属性，它用到了两个参数:</p>
-
-<ol>
-<li><em>id object</em>获取谁的关联对象</li>
-<li><code>const void *key</code>根据这个唯一的key获取关联对象</li>
-</ol>
-
-
-<p>其实，你还可以吧添加和获取关联对象的方法卸载你需要用到这个功能类的类别中，方便调用:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>//添加关联对象
-</span><span class='line'>- (void)addAssociatedObject:(id)object{
-</span><span class='line'>    objc_setAssociatedObject(self, @selector(getAssociatedObject), object, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-</span><span class='line'>}
-</span><span class='line'>//获取关联对象
-</span><span class='line'>- (id)getAssociatedObject{
-</span><span class='line'>    return objc_getAssociatedObject(self, _cmd);
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<blockquote><p><em>注意</em></p>
-
-<p>这里我们把<code>getAssociatedObject</code>方法的地址作为唯一的key,<em>_cmd</em>代表当前调用方法的地址</p></blockquote>
-
-<h2>方法交换</h2>
-
-<p>方法交换，顾名思义，及时将两个方法的实现交换。例如，将A方法和B方法交换，调用A方法的时候，就会执行B方法的代码，反之亦然。</p>
-
-<p>开发使用场景:系统自带的方法功能不够，给系统自带的方法扩展一些功能，并且保持原有的功能。
-方式一:继承系统的类，重写方法.
-方式二:使用runtime,交换方法.</p>
-
-<p>参考网上的代码:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>#import "UIViewController+swizzling.h"
-</span><span class='line'>#import &lt;objc/runtime.h&gt;
-</span><span class='line'>
-</span><span class='line'>@implementation UIViewController (swizzling)
-</span><span class='line'>
-</span><span class='line'>//load方法会在类第一次加载的时候被调用
-</span><span class='line'>//调用的时间比较靠前，适合在这个方法里做方法交换
-</span><span class='line'>+ (void)load{
-</span><span class='line'>    //方法交换应该被保证，在程序中只会执行一次
-</span><span class='line'>    static dispatch_once_t onceToken;
-</span><span class='line'>    dispatch_once(&onceToken, ^{
-</span><span class='line'>
-</span><span class='line'>        //获得viewController的生命周期方法的selector
-</span><span class='line'>        SEL systemSel = @selector(viewWillAppear:);
-</span><span class='line'>        //自己实现的将要被交换的方法的selector
-</span><span class='line'>        SEL swizzSel = @selector(swiz_viewWillAppear:);
-</span><span class='line'>        //两个方法的Method
-</span><span class='line'>        Method systemMethod = class_getInstanceMethod([self class], systemSel);
-</span><span class='line'>        Method swizzMethod = class_getInstanceMethod([self class], swizzSel);
-</span><span class='line'>
-</span><span class='line'>        //首先动态添加方法，实现是被交换的方法，返回值表示添加成功还是失败
-</span><span class='line'>        BOOL isAdd = class_addMethod(self, systemSel, method_getImplementation(swizzMethod), method_getTypeEncoding(swizzMethod));
-</span><span class='line'>        if (isAdd) {
-</span><span class='line'>            //如果成功，说明类中不存在这个方法的实现
-</span><span class='line'>            //将被交换方法的实现替换到这个并不存在的实现
-</span><span class='line'>            class_replaceMethod(self, swizzSel, method_getImplementation(systemMethod), method_getTypeEncoding(systemMethod));
-</span><span class='line'>        }else{
-</span><span class='line'>            //否则，交换两个方法的实现
-</span><span class='line'>            method_exchangeImplementations(systemMethod, swizzMethod);
-</span><span class='line'>        }
-</span><span class='line'>
-</span><span class='line'>    });
-</span><span class='line'>}
-</span><span class='line'>
-</span><span class='line'>- (void)swiz_viewWillAppear:(BOOL)animated{
-</span><span class='line'>    //这时候调用自己，看起来像是死循环
-</span><span class='line'>    //但是其实自己的实现已经被替换了
-</span><span class='line'>    [self swiz_viewWillAppear:animated];
-</span><span class='line'>    NSLog(@"swizzle");
-</span><span class='line'>}
-</span><span class='line'>
-</span><span class='line'>@end</span></code></pre></td></tr></table></div></figure>
-
-
-<p>在一个自己定义的视图控制器中重写<em>viewWillAppear</em></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>- (void)viewWillAppear:(BOOL)animated{
-</span><span class='line'>    [super viewWillAppear:animated];
-</span><span class='line'>    NSLog(@"viewWillAppear");
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-
 ]]></content>
   </entry>
   

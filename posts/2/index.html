@@ -9,7 +9,7 @@
   <meta name="author" content="安路">
 
   
-  <meta name="description" content="我们在本文讨论navigation controller中的两个view controller之间的转场动画，但是这些做法在 tab bar controller或者任何你自己定义的view controller容器中也是通用的&hellip; ">
+  <meta name="description" content="在ios中，所有的View都是由一个底层的layer来驱动的。View和它的layer之间有着紧密的联系，View其实直接从layer对象中获取了绝大多数它所需要的数据。在ios中也有一些单独的layer,比如AVCaptureVideoPreviewLayer和CAShapeLayer， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -66,6 +66,43 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/07/19/view-layerxie-zuo/">View-Layer协作</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-07-19T13:44:10+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>1:44 pm</span></time>
+        
+           | <a href="/blog/2016/07/19/view-layerxie-zuo/#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/07/19/view-layerxie-zuo/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>在ios中，所有的View都是由一个底层的layer来驱动的。View和它的layer之间有着紧密的联系，View其实直接从layer对象中获取了绝大多数它所需要的数据。在ios中也有一些单独的layer,比如<code>AVCaptureVideoPreviewLayer</code>和<code>CAShapeLayer</code>，它们不需要附加到view上就可以在屏幕上显示内容。两种情况下都是layer起决定作用。当然了，附加到view上的layer和单独的layer在行为上还是稍有不同的。</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/07/19/view-layerxie-zuo/">阅读全文 &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -427,45 +464,6 @@ github排名 <a href="https://github.com/trending">https://github.com/trending</
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/05/04/runtimeyun-xing-shi-ru-men/">Runtime运行时入门</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-05-04T14:36:36+08:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>4</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>2:36 pm</span></time>
-        
-           | <a href="/blog/2016/05/04/runtimeyun-xing-shi-ru-men/#disqus_thread"
-             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/05/04/runtimeyun-xing-shi-ru-men/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>什么是Rumtime</h2>
-
-<p>我们写的代码在程序运行过程中都会被转化成runtime的C代码执行，例如<code>[target dosomething]</code>会被转化成 <code>objc_msgSend(target,@selector(doSomething));</code>.</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/05/04/runtimeyun-xing-shi-ru-men/">阅读全文 &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/3">&larr; Older</a>
@@ -490,6 +488,10 @@ github排名 <a href="https://github.com/trending">https://github.com/trending</
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/11/03/ioszhong-chang-jian-de-mian-shi-ti-ji-da-an/">Ios中常见的面试题及答案</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/10/28/zi-ding-yi-uicollectionviewlayout/">自定义UICollectionViewLayout</a>
       </li>
     
@@ -505,10 +507,6 @@ github排名 <a href="https://github.com/trending">https://github.com/trending</
         <a href="/blog/2016/10/10/gua-pei-ios10/">适配iOS10</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2016/10/09/ioszhong-de-nei-cun-fen-pei/">IOS中的内存分配</a>
-      </li>
-    
   </ul>
 </section>
 <section>
@@ -521,7 +519,7 @@ github排名 <a href="https://github.com/trending">https://github.com/trending</
 <li class='category'><a href='/blog/categories/mac/'>mac (2)</a></li>
 <li class='category'><a href='/blog/categories/nodejs/'>nodejs (2)</a></li>
 <li class='category'><a href='/blog/categories/octopress/'>octopress (2)</a></li>
-<li class='category'><a href='/blog/categories/swift/'>swift (16)</a></li>
+<li class='category'><a href='/blog/categories/swift/'>swift (17)</a></li>
 <li class='category'><a href='/blog/categories/xcode/'>xcode (1)</a></li>
 
 	</ul>

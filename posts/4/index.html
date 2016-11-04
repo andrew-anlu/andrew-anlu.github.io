@@ -9,7 +9,7 @@
   <meta name="author" content="安路">
 
   
-  <meta name="description" content="UIStackView类提供了一个高效的接口用于平铺一行或一列的视图组合.Stack视图使你的依靠自动布局的能力，创建用户接口使得可以动态的调整设备的朝向，屏幕尺寸以及任何可用范围内的变化。Stack视图管理着所有它的 arrageedSubviews属性中视图的布局， &hellip;">
+  <meta name="description" content="在上一个章节我们已经介绍了什么是UIStackView了，其实它更类似于Android开发中的LinerLayer排版技术。 这一章节，我们通过一个完整的例子来讲解UIStackView的用法 ">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -66,6 +66,45 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/04/04/tong-guo-%5B%3F%5D-ge-demoxiang-jie-uistackview/">通过一个Demo详解UIStackView</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-04-04T19:48:29+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>4</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>7:48 pm</span></time>
+        
+           | <a href="/blog/2016/04/04/tong-guo-%5B%3F%5D-ge-demoxiang-jie-uistackview/#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/04/04/tong-guo-%5B%3F%5D-ge-demoxiang-jie-uistackview/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><a href="http://andrew-anlu.github.io/blog/2016/04/04/uistackviewjie-shao/">在上一个章节</a>我们已经介绍了什么是UIStackView了，其实它更类似于Android开发中的LinerLayer排版技术。</p>
+
+<p>这一章节，我们通过一个完整的例子来讲解UIStackView的用法</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/04/04/tong-guo-%5B%3F%5D-ge-demoxiang-jie-uistackview/">阅读全文 &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -433,49 +472,6 @@ swift会为您管理在捕获过程中涉及到所有内存操作。</p>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/03/04/xue-xi-cashapelayer/">学习CAShapeLayer</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-03-04T14:20:24+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>4</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>2:20 pm</span></time>
-        
-           | <a href="/blog/2016/03/04/xue-xi-cashapelayer/#disqus_thread"
-             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/03/04/xue-xi-cashapelayer/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>前言</h2>
-
-<p>CAShapeLayer继承自CALayer,因此，可以使用CaLayer的所有属性。但是，CAShapeLayer需要和贝塞尔曲线配合使用才有意义.</p>
-
-<p>CAShapeLayer是在其坐标系统内绘制贝塞尔曲线的。因此使用CAShapeLayer需要与 <code>UIbezierPath</code>一起使用。</p>
-
-<p>它有一个 <code>path</code>属性，而<code>UIBezierPath</code>就是对 <code>CGPathRef</code>类型的封装，因此这两者是绝配</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/03/04/xue-xi-cashapelayer/">阅读全文 &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/5">&larr; Older</a>
@@ -500,6 +496,10 @@ swift会为您管理在捕获过程中涉及到所有内存操作。</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/11/03/ioszhong-chang-jian-de-mian-shi-ti-ji-da-an/">Ios中常见的面试题及答案</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/10/28/zi-ding-yi-uicollectionviewlayout/">自定义UICollectionViewLayout</a>
       </li>
     
@@ -515,10 +515,6 @@ swift会为您管理在捕获过程中涉及到所有内存操作。</p>
         <a href="/blog/2016/10/10/gua-pei-ios10/">适配iOS10</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2016/10/09/ioszhong-de-nei-cun-fen-pei/">IOS中的内存分配</a>
-      </li>
-    
   </ul>
 </section>
 <section>
@@ -531,7 +527,7 @@ swift会为您管理在捕获过程中涉及到所有内存操作。</p>
 <li class='category'><a href='/blog/categories/mac/'>mac (2)</a></li>
 <li class='category'><a href='/blog/categories/nodejs/'>nodejs (2)</a></li>
 <li class='category'><a href='/blog/categories/octopress/'>octopress (2)</a></li>
-<li class='category'><a href='/blog/categories/swift/'>swift (16)</a></li>
+<li class='category'><a href='/blog/categories/swift/'>swift (17)</a></li>
 <li class='category'><a href='/blog/categories/xcode/'>xcode (1)</a></li>
 
 	</ul>
