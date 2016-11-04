@@ -9,8 +9,11 @@
   <meta name="author" content="安路">
 
   
-  <meta name="description" content="
-">
+  <meta name="description" content="如何进行真机调试 首先需要钥匙串创建一个钥匙(key)
+将钥匙串上传到官网，获取ios Development证书
+创建APP Id即我们应用程序中的BundleId
+添加Device ID 即 UDID;
+通过勾选前面所创建的证书：App ID, Deveice id &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -89,7 +92,365 @@
   </header>
 
 
-<div class="entry-content">
+<div class="entry-content"><h2>如何进行真机调试</h2>
+
+<ol>
+<li>首先需要钥匙串创建一个钥匙(key)</li>
+<li>将钥匙串上传到官网，获取ios Development证书</li>
+<li>创建APP Id即我们应用程序中的BundleId</li>
+<li>添加Device ID 即 UDID;</li>
+<li>通过勾选前面所创建的证书：App ID, Deveice id</li>
+<li>生成mobileProvision文件</li>
+<li>先决条件：申请开发者账号 99美刀</li>
+</ol>
+
+
+<!--more-->
+
+
+<h2>APP发布上架流程</h2>
+
+<ol>
+<li>登录苹果开发者网站</li>
+<li>下载安装发布证书</li>
+<li>选择发布证书，使用Archive编译发布包，用Xcode将代码上传到服务器</li>
+<li>等待审核</li>
+<li>生成ipa->菜单栏->Product->Archive</li>
+</ol>
+
+
+<h2>如何发送通知</h2>
+
+<ul>
+<li>一种是Apple自己提供的通知服务（APNS服务器），一种是用第三方推送机制</li>
+<li>首先应用发送通知，系统弹出提示框询问用户是否允许，当用户允许后向苹果服务器请求deviceToken,并由苹果服务器发送给自己的应用，自己的应用将DeviceToken发送自己的服务器，自己服务器想要发送网络推送时将deviceToken以及想要推送的信息发送给苹果服务器，苹果服务器将信息发送给应用</li>
+<li>推送信息内容，总容量不超过256个字节</li>
+<li>iOSSDK本身提供的APNS服务器推送，它可以直接推送给目标用户并根据您的方式弹出提示</li>
+</ul>
+
+
+<p>优点：不论应用是否开启，都会发送到手机端</p>
+
+<p>缺点：消息推送机制是苹果服务器端控制，个别时候可能会有延迟，因为苹果服务器也有队列来处理所有的消息请求；</p>
+
+<ul>
+<li>第三方推送机制,普遍使用Socket机制来实现，几乎可以达到即时发送到目标用户手机端，适用于即时通讯类应用。</li>
+</ul>
+
+
+<p>优点：实时的，取决于心跳包的节凑</p>
+
+<p>缺点：IOS系统的限制，应用不能长时间的后台运行，所以应用关闭的情况下这种推送机制不可用</p>
+
+<h2>网络七层协议</h2>
+
+<ul>
+<li>应用层：
+
+<ol>
+<li>用户接口，应用程序</li>
+<li>Application典型设备:网关；</li>
+<li>典型协议，标准和应用：TELNET,FTP,HTTP</li>
+</ol>
+</li>
+<li>表示层：
+
+<ol>
+<li>数据表示，压缩和加密presentation</li>
+<li>典型设备:网关</li>
+<li>典型协议，标准和应用：ASCLL、PICT、TIFF、JPEG|MPEG</li>
+<li>表示层相当于一个东西的表示，表示的一些协议，比如图片，声音和视频MPEG</li>
+</ol>
+</li>
+<li>会话层：
+
+<ol>
+<li>会话的建立和结束；</li>
+<li>典型设备：网关；</li>
+<li>典型协议，标准和应用：RPC、SQL、NFS、X WINDOWS、ASP</li>
+</ol>
+</li>
+<li>传输层：
+
+<ol>
+<li>主要功能：端到端控制Transport;</li>
+<li>典型设备：网关；</li>
+<li>典型协议，标准和应用：TCP，UDP，spx</li>
+</ol>
+</li>
+<li>网络层：
+
+<ol>
+<li>主要功能：路由，寻址Network</li>
+<li>典型设备:路由器</li>
+<li>典型协议，标准和应用：IP,IPX,APPLETALK,ICMP</li>
+</ol>
+</li>
+<li><p>数据链路层：</p>
+
+<ol>
+<li>主要功能：保证无差错的疏忽链路 data link;</li>
+<li>典型设备：交换机，网桥，网卡</li>
+<li>典型协议，标准和应用：802.2、802.3ATM、HDLC、FRAME RELAY；</li>
+</ol>
+</li>
+<li>物理层：
+
+<ol>
+<li>主要功能：传输比特流Physical</li>
+<li>典型设备：集线器，中继器</li>
+<li>典型协议，标准和应用：V.35、EIA/TIA-232.</li>
+</ol>
+</li>
+</ul>
+
+
+<h2>对NSUserDefualts的理解</h2>
+
+<ul>
+<li>NSUserDefaults：系统提供的一种存储数据的方式，主要用户保存少量的数据，默认存储到library下的Preferences文件夹</li>
+</ul>
+
+
+<h2>LayoutSubViews在什么时候被调用</h2>
+
+<p>当View本身的frame改变时，会调用这个方法</p>
+
+<h2>单例模式理解与使用</h2>
+
+<ul>
+<li>单例模式是一种常用的设计模式，单利模式是一个类在系统中只有一个实例对象。通过全局的一个入口点对这个实例对象进行访问</li>
+<li>iOS中单例模式的实现方式一般分为两种：非ARC和ARC+GCD</li>
+</ul>
+
+
+<h2>对沙盒的理解</h2>
+
+<ul>
+<li><p>每个ios应用都被限制在“沙盒”中，沙盒相当于一个加了仅主人可见权限的文件夹，及时在应用程序安装过程中，系统为每个单独的应用程序生成它的主目录和一些关键的子目录，苹果对沙盒有几条限制：</p></li>
+<li><p>应用程序在自己的沙盒中运作，但是不能访问任何其他应用程序沙盒</p></li>
+<li>应用程序的文件夹中，也不能把其他应用文件夹复制到沙盒中</li>
+<li>苹果禁止任何读写沙盒以外的文件，禁止应用程序将内容写到沙盒以外的文件夹中；</li>
+<li>沙盒目录里有三个文件夹：Documents——存储应用程序的数据文件，存储用户数据或其他定期备份的信息；Library下有两个文件夹，Caches存储应用程序再次启动所需的信息，
+Preferences包含应用程序的偏好设置文件，不可在这更改偏好设置；
+temp存放临时文件即应用程序再次启动不需要的文件</li>
+</ul>
+
+
+<h2>对瀑布流的理解</h2>
+
+<ul>
+<li>首先图片的宽度都是一样的
+
+<ol>
+<li>将图片等比例压缩，让图片不变形</li>
+<li>计算图片最低应该摆放的位置，那一列低就放在哪</li>
+<li>进行最优排列，在ScrollView的基础上添加两个tableView,然后将之前所计算的scrollView的高度通过tableView展示出来</li>
+</ol>
+</li>
+<li>如何使用两个TableView产生联动：将两个TableView的滚动事件禁止掉，最外层的ScrollView滚动时将两个TableView跟着滚动，并且更改contentOffset，这样产生效果滚动的两个tableview.</li>
+</ul>
+
+
+<h2>ViewController 的loadView,viewDidLoad,viewDidUnload 分别是在什么时候调用的？</h2>
+
+<ul>
+<li>viewDidLoad在View从nib文件初始化时调用，loadView在controller的View为nil时调用</li>
+<li>此方法在编程实现view时调用，View控制器默认会注册memory warning notification,当view controller的任何View没有用的时候，viewDidUnload会被调用，在这里实现将retain的view release，如果是retain的IBOutlet view 属性则不要在这里release,IBOutlet会负责release 。</li>
+</ul>
+
+
+<h2>@synthesize、@dynamic的理解</h2>
+
+<ul>
+<li>@synthesize 是系统自动生成getter和setter属性声明；@synthesize的意思是，除非开发人员已经做了，否则由编译器生成相应的代码，以满足属性声明</li>
+<li>@dynamic是开发者自己提供相应的属性声明，@dynamic意思是由开发人员提供相应的代码：对于只读属性需要提供setter,对于读写属性需要提供setter和getter,查阅了一些资料确定@dynamic的意思是告诉编译器,属性的获取与赋值方法由用户自己实现, 不自动生成。</li>
+</ul>
+
+
+<p>主要使用在CoreData的实现NSManagedObject子类时使用，由Core Data框架在程序运行动态生成子类属性</p>
+
+<h2>Frame和bounds有什么不同？</h2>
+
+<ul>
+<li>frame指的是：该View在父view坐标系统中的位置和大小（参照点是父亲的坐标系统）</li>
+<li>bounds指的是：该View在本身坐标系统中的位置和大小（参照点是本身坐标系统）</li>
+</ul>
+
+
+<h2>iOS中的响应者链的工作原理</h2>
+
+<ul>
+<li>每一个应用有一个响应者链，我们的视图结构是一个N叉树（一个视图可以有多个子视图，一个子视图同一时刻只有一个父亲视图），而每一个继承UIResponder的对象都可以在这个N叉树中扮演一个节点</li>
+<li>当叶节点成为最高响应者的时候，从这个叶节点开始往其父节点开始追溯出一条链，那么对于这个叶节点来讲，这一条链就是当前的响应者链。响应者链将系统捕获到的UIEvent与UITouch从叶子节点开始层层向下分发，期间可以选择停止分发，也可以选择继续向下分发</li>
+</ul>
+
+
+<h2>Property属性的修饰符的作用</h2>
+
+<ul>
+<li>getter=getName、setter=setName：设置setter与getter的方法名；</li>
+<li>readwrite,readonly:设置可供访问的级别</li>
+<li>assign:方法直接赋值，不进行任何retain操作，为了解决原类型与循环引用问题</li>
+<li>retain：其setter方法对参数进行release旧值再retain新值，所有实现都是这个顺序</li>
+<li>copy:其setter方法进行copy操作，与retain 处理流程一样，先对旧值release,再copy出新的对象，retaincount为1,这是为了减少对上下文的依赖而引入的机制</li>
+<li>nonatomic:非原子性访问，不加同步，多线程并发访问会提供性能。注意，如果不加此属性，则默认是两个访问方法都是原子型事务访问</li>
+</ul>
+
+
+<h2>对Run Loop的理解</h2>
+
+<ul>
+<li>RUNLOOP，是多线程的法宝，即一个线程一次只能执行一个任务，执行完任务后就会退出线程，主线程执行完即时任务时会继续等待接收事件而不退出，非主线程同城来说就是为了执行某一任务的，执行完毕就需要归还资源，因此默认是不运行RunLoop的；</li>
+<li>每一个线程都有其对应的RunLoop,只是默认只有主线程的RunLoop是启动的，其它子线程的RunLoop默认是不启动的，若要启动则需要手动启动</li>
+<li>在一个单独的线程中，如果需要在处理完某个人物后不退出，继续等待接收事件，则需要启用RunLoop</li>
+<li>NSRunLoop提供了一个添加NStimer的方法，可以指定Mode,如果要让任何情况下都回调，则需要设置Mode为Common模式</li>
+<li>实质上，对于子线程的runloop默认是不存在的，因为苹果采用了懒加载方式，如果我们没有东东调用[NSRunLoop currentRunLoop]的话，就不会去查询是否存在当前线程的RunLoop,也就不会去加载，更不会创建</li>
+</ul>
+
+
+<h2>XIB与Storyboards的优缺点</h2>
+
+<p>优点:</p>
+
+<ul>
+<li><p>XIB：在编译前就提供了可视化界面，可以直接拖控件，也可以直接给控件添加约束，更直观一些，而且类文件中就少了创建控件的代码，确实简化不少，通常每个XIB对应一个类</p></li>
+<li><p>Storyboard：在编译前提供了可视化界面，可拖控件，可加约束，在开发时比较直观，而且一个storyboard可以有很多的界面，每个界面对应一个类文件，通过storybard，可以直观地看出整个App的结构。</p></li>
+</ul>
+
+
+<p><em>缺点:</em></p>
+
+<ul>
+<li>XIB:需求变动时，需要修改XIB很大，有时候甚至需要重新添加约束，导致开发周期变长。XIB载入相比纯代码自然要慢一些。对于比较复杂逻辑控制不同状态下显示不同内容时，使用XIB是比较困难的。当多人团队或者多团队开发时，如果XIB文件被发动，极易导致冲突，而且解决冲突相对要困难很多。</li>
+<li>Storyboard：需求变动时，需要修改storyboard上对应的界面的约束，与XIB一样可能要重新添加约束，或者添加约束会造成大量的冲突，尤其是多团队开发。对于复杂逻辑控制不同显示内容时，比较困难。当多人团队或者多团队开发时，大家会同时修改一个storyboard，导致大量冲突，解决起来相当困难。</li>
+</ul>
+
+
+<h2>队列和多线程的使用原理</h2>
+
+<p>在iOS中队列分为以下几种：</p>
+
+<ul>
+<li>串行队列：队列中的任务只会顺序执行</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>dispatch_queue_t q = dispatch_queue_create("...", DISPATCH_QUEUE_SERIAL);
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>并行队列：对垒中的任务通常会并发执行：</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>dispatch_queue_t q = dispatch_queue_create("......",DISPATCH_QUEUE_CONCURRENT);
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>全局队列：是系统的，直接拿过来(get)用就可以，与并行队列类似：</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>dispatch_queue_t q = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>主队列：每一个应用程序对应唯一主队列，直接GET就行，在多线程开发中，使用祝队列更新UI：</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>dispatch_queue_t q = dispatch_get_main_queue();
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如图：
+ <img src="http://7xkxhx.com1.z0.glb.clouddn.com/1771779-da221054beb5cbb4.png" alt="1" />
+ </p>
+
+<h2>内存的使用和优化的注意事项</h2>
+
+<ul>
+<li>重用问题：如UITableViewCells,UICollectionViewCells, UITableViewHeaderFooterViews设置正确的reuseIdentifier,充分重用；</li>
+<li>尽量把views设置为不透明，当opque为NO的时候，图层的半透明取决于图片和其本身合成的图层为结果，可提高性能</li>
+<li>不要使用太复杂的XIB/StroyBoard;载入时就会将XIB/storyboard需要的所有资源，包括图片全部载入内存，即使未来很久才会使用，那些相比纯代码写的延迟加载，性能及内存就差了很多</li>
+<li>选择正确的数据结构：学会选择对业务场景最合适的数组结构是写出搞笑代码的基础，比如，数组：有序的一组值。使用索引来查询很快，使用值查询很慢，插入/删除很慢。存储键值对，用键来查找比较快。集合：无需的一组值，用值来查找很快，插入/删除很快；</li>
+<li>gzip/zip压缩：当从服务端下载相关附件时，可以通过gzip/zip压缩后再下载，使得内存更小，下载速度也更快。</li>
+<li>延迟加载：对于不应该使用的数据，使用延迟加载方式。对于不需要马上显示的视图，使用延迟加载方式。比如，网络请求失败时显示的提示界面，可能一直都不会使用到，因此应该使用延迟加载</li>
+<li>数据缓存：对于cell的行高要缓存起来，使得reload数据时，效率也极高。而对于那些网络数据，不需要每次都请求的，应该缓存起来，可以写入数据库，也可以通过plist文件存储</li>
+<li>处理内存警告：一般在基类统一处理内存警告，将相关不用资源立即释放掉。重用大开销对象：一些objects的初始化很慢，比如NSDateFormatter和NSCalendar，但又不可避免地需要使用它们。通常是作为属性存储起来，防止反复创建</li>
+<li>避免反复处理数据：许多应用需要从服务器加载功能所需的常为JSON或者XML格式的数据。在服务器端和客户端使用相同的数据结构很重要;</li>
+<li>使用Autorelease Pool：在某些循环创建临时变量处理数据时，自动释放池以保证能及时释放内存;</li>
+</ul>
+
+
+<h2>UIViewController的完整生命周期</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>-[ViewController initWithNibName:bundle:]；
+</span><span class='line'>-[ViewController init]；
+</span><span class='line'>-[ViewController loadView]；
+</span><span class='line'>-[ViewController viewDidLoad]；
+</span><span class='line'>-[ViewController viewWillDisappear:]；
+</span><span class='line'>-[ViewController viewWillAppear:]；
+</span><span class='line'>-[ViewController viewDidAppear:]；
+</span><span class='line'>-[ViewController viewDidDisappear:]；</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>UIImageView添加圆角</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>imgView.layer.cornerRadius = 10;// 这一行代码是很消耗性能的imgView.clipsToBounds = YES;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><em>这是离屏渲染（off-screen-rendering），消耗性能的</em></li>
+<li>扩展:</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (UIImage *)imageWithCornerRadius:(CGFloat)radius {
+</span><span class='line'>CGRect rect = (CGRect){0.f, 0.f, self.size};
+</span><span class='line'>
+</span><span class='line'>UIGraphicsBeginImageContextWithOptions(self.size, NO, UIScreen.mainScreen.scale);CGContextAddPath(UIGraphicsGetCurrentContext(),
+</span><span class='line'> [UIBezierPath bezierPathWithRoundedRect:rect cornerRadius:radius].CGPath);CGContextClip(UIGraphicsGetCurrentContext());
+</span><span class='line'>
+</span><span class='line'>[self drawInRect:rect];
+</span><span class='line'>UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+</span><span class='line'>UIGraphicsEndImageContext();
+</span><span class='line'>
+</span><span class='line'>return image;
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+
 </div>
 
 
@@ -107,6 +468,12 @@
 
 <time class='entry-date' datetime='2016-11-04T20:22:42+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>4</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>8:22 pm</span></time>
       
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/swift/'>swift</a>
+  
+</span>
 
 
     </p>
@@ -199,7 +566,7 @@
 <li class='category'><a href='/blog/categories/mac/'>mac (2)</a></li>
 <li class='category'><a href='/blog/categories/nodejs/'>nodejs (2)</a></li>
 <li class='category'><a href='/blog/categories/octopress/'>octopress (2)</a></li>
-<li class='category'><a href='/blog/categories/swift/'>swift (17)</a></li>
+<li class='category'><a href='/blog/categories/swift/'>swift (18)</a></li>
 <li class='category'><a href='/blog/categories/xcode/'>xcode (1)</a></li>
 
 	</ul>
