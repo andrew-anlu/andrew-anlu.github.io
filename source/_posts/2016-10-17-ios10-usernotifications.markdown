@@ -8,6 +8,8 @@ categories: iOS
 
 ios10以前杂乱的和通知相关的API都被统一了，现在开发者可以使用独立的UserNotificaitons.framework来集中管理和使用iOS系统中通知的功能。在此基础上，Apple还增加了撤回单条通知，更新已展示通知，中途修改通知内容，在通知中展示图片视频，自定义通知UI等一系列功能。
 
+<!--more-->
+
 对于开发者来说，想比较于之前版本，iOS10提供了一套非常易用通知处理接口，是SDK的一次重大重构，而之前的绝大部分通知相关API都已经被标为弃用(deprecated)
 
 您可以在WWDC16的 [introducaion to Notifications](https://developer.apple.com/videos/play/wwdc2016/707/)和[Advanced Notifications](https://developer.apple.com/videos/play/wwdc2016/708/)这两个Session中找到详细信息；另外也不要忘了参考[UserNotifications官方文档](https://developer.apple.com/reference/usernotifications)

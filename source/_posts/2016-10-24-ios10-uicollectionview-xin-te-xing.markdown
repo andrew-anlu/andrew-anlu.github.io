@@ -12,6 +12,8 @@ categories: swift
 2. 针对self=sizing的改进
 3. Interactive recording重排
 
+<!--more-->
+
 这个功能在iOS9的时候介绍过了，苹果在iOS10的API里面大大增强了这一个功能
 
 ##目录

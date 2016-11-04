@@ -10,6 +10,8 @@ categories:
 
 ## 杂乱无章的Bug日志
 
+<!--more-->
+
 更新xcode8后，新建立工程，都会打印一堆莫名其妙看不懂的log,比如：
 ![1](http://7xkxhx.com1.z0.glb.clouddn.com/QQ20161009-0.png)
 

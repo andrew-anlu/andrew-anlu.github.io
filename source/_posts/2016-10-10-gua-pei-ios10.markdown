@@ -10,6 +10,8 @@ categories: swift
 ## UICOllecitonViewCell的优化
 在ios10之前，UIcollectionView上面如果有大量的Cell,当用户活动很快的时候，整个UIcollectionView有很卡顿，为什么会造成这样的问题，这里涉及到iOS系统的重用机制，当cell准备加载进到屏幕的时候，整个cell都已经加载完成，等待在屏幕外面了，也就是整整一行cell都已经加载完毕，这就是造成卡顿的主要原因，专业术语叫掉帧
 
+<!--more-->
+
 
 iOS10之前的UIcollectionViewCell的生命周期是这样的:
 
