@@ -9,8 +9,7 @@
   <meta name="author" content="安路">
 
   
-  <meta name="description" content="
-">
+  <meta name="description" content="UICOllecitonViewCell的优化 在ios10之前，UIcollectionView上面如果有大量的Cell,当用户活动很快的时候，整个UIcollectionView有很卡顿，为什么会造成这样的问题，这里涉及到iOS系统的重用机制，当cell准备加载进到屏幕的时候， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -67,6 +66,220 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/10/10/gua-pei-ios10/">适配iOS10</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-10-10T11:03:06+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>10</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>11:03 am</span></time>
+        
+           | <a href="/blog/2016/10/10/gua-pei-ios10/#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/10/10/gua-pei-ios10/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>UICOllecitonViewCell的优化</h2>
+
+<p>在ios10之前，UIcollectionView上面如果有大量的Cell,当用户活动很快的时候，整个UIcollectionView有很卡顿，为什么会造成这样的问题，这里涉及到iOS系统的重用机制，当cell准备加载进到屏幕的时候，整个cell都已经加载完成，等待在屏幕外面了，也就是整整一行cell都已经加载完毕，这就是造成卡顿的主要原因，专业术语叫掉帧</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/10/10/gua-pei-ios10/">阅读全文 &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/10/09/ioszhong-de-nei-cun-fen-pei/">IOS中的内存分配</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-10-09T17:16:16+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>9</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>5:16 pm</span></time>
+        
+           | <a href="/blog/2016/10/09/ioszhong-de-nei-cun-fen-pei/#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/10/09/ioszhong-de-nei-cun-fen-pei/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>内存分配可以分为5个区</p>
+
+<h2>栈区（stack）</h2>
+
+<p>这个一般由编译器操作，或者说是系统管理，会存一些局部变量，这些系统都会帮我们自动实现，无需我们干预，所以大量的局部变量，深递归，函数循环调用都可以耗尽栈内存而程序崩溃</p>
+
+<h2>堆区（heap）</h2>
+
+<p>一般由程序员管理，比如alloc申请内存，free释放内存，我们创建的对象也都放在这里</p>
+
+<h2>全局区(静态区 static)</h2>
+
+<p>全局变量和静态变量的存储是放在一块的，初始化的全局变量和静态变量在一块区域，未初始化的全局变量和未初始化的静态变量在相邻的另一块区域，程序结束后由系统释放。</p>
+
+<h2>常量区</h2>
+
+<p>常量字符串就是放在这里的，还有const常量</p>
+
+<h2>代码区</h2>
+
+<p>存放代码，app程序会拷贝到这里，程序不是在</p>
+
+<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/1475976705224479.png" alt="1" /></p>
+
+<p>图中各个区并不连续</p>
+
+<p>当一个app启动后，代码区，常量区，全局区地址已经固定，因此指向这些区的指针不会为空而产生崩溃性的错误，而堆区和栈区是时时刻刻变化的（堆的创建销毁，栈的弹入和弹出），所以当使用一个指针指向这两个区里面的内存时，一定要注意内存是否已经被释放，否则会产生程序崩溃</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/10/09/sheng-ji-xcode8hou-zhu-yi-de-wen-ti/">升级Xcode8后注意的问题</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-10-09T16:37:48+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>9</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>4:37 pm</span></time>
+        
+           | <a href="/blog/2016/10/09/sheng-ji-xcode8hou-zhu-yi-de-wen-ti/#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/10/09/sheng-ji-xcode8hou-zhu-yi-de-wen-ti/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>现在已经可以从AppStore升级到Xcode8的正式版了，但是升级之后会有一些莫名其妙的问题，再次总结如下：</p>
+
+<h2>杂乱无章的Bug日志</h2>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/10/09/sheng-ji-xcode8hou-zhu-yi-de-wen-ti/">阅读全文 &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/09/21/iostui-song/">iOS推送</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-09-21T16:25:58+08:00'><span class='date'><span class='date-month'>Sep</span> <span class='date-day'>21</span><span class='date-suffix'>st</span>, <span class='date-year'>2016</span></span> <span class='time'>4:25 pm</span></time>
+        
+           | <a href="/blog/2016/09/21/iostui-song/#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/09/21/iostui-song/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>推送服务可以说是所有App的标配，不论是那种类型的App,推送都从很大程度上决定了App的打开率，使用率，存活率。因此熟知并掌握推送原理及方法,对每一个开发者来说都是必备技能，对每一个依赖App的公司都至关重要</p>
+
+<p>从ios10新增的<code>UserNotifications Framework</code>可以发现，Apple整合了原有散乱的API,并且增加了很多强大的功能。以Apple官方的角度来看，也必然是相当重视推送服务对App的影响，以及对Apple生态圈长远发展的影响。</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/09/21/iostui-song/">阅读全文 &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/09/10/zu-he-yu-ji-cheng/">组合与继承</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-09-10T08:45:55+08:00'><span class='date'><span class='date-month'>Sep</span> <span class='date-day'>10</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>8:45 am</span></time>
+        
+           | <a href="/blog/2016/09/10/zu-he-yu-ji-cheng/#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/09/10/zu-he-yu-ji-cheng/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>何时使用子类</h2>
+
+<p>首先，我们讨论几种使用子类比较合适的场景。如果你要写一个自定义布局的UITableViewCell,那就创建一个子类。这同样适用于几乎每个视图。一旦你开始布局，把这块代码放入子类就更合理一些，不管代码得到了更好的封装，你也能得到一个可在工程之间重用的组件。</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/09/10/zu-he-yu-ji-cheng/">阅读全文 &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -253,211 +466,6 @@ github排名 <a href="https://github.com/trending">https://github.com/trending</
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/05/26/swiftyu-fa-xiao-ji-qiao/">Swift语法小技巧</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-05-26T15:09:59+08:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>26</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>3:09 pm</span></time>
-        
-           | <a href="/blog/2016/05/26/swiftyu-fa-xiao-ji-qiao/#disqus_thread"
-             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/05/26/swiftyu-fa-xiao-ji-qiao/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h3><a name="判断某个对象是否响应了某个方法"> 判断某个对象是否响应了某个方法</a></h3>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/05/26/swiftyu-fa-xiao-ji-qiao/">阅读全文 &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/05/23/wei-iosjian-li-travis-ci/">为iOS建立Travis CI</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-05-23T14:30:30+08:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>23</span><span class='date-suffix'>rd</span>, <span class='date-year'>2016</span></span> <span class='time'>2:30 pm</span></time>
-        
-           | <a href="/blog/2016/05/23/wei-iosjian-li-travis-ci/#disqus_thread"
-             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/05/23/wei-iosjian-li-travis-ci/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>你是否曾经试着为ios项目搭建一台支持<a href="http://baike.baidu.com/link?url=9m9zB2m909wrZ82wdNWMhtPBTt14PduTPIyi78YL0sS7ccrE-DN22S55wCuEhuobFZ0dL5T4MhKmQzFLx1q4-K">持续集成</a>的服务器，从我的个人经验而言，这可不是一个轻松的活。首先需要准备一台MAc电脑，并安装好全部所需的软件和插件。你要负责管理所有的用户账户，并提供安全保护。你需要授予访问仓库的权限，并配置所有的编译步骤和证书，在项目的运行时期，你需要保持服务器稳健和最新。</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/05/23/wei-iosjian-li-travis-ci/">阅读全文 &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/05/22/nodejs-dai-ma-de-zu-zhi-he-bu-shu/">Nodejs-代码的组织和部署</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-05-22T09:45:22+08:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>22</span><span class='date-suffix'>nd</span>, <span class='date-year'>2016</span></span> <span class='time'>9:45 am</span></time>
-        
-           | <a href="/blog/2016/05/22/nodejs-dai-ma-de-zu-zhi-he-bu-shu/#disqus_thread"
-             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/05/22/nodejs-dai-ma-de-zu-zhi-he-bu-shu/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>有经验的C程序员在编写一个新程序时首先从make文件写起，同样的，使用nodejs编写程序前，为了有个良好的开端，首先需要准备好代码的目录结构和部署方式，就如同修防止要先搭建脚手架。本章将介绍与之相关的各种知识</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/05/22/nodejs-dai-ma-de-zu-zhi-he-bu-shu/">阅读全文 &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/05/21/nodejsji-chu/">Nodejs基础</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-05-21T12:45:39+08:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>21</span><span class='date-suffix'>st</span>, <span class='date-year'>2016</span></span> <span class='time'>12:45 pm</span></time>
-        
-           | <a href="/blog/2016/05/21/nodejsji-chu/#disqus_thread"
-             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/05/21/nodejsji-chu/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><ul>
-<li><a href="#%E4%BB%80%E4%B9%88%E6%98%AFNodeJS">什么是NodeJS</a></li>
-<li><a href="#%E7%94%A8%E9%80%94">用途</a></li>
-<li><a href="#%E5%AE%89%E8%A3%85">安装</a></li>
-<li><a href="#%E8%BF%90%E8%A1%8C">运行</a></li>
-<li><a href="#%E6%A8%A1%E5%9D%97">模块</a></li>
-<li><a href="#%E5%B0%8F%E7%BB%93">小结</a></li>
-</ul>
-
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/05/21/nodejsji-chu/">阅读全文 &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/05/16/swift-gou-zao-han-shu/">Swift-构造函数</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-05-16T15:38:28+08:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>16</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>3:38 pm</span></time>
-        
-           | <a href="/blog/2016/05/16/swift-gou-zao-han-shu/#disqus_thread"
-             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/05/16/swift-gou-zao-han-shu/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>本章包含的内容的如下:</p>
-
-<ul>
-<li><a href="#%E5%AD%98%E5%82%A8%E5%B1%9E%E6%80%A7%E7%9A%84%E5%88%9D%E5%A7%8B%E8%B5%8B%E5%80%BC">存储属性的初始赋值</a></li>
-<li><a href="#%E8%87%AA%E5%AE%9A%E4%B9%89%E6%9E%84%E9%80%A0%E8%BF%87%E7%A8%8B">自定义构造过程</a></li>
-<li><a href="#%E9%BB%98%E8%AE%A4%E6%9E%84%E9%80%A0%E5%99%A8">默认构造器</a></li>
-<li><a href="#%E5%80%BC%E7%B1%BB%E5%9E%8B%E7%9A%84%E6%9E%84%E9%80%A0%E5%99%A8%E4%BB%A3%E7%90%86">值类型的构造器代理</a></li>
-<li><a href="#%E7%B1%BB%E7%9A%84%E9%9B%86%E6%88%90%E5%92%8C%E6%9E%84%E9%80%A0%E8%BF%87%E7%A8%8B">类的集成和构造过程</a></li>
-<li><a href="#%E5%8F%AF%E5%A4%B1%E8%B4%A5%E6%9E%84%E9%80%A0%E5%99%A8">可失败构造器</a></li>
-<li><a href="#%E5%BF%85%E8%A6%81%E6%9E%84%E9%80%A0%E5%99%A8">必要构造器</a></li>
-<li><a href="#%E9%80%9A%E8%BF%87%E9%97%AD%E5%8C%85%E6%88%96%E5%87%BD%E6%95%B0%E8%AE%BE%E7%BD%AE%E5%B1%9E%E6%80%A7%E7%9A%84%E9%BB%98%E8%AE%A4%E5%80%BC">通过闭包或函数设置属性的默认值</a></li>
-</ul>
-
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/05/16/swift-gou-zao-han-shu/">阅读全文 &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/3">&larr; Older</a>
@@ -482,23 +490,23 @@ github排名 <a href="https://github.com/trending">https://github.com/trending</
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2016/11/04/ioszhong-chang-jian-de-mian-shi-ti-er/">iOS中常见的面试题二</a>
+        <a href="/blog/2016/11/28/shi-yong-carthageguan-li-iosyi-lai/">使用Carthage管理ios依赖</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/11/03/ioszhong-chang-jian-de-mian-shi-ti-ji-da-an/">Ios中常见的面试题及答案</a>
+        <a href="/blog/2016/11/22/ip-tcp-he-http/">IP TCP 和HTTP</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/10/28/zi-ding-yi-uicollectionviewlayout/">自定义UICollectionViewLayout</a>
+        <a href="/blog/2016/11/16/reactiveswiftru-men/">ReactiveSwift入门</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/10/24/ios10-uicollectionview-xin-te-xing/">Ios10 UICollectionView 新特性</a>
+        <a href="/blog/2016/11/11/swift-package-managerru-men/">Swift Package Manager入门</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/10/17/ios10-usernotifications/">Ios10 UserNotifications</a>
+        <a href="/blog/2016/11/07/ioszhong-de-re-qi-dong/">iOS中的热修复</a>
       </li>
     
   </ul>
@@ -508,12 +516,12 @@ github排名 <a href="https://github.com/trending">https://github.com/trending</
 	<ul id="categories">
 		<li class='category'><a href='/blog/categories/cocoapods/'>cocoapods (1)</a></li>
 <li class='category'><a href='/blog/categories/git/'>git (3)</a></li>
-<li class='category'><a href='/blog/categories/ios/'>ios (27)</a></li>
+<li class='category'><a href='/blog/categories/ios/'>ios (29)</a></li>
 <li class='category'><a href='/blog/categories/life/'>life (1)</a></li>
 <li class='category'><a href='/blog/categories/mac/'>mac (2)</a></li>
 <li class='category'><a href='/blog/categories/nodejs/'>nodejs (2)</a></li>
 <li class='category'><a href='/blog/categories/octopress/'>octopress (2)</a></li>
-<li class='category'><a href='/blog/categories/swift/'>swift (18)</a></li>
+<li class='category'><a href='/blog/categories/swift/'>swift (21)</a></li>
 <li class='category'><a href='/blog/categories/xcode/'>xcode (1)</a></li>
 
 	</ul>

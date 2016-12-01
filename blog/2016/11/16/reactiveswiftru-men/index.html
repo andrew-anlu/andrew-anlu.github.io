@@ -1,0 +1,2111 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>ReactiveSwift入门 - 安路的技术博客</title>
+  <meta name="author" content="安路">
+
+  
+  <meta name="description" content="Signal 一个signal类型的实例，代表了一个有时序的并且可以被观察(类似订阅)的事件流。 信号通常被用来表示正在进行中的事件流，比如通知，用户输入等。用户（或者只要能造成事件的东西）产生的事件发送或者被接受，事件就被传递到信号上，并且被推送(push-Driven)到任何观察者哪里， &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://andrew-anlu.github.io/blog/2016/11/16/reactiveswiftru-men/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="安路的技术博客" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//libs.baidu.com/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">安路的技术博客</a></h1>
+  
+    <h2>Nothing in life is to be feared. It is only to be understood</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://andrew-anlu.github.io" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="andrew-anlu.github.io">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/blog/">About me</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">ReactiveSwift入门</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-11-16T10:29:29+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>16</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>10:29 am</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><h2>Signal</h2>
+
+<p>一个signal类型的实例，代表了一个有时序的并且可以被观察(类似订阅)的事件流。</p>
+
+<p>信号通常被用来表示正在进行中的事件流，比如通知，用户输入等。用户（或者只要能造成事件的东西）产生的事件发送或者被接受，事件就被传递到信号上，并且被推送(push-Driven)到任何观察者哪里，并且所有观察者都是同时收到这些事件。</p>
+
+<p>如果你想访问一系列的事件，就必须观察一个信号，观察一个信号并不会触发任何副作用，可以这样理解。信号是由生产者生产和推动的，消费者（观察者）是不会对事件的生命周期有任何影响。在观察一个信号时，发送了什么事件，只能对这个事件操作，因为信号是由时序的，不能随机的访问其他事件。</p>
+
+<p>信号可以通过原函数去操作，比如filter,map,reduce,也可以同时操作多个信号如zip,这些原函数只在nextEvents生效（也就是对complete,failure等不生效）</p>
+
+<p>在一个信号的生命周期里，可以发送无数次的NextEvents事件，直到他们被终结，类似compleye,Failed,InterRupper.终止事件没有数据值，所以他们必须被单独处理。</p>
+
+<h2>Subscription</h2>
+
+<p>一个信号通常被用来表示正在进行中的事件流，有时候他们被叫做热信号，这意味着订阅者可以错过一些在它订阅前发送的事件。订阅一个信号不会触发任何副作用。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>
+</span><span class='line'>3
+</span><span class='line'>4
+</span><span class='line'>5
+</span><span class='line'>6
+</span><span class='line'>7
+</span><span class='line'>8
+</span><span class='line'>9
+</span><span class='line'>10
+</span><span class='line'>11
+</span><span class='line'>12
+</span><span class='line'>13
+</span><span class='line'>14
+</span><span class='line'>15
+</span><span class='line'>16
+</span><span class='line'>17
+</span><span class='line'>18
+</span><span class='line'>19
+</span><span class='line'>20
+</span><span class='line'>21
+</span><span class='line'>22
+</span><span class='line'>23
+</span><span class='line'>24
+</span><span class='line'>25
+</span><span class='line'>26
+</span><span class='line'>27
+</span><span class='line'>scopedExample("Subscription") {
+</span><span class='line'>    // Signal.pipe is a way to manually control a signal. the returned observer can be used to send values to the signal
+</span><span class='line'>    let (signal, observer) = Signal&lt;int, nonerror&gt;.pipe()
+</span><span class='line'>    let subscriber1 = Observer&lt;int, nonerror&gt;(next: { print("Subscriber 1 received \($0)") })
+</span><span class='line'>    let subscriber2 = Observer&lt;int, nonerror&gt;(next: { print("Subscriber 2 received \($0)") })
+</span><span class='line'>    print("Subscriber 1 subscribes to the signal")
+</span><span class='line'>    print("\(observer)")
+</span><span class='line'>    signal.observe(subscriber1)
+</span><span class='line'>    print("Send value `10` on the signal")
+</span><span class='line'>    // subscriber1 will receive the value
+</span><span class='line'>    observer.sendNext(10)
+</span><span class='line'>    print("Subscriber 2 subscribes to the signal")
+</span><span class='line'>    // Notice how nothing happens at this moment, i.e. subscriber2 does not receive the previously sent value
+</span><span class='line'>    signal.observe(subscriber2)
+</span><span class='line'>    print("Send value `20` on the signal")
+</span><span class='line'>    // Notice that now, subscriber1 and subscriber2 will receive the value
+</span><span class='line'>    observer.sendNext(20)
+</span><span class='line'>}
+</span><span class='line'>--- Subscription ---
+</span><span class='line'>Subscriber 1 subscribes to the signal
+</span><span class='line'>Observer&lt;int, nonerror&gt;(action: (Function))
+</span><span class='line'>Send value `10` on the signal
+</span><span class='line'>Subscriber 1 received 10
+</span><span class='line'>Subscriber 2 subscribes to the signal
+</span><span class='line'>Send value `20` on the signal
+</span><span class='line'>Subscriber 1 received 20
+</span><span class='line'>Subscriber 2 received 20&lt;/int, nonerror&gt;&lt;/int, nonerror&gt;&lt;/int, nonerror&gt;&lt;/int, nonerror&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>因为Swift有泛型的存在，这样的话我们可以把Signal当做任何数据类型的容器，而不是像OC中利用上帝类型Id，更加方便传递数据</p>
+
+<p>首先我们通过Signal.pipe()创建了一个信号和一个观察者。</p>
+
+<p>奇怪的是，在RACOC部分中，我们很少主动创建观察者，我们通常直接订阅信号就可以。</p>
+
+<p>在Swift中，通过pipe创建的信号是个热信号，类似于OC中的RACSubject系列，在RACSubject继承自RACSiganl又继承RACStream，RACStream是一个Monad,它可以代表数据和数据的一系列的操作如map,flatterMap,bind</p>
+
+<p>RACSubject又遵守了RACSubscriber协议，这个协议定义了可以发送数据的操作。</p>
+
+<p>所以RACSubject即是一个信号，又是一个观察者。</p>
+
+<p>在Swift部分的实现中，Signal并没有实现发送数据的方法。所以它需要一个内部的Observer去发送数据。所以它被pipe直接返回。</p>
+
+<p>在外部我们需要自己实例化一个Observer观察者。去订阅事件。</p>
+
+<p>可能在你查看Pipe的实现的时候并不好理解。把尾随闭包补全相对好理解点。</p>
+
+<p>做个总结：</p>
+
+<ul>
+<li>RACOC中：RACSubject = RACSignal + RACSubscriper，在订阅的时候，订阅者被放在了RACSubject内部存放，我们只需要去关注订阅的block实现即可。</li>
+<li>RACSwift中:Signal 仅仅就是一个信号，所以需要一个内部观察者去充当发送数据的工具。外部的订阅需要自己手动实例观察者</li>
+<li>热信号：由于pipe方法返回的是热信号，所以一个订阅者会错过在订阅之前发送的事件
+*</li>
+</ul>
+
+
+<h3>empty</h3>
+
+<p>空信号直接发送一个interrupted事件</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>scopedExample("`empty`") {
+</span><span class='line'>    let emptySignal = Signal&lt;int, nonerror&gt;.empty
+</span><span class='line'>    let observer = Observer&lt;int, nonerror&gt;(
+</span><span class='line'>    failed: { _ in print("error not called") },
+</span><span class='line'>    completed: { print("completed not called") },
+</span><span class='line'>    interrupted: { print("interrupted called") },
+</span><span class='line'>    next: { _ in print("next not called") }
+</span><span class='line'>    )
+</span><span class='line'>    emptySignal.observe(observer)
+</span><span class='line'>}
+</span><span class='line'>--- `empty` ---
+</span><span class='line'>interrupted called&lt;/int, nonerror&gt;&lt;/int, nonerror&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Never</h3>
+
+<p>一个Never信号不会发送任何事件</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>scopedExample("`never`") {
+</span><span class='line'>    let neverSignal = Signal&lt;int, noerror&gt;.never
+</span><span class='line'>    let observer = Observer&lt;int, noerror&gt;(
+</span><span class='line'>        failed: { _ in print("error not called") },
+</span><span class='line'>        completed: { print("completed not called") },
+</span><span class='line'>        interrupted: { print("interrupted not called") },
+</span><span class='line'>        next: { _ in print("next not called") }
+</span><span class='line'>    )
+</span><span class='line'>    neverSignal.observe(observer)
+</span><span class='line'>}
+</span><span class='line'>--- `never` ---&lt;/int, noerror&gt;&lt;/int, noerror&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>uniqueValues唯一值</h3>
+
+<p>仅从集合中发送一次相同事件&ndash;类似与arrayQueue变成了Setqueue</p>
+
+<p>注意：这会造成被发送的值被保留下来，用于以后发送的时候来检查是否重复，你可以编写一个函数来过滤重复值，这样可以减少内存消耗。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>
+</span><span class='line'>2
+</span><span class='line'>3
+</span><span class='line'>4
+</span><span class='line'>5
+</span><span class='line'>6
+</span><span class='line'>7
+</span><span class='line'>8
+</span><span class='line'>9
+</span><span class='line'>10
+</span><span class='line'>11
+</span><span class='line'>12
+</span><span class='line'>13
+</span><span class='line'>14
+</span><span class='line'>15
+</span><span class='line'>16
+</span><span class='line'>17
+</span><span class='line'>18
+</span><span class='line'>19
+</span><span class='line'>scopedExample("`uniqueValues`") {
+</span><span class='line'>    let (signal, observer) = Signal&lt;int, noerror&gt;.pipe()
+</span><span class='line'>    let subscriber = Observer&lt;int, noerror&gt;(next: { print("Subscriber received \($0)") } )
+</span><span class='line'>    let uniqueSignal = signal.uniqueValues()
+</span><span class='line'>    uniqueSignal.observe(subscriber)
+</span><span class='line'>    observer.sendNext(1)
+</span><span class='line'>    observer.sendNext(2)
+</span><span class='line'>    observer.sendNext(3)
+</span><span class='line'>    observer.sendNext(4)
+</span><span class='line'>    observer.sendNext(3)
+</span><span class='line'>    observer.sendNext(3)
+</span><span class='line'>    observer.sendNext(5)
+</span><span class='line'>}
+</span><span class='line'>--- `uniqueValues` ---
+</span><span class='line'>Subscriber received 1
+</span><span class='line'>Subscriber received 2
+</span><span class='line'>Subscriber received 3
+</span><span class='line'>Subscriber received 4
+</span><span class='line'>Subscriber received 5&lt;/int, noerror&gt;&lt;/int, noerror&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>map</h3>
+
+<p>把每一个发送的值转换成新的值</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>scopedExample("`map`") {
+</span><span class='line'>    let (signal, observer) = Signal&lt;int, noerror&gt;.pipe()
+</span><span class='line'>    let subscriber = Observer&lt;int, noerror&gt;(next: { print("Subscriber received \($0)") } )
+</span><span class='line'>    let mappedSignal = signal.map { $0 * 2 }
+</span><span class='line'>    mappedSignal.observe(subscriber)
+</span><span class='line'>    print("Send value `10` on the signal")
+</span><span class='line'>    observer.sendNext(10)
+</span><span class='line'>}
+</span><span class='line'>--- `map` ---
+</span><span class='line'>Send value `10` on the signal
+</span><span class='line'>Subscriber received 20&lt;/int, noerror&gt;&lt;/int, noerror&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>mapError</h3>
+
+<p>把收到的error值变成新的error值</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>1
+</span><span class='line'>2
+</span><span class='line'>3
+</span><span class='line'>4
+</span><span class='line'>5
+</span><span class='line'>6
+</span><span class='line'>7
+</span><span class='line'>8
+</span><span class='line'>9
+</span><span class='line'>10
+</span><span class='line'>11
+</span><span class='line'>12
+</span><span class='line'>13
+</span><span class='line'>14
+</span><span class='line'>15
+</span><span class='line'>16
+</span><span class='line'>scopedExample("`mapError`") {
+</span><span class='line'>        let userInfo = [NSLocalizedDescriptionKey: "??"]
+</span><span class='line'>        let code = error.code + 10000
+</span><span class='line'>        let mappedError = NSError(domain: "com.reactivecocoa.errordomain", code: code, userInfo: userInfo)
+</span><span class='line'>    let (signal, observer) = Signal&lt;int, nserror&gt;.pipe()
+</span><span class='line'>    let subscriber = Observer&lt;int, nserror&gt;(failed: { print("Subscriber received error: \($0)") } )
+</span><span class='line'>    let mappedErrorSignal = signal.mapError { (error:NSError) -&gt; NSError in
+</span><span class='line'>        return mappedError
+</span><span class='line'>    }
+</span><span class='line'>    mappedErrorSignal.observe(subscriber)
+</span><span class='line'>    print("Send error `NSError(domain: \"com.reactivecocoa.errordomain\", code: 4815, userInfo: nil)` on the signal")
+</span><span class='line'>    observer.sendFailed(NSError(domain: "com.reactivecocoa.errordomain", code: 4815, userInfo: nil))
+</span><span class='line'>}
+</span><span class='line'>--- `mapError` ---
+</span><span class='line'>Send error `NSError(domain: "com.reactivecocoa.errordomain", code: 4815, userInfo: nil)` on the signal
+</span><span class='line'>Subscriber received error: Error Domain=com.reactivecocoa.errordomain Code=14815 "??" UserInfo={NSLocalizedDescription=??}&lt;/int, nserror&gt;&lt;/int, nserror&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>filter</h3>
+
+<p>用于过滤一些值</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>scopedExample("`filter`") {
+</span><span class='line'>    let (signal, observer) = Signal&lt;int, noerror&gt;.pipe()
+</span><span class='line'>    let subscriber = Observer&lt;int, noerror&gt;(next: { print("Subscriber received \($0)") } )
+</span><span class='line'>    // subscriber will only receive events with values greater than 12
+</span><span class='line'>    let filteredSignal = signal.filter { $0 &gt; 12 ? true : false }
+</span><span class='line'>    filteredSignal.observe(subscriber)
+</span><span class='line'>    observer.sendNext(10)
+</span><span class='line'>    observer.sendNext(11)
+</span><span class='line'>    observer.sendNext(12)
+</span><span class='line'>    observer.sendNext(13)
+</span><span class='line'>    observer.sendNext(14)
+</span><span class='line'>}
+</span><span class='line'>--- `filter` ---
+</span><span class='line'>Subscriber received 13
+</span><span class='line'>Subscriber received 14&lt;/int, noerror&gt;&lt;/int, noerror&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>ignoreNil</h3>
+
+<p>在发送的值为可选类型中：如果有值，把值解包，如果是nil丢弃掉</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>scopedExample("`ignoreNil`") {
+</span><span class='line'>    let (signal, observer) = Signal&lt;int?, noerror&gt;.pipe()
+</span><span class='line'>    // note that the signal is of type `Int?` and observer is of type `Int`, given we're unwrapping
+</span><span class='line'>    // non-`nil` values
+</span><span class='line'>    let subscriber = Observer&lt;int, noerror&gt;(next: { print("Subscriber received \($0)") } )
+</span><span class='line'>    let ignoreNilSignal = signal.ignoreNil()
+</span><span class='line'>    ignoreNilSignal.observe(subscriber)
+</span><span class='line'>    observer.sendNext(1)
+</span><span class='line'>    observer.sendNext(nil)
+</span><span class='line'>    observer.sendNext(3)
+</span><span class='line'>}
+</span><span class='line'>--- `ignoreNil` ---
+</span><span class='line'>Subscriber received 1
+</span><span class='line'>Subscriber received 3&lt;/int, noerror&gt;&lt;/int?, noerror&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>take</h3>
+
+<p>take(num)只取前num此值得信号</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>scopedExample("`take`") {
+</span><span class='line'>    let (signal, observer) = Signal&lt;int, noerror&gt;.pipe()
+</span><span class='line'>    let subscriber = Observer&lt;int, noerror&gt;(next: { print("Subscriber received \($0)") } )
+</span><span class='line'>    let takeSignal = signal.take(2)
+</span><span class='line'>    takeSignal.observe(subscriber)
+</span><span class='line'>    observer.sendNext(1)
+</span><span class='line'>    observer.sendNext(2)
+</span><span class='line'>    observer.sendNext(3)
+</span><span class='line'>    observer.sendNext(4)
+</span><span class='line'>}
+</span><span class='line'>--- `take` ---
+</span><span class='line'>Subscriber received 1
+</span><span class='line'>Subscriber received 2&lt;/int, noerror&gt;&lt;/int, noerror&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>collect</h3>
+
+<p>在发送complete事件之后，观察者会收到一个由之前事件组成的数组</p>
+
+<p>注意：如果在发送complete事件的时候，没有任何事件发送，观察者会收到一个空的数据</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>scopedExample("`collect`") {
+</span><span class='line'>    let (signal, observer) = Signal&lt;int, noerror&gt;.pipe()
+</span><span class='line'>    // note that the signal is of type `Int` and observer is of type `[Int]` given we're "collecting"
+</span><span class='line'>    // `Int` values for the lifetime of the signal
+</span><span class='line'>    let subscriber = Observer&lt;[Int], NoError&gt;(next: { print("Subscriber received \($0)") } )
+</span><span class='line'>    let collectSignal = signal.collect()
+</span><span class='line'>    collectSignal.observe(subscriber)
+</span><span class='line'>    observer.sendNext(1)
+</span><span class='line'>    observer.sendNext(2)
+</span><span class='line'>    observer.sendNext(3)
+</span><span class='line'>    observer.sendNext(4)
+</span><span class='line'>    observer.sendCompleted()
+</span><span class='line'>}
+</span><span class='line'>--- `collect` ---
+</span><span class='line'>Subscriber received [1, 2, 3, 4]&lt;/int, noerror&gt;
+</span><span class='line'>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>SignalProducer</h2>
+
+<p>一个信号发生器，是SignalProducer类型的实例，它可以创建信号(signals)并施加副作用（side effects）</p>
+
+<p>信号发生器用来表示操作或者任务，比如网络请求，每一次对它的调用start()将会生成一个新的潜在操作，并允许调用者观察它的结果，还有一个startWithSignal()方法，会给出产生的信号，允许在必要的情况下监听多次。</p>
+
+<p>根据start()方法的动作方式，被同一个信号发生器生成的信号可能会有不同的事件顺序或版本，甚至事件流完全不一样！和普通的信号不同，在观察者连接上之前，信号发生器不会开始工作（也就没有事件会生成），并且在每一个新的监听器连接上时其工作都会重新开始一个单独的工作流。</p>
+
+<p>启动一个信号发生器会返回一个销毁器(disposable)，它可用来打断或取消被生成信号的工作</p>
+
+<p>和信号一样，信号生成器可以通过map,filter等原函数操作，使用lift方法，所有信号的原函数可以被提升成为以信号生成器为对象的操作，除此以外，还有一些用来控制何时与如何启动信号生成器的原函数，比如times.</p>
+
+<p>通过lift函数可以让热信号转变为冷信号。</p>
+
+<h3>Subscription</h3>
+
+<p>一个信号生成器代表了一种可以在需要的时候才被启动的操作（不像signal是自启动的），这种信号是冷信号，在刚开始这个信号的状态也为冷（未激活），既然是冷信号，那么就意味着这一个观察者不会错过任何被信号生成器发出的值。</p>
+
+<p>补充：像signal是创建的时候状态为cold(理解为未激活)，被订阅时状态为hot(理解为激活)</p>
+
+<p>但是冷信号和热信号与状态为冷热是两个不同的概念，冷信号会带来副作用，热信号不会</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>scopedExample("Subscription") {
+</span><span class='line'>    let producer = SignalProducer&lt;int, noerror&gt; { observer, _ in
+</span><span class='line'>        print("New subscription, starting operation")
+</span><span class='line'>        observer.sendNext(1)
+</span><span class='line'>        observer.sendNext(2)
+</span><span class='line'>    }
+</span><span class='line'>    let subscriber1 = Observer&lt;int, noerror&gt;(next: { print("Subscriber 1 received \($0)") })
+</span><span class='line'>    let subscriber2 = Observer&lt;int, noerror&gt;(next: { print("Subscriber 2 received \($0)") })
+</span><span class='line'>    print("Subscriber 1 subscribes to producer")
+</span><span class='line'>    producer.start(subscriber1)
+</span><span class='line'>    print("Subscriber 2 subscribes to producer")
+</span><span class='line'>    // Notice, how the producer will start the work again
+</span><span class='line'>    producer.start(subscriber2)
+</span><span class='line'>}
+</span><span class='line'>--- Subscription ---
+</span><span class='line'>Subscriber 1 subscribes to producer
+</span><span class='line'>New subscription, starting operation
+</span><span class='line'>Subscriber 1 received 1
+</span><span class='line'>Subscriber 1 received 2
+</span><span class='line'>Subscriber 2 subscribes to producer
+</span><span class='line'>New subscription, starting operation
+</span><span class='line'>Subscriber 2 received 1
+</span><span class='line'>Subscriber 2 received 2&lt;/int, noerror&gt;&lt;/int, noerror&gt;&lt;/int, noerror&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>像不像是RACDynamicSignal的创建方式，这不过不同与Sinal的是，这里的发送信号的观察者是在内部通过Signal.pipe()生成的，不需要外部创建。</p>
+
+<p>SignalProduce是冷信号，任何一个订阅者/观察者都不会错过任何事件</p>
+
+<p>start方类似Signal的 signal.observe()方法，只不过Signal的方法只有一个作用，就是关联一个观察者，而SignalProduce的start方法还多了一个激活信号的功能</p>
+
+<h3>Empty</h3>
+
+<p>一个会立即调用complete事件的信号生成器</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>/*:
+</span><span class='line'> ### `empty`
+</span><span class='line'> A producer for a Signal that will immediately complete without sending
+</span><span class='line'> any values.
+</span><span class='line'> */
+</span><span class='line'>scopedExample("`empty`") {
+</span><span class='line'>    let emptyProducer = SignalProducer&lt;int, noerror&gt;.empty
+</span><span class='line'>    let observer = Observer&lt;int, noerror&gt;(
+</span><span class='line'>        failed: { _ in print("error not called") },
+</span><span class='line'>        completed: { print("completed called") },
+</span><span class='line'>        interrupted: { print("interrupted called") },
+</span><span class='line'>        next: { _ in print("next not called") }
+</span><span class='line'>    )
+</span><span class='line'>    emptyProducer.start(observer)
+</span><span class='line'>}
+</span><span class='line'>--- `empty` ---
+</span><span class='line'>completed called&lt;/int, noerror&gt;&lt;/int, noerror&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Signal调用的是interrup方法，暂时不知道为什么，可能是为了区分语义吧，Signal是有时序的，SignalProduce是没有时序的。</p>
+
+<h3>Never</h3>
+
+<p>一个什么都不会发送的信号器</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>/*:
+</span><span class='line'> ### `never`
+</span><span class='line'> A producer for a Signal that never sends any events to its observers.
+</span><span class='line'> */
+</span><span class='line'>scopedExample("`never`") {
+</span><span class='line'>    let neverProducer = SignalProducer&lt;int, noerror&gt;.never
+</span><span class='line'>    let observer = Observer&lt;int, noerror&gt;(
+</span><span class='line'>        failed: { _ in print("error not called") },
+</span><span class='line'>        completed: { print("completed not called") },
+</span><span class='line'>        next: { _ in print("next not called") }
+</span><span class='line'>    )
+</span><span class='line'>    neverProducer.start(observer)
+</span><span class='line'>}
+</span><span class='line'>--- `never` ---&lt;/int, noerror&gt;&lt;/int, noerror&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>buffer</h3>
+
+<p>创建一个事件队列可以回放已经发送的事件</p>
+
+<p>当一个值被发送的时候，它会被放进缓冲区内，如果缓冲区已经溢出，就会丢弃旧的值</p>
+
+<p>这些被缓存的值将会被保留，直到这个信号被终结，当一个信号启动的时候，如果队列里没有任何值，所有被发送的新值都会被自动转发到观察者那里，直到管着着收到一个终止事件。</p>
+
+<p>当一个终止事件被发送到队列中，观察者不会再收到任何值，并且这个事件不会被计算buffer的缓冲区大小，所以没有缓存的值都会被丢弃。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>scopedExample("`buffer`") {
+</span><span class='line'>    let (producer, observer) = SignalProducer&lt;int, noerror&gt;.buffer(2)
+</span><span class='line'>    observer.sendNext(1)
+</span><span class='line'>    observer.sendNext(2)
+</span><span class='line'>    observer.sendNext(3)
+</span><span class='line'>    var values: [Int] = []
+</span><span class='line'>    producer.start { event in
+</span><span class='line'>        switch event {
+</span><span class='line'>        case let .Next(value):
+</span><span class='line'>            values.append(value)
+</span><span class='line'>        default:
+</span><span class='line'>            break
+</span><span class='line'>        }
+</span><span class='line'>    }
+</span><span class='line'>    print(values)
+</span><span class='line'>    observer.sendNext(4)
+</span><span class='line'>    print(values)
+</span><span class='line'>    let subscriber = Observer&lt;int,noerror&gt;(next:{ bufferdValue in
+</span><span class='line'>        print("\(bufferdValue)")
+</span><span class='line'>    })
+</span><span class='line'>    producer.start(subscriber)
+</span><span class='line'>}
+</span><span class='line'>--- `buffer` ---
+</span><span class='line'>[2, 3]
+</span><span class='line'>[2, 3, 4]
+</span><span class='line'>3
+</span><span class='line'>4&lt;/int,noerror&gt;&lt;/int, noerror&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>startWithSignal</h3>
+
+<p>通过Producer返回一个Signal,当闭包调用时返回signal开始发送事件</p>
+
+<p>闭包返回一个Disponsable，可以用来中断Signal或者完成</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>scopedExample("`startWithSignal`") {
+</span><span class='line'>    var started = false
+</span><span class='line'>    var value: Int?
+</span><span class='line'>    SignalProducer&lt;int, noerror&gt;(value: 42)
+</span><span class='line'>        .on(next: {
+</span><span class='line'>            value = $0
+</span><span class='line'>        })
+</span><span class='line'>        .startWithSignal { signal, disposable in
+</span><span class='line'>            print(signal)
+</span><span class='line'>            print(value) // nil
+</span><span class='line'>        }
+</span><span class='line'>    print(value)
+</span><span class='line'>}
+</span><span class='line'>--- `startWithSignal` ---
+</span><span class='line'>ReactiveCocoa.Signal&lt;swift.int, result.noerror&gt;
+</span><span class='line'>nil
+</span><span class='line'>Optional(42)&lt;/swift.int, result.noerror&gt;&lt;/int, noerror&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>startWithNext</h3>
+
+<p>通过信号生成器创建一个信号，并且给这个信号内部直接构建一个观察者，在指定的闭包中会直接订阅next事件。</p>
+
+<p>返回一个Disposable,可以中断这个信号，中断之后这个闭包不会再被调用</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>scopedExample("`startWithNext`") {
+</span><span class='line'>    SignalProducer&lt;int, noerror&gt;(value: 42)
+</span><span class='line'>        .startWithNext { value in
+</span><span class='line'>            print(value)
+</span><span class='line'>        }
+</span><span class='line'>}
+</span><span class='line'>--- `startWithNext` ---
+</span><span class='line'>42&lt;/int, noerror&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这个订阅只能接受next事件</p>
+
+<h3>startWithCompleted</h3>
+
+<p>同startWithNext，只不过只能接受complete事件</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>scopedExample("`startWithCompleted`") {
+</span><span class='line'>    SignalProducer&lt;int, noerror&gt;(value: 42)
+</span><span class='line'>        .startWithCompleted {
+</span><span class='line'>            print("completed called")
+</span><span class='line'>        }
+</span><span class='line'>}
+</span><span class='line'>--- `startWithCompleted` ---
+</span><span class='line'>completed called&lt;/int, noerror&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>startWithFailed</h3>
+
+<p>同startWithNext， 只不过只能接受Failer事件事件</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>scopedExample("`startWithFailed`") {
+</span><span class='line'>    SignalProducer&lt;int, nserror&gt;(error: NSError(domain: "example", code: 42, userInfo: nil))
+</span><span class='line'>        .startWithFailed { error in
+</span><span class='line'>            print(error)
+</span><span class='line'>        }
+</span><span class='line'>}
+</span><span class='line'>--- `startWithFailed` ---
+</span><span class='line'>Error Domain=example Code=42 "(null)"&lt;/int, nserror&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>startWithInterrupted</h3>
+
+<p>同startWithNext,只不过只能接受interrupted事件</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>scopedExample("`startWithInterrupted`") {
+</span><span class='line'>    let disposable = SignalProducer&lt;int, noerror&gt;.never
+</span><span class='line'>        .startWithInterrupted {
+</span><span class='line'>            print("interrupted called")
+</span><span class='line'>        }
+</span><span class='line'>    disposable.dispose()
+</span><span class='line'>}
+</span><span class='line'>--- `startWithInterrupted` ---
+</span><span class='line'>interrupted called&lt;/int, noerror&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>lift</h3>
+
+<p>这个相对难理解点，大致类似于RAC_OC部分中的bind函数，monad中bind函数</p>
+
+<p>可以理解为所有的原函数都是通过lift去实现的，借用中间信号来实现一系列的信号变换</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>scopedExample("`lift`") {
+</span><span class='line'>    var counter = 0
+</span><span class='line'>    let transform: Signal&lt;int, noerror&gt; -&gt; Signal&lt;int, noerror&gt; = { signal in
+</span><span class='line'>        counter = 42
+</span><span class='line'>        return signal
+</span><span class='line'>    }
+</span><span class='line'>    SignalProducer&lt;int, noerror&gt;(value: 0)
+</span><span class='line'>        .lift(transform)
+</span><span class='line'>        .startWithNext { _ in
+</span><span class='line'>            print(counter)
+</span><span class='line'>        }
+</span><span class='line'>}
+</span><span class='line'>--- `lift` ---
+</span><span class='line'>42&lt;/int, noerror&gt;&lt;/int, noerror&gt;&lt;/int, noerror&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>map</h3>
+
+<p>把每个值都转换为新的值</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>scopedExample("`map`") {
+</span><span class='line'>    SignalProducer&lt;int, noerror&gt;(value: 1)
+</span><span class='line'>        .map { $0 + 41 }
+</span><span class='line'>        .startWithNext { value in
+</span><span class='line'>            print(value)
+</span><span class='line'>        }
+</span><span class='line'>}
+</span><span class='line'>--- `map` ---
+</span><span class='line'>42&lt;/int, noerror&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>mapError</h3>
+
+<p>把收到的error转换为新的error</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>scopedExample("`mapError`") {
+</span><span class='line'>    SignalProducer&lt;int, nserror&gt;(error: NSError(domain: "mapError", code: 42, userInfo: nil))
+</span><span class='line'>        .mapError { Error.Example($0.description) }
+</span><span class='line'>        .startWithFailed { error in
+</span><span class='line'>            print(error)
+</span><span class='line'>        }
+</span><span class='line'>}
+</span><span class='line'>--- `mapError` ---
+</span><span class='line'>Example("Error Domain=mapError Code=42 \"(null)\"")&lt;/int, nserror&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>filter</h3>
+
+<p>过滤不符合条件的值</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>scopedExample("`filter`") {
+</span><span class='line'>    SignalProducer&lt;int, noerror&gt;(values: [ 1, 2, 3, 4 ])
+</span><span class='line'>        .filter { $0 &gt; 3}
+</span><span class='line'>        .startWithNext { value in
+</span><span class='line'>            print(value)
+</span><span class='line'>        }
+</span><span class='line'>}
+</span><span class='line'>--- `filter` ---
+</span><span class='line'>4&lt;/int, noerror&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>take</h3>
+
+<p>take(num) 只取前几次的值</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>scopedExample("`take`") {
+</span><span class='line'>    SignalProducer&lt;int, noerror&gt;(values: [ 1, 2, 3, 4 ])
+</span><span class='line'>        .take(2)
+</span><span class='line'>        .startWithNext { value in
+</span><span class='line'>            print(value)
+</span><span class='line'>        }
+</span><span class='line'>}
+</span><span class='line'>--- `take` ---
+</span><span class='line'>1
+</span><span class='line'>2&lt;/int, noerror&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>observeOn</h3>
+
+<p>在指定调度器上分发事件</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>/*:
+</span><span class='line'> ### `observeOn`
+</span><span class='line'> Forwards all events onto the given scheduler, instead of whichever
+</span><span class='line'> scheduler they originally arrived upon.
+</span><span class='line'> */
+</span><span class='line'>scopedExample("`observeOn`") {
+</span><span class='line'>    let baseProducer = SignalProducer&lt;int, noerror&gt;(values: [ 1, 2, 3, 4 ])
+</span><span class='line'>    let completion = { print("is main thread? \(NSThread.currentThread().isMainThread)") }
+</span><span class='line'>    if #available(OSX 10.10, *) {
+</span><span class='line'>    baseProducer
+</span><span class='line'>        .observeOn(QueueScheduler(qos: QOS_CLASS_DEFAULT, name: "test"))
+</span><span class='line'>        .startWithCompleted(completion)
+</span><span class='line'>    }
+</span><span class='line'>    baseProducer
+</span><span class='line'>        .startWithCompleted(completion)
+</span><span class='line'>}
+</span><span class='line'>--- `observeOn` ---
+</span><span class='line'>is main thread? true&lt;/int, noerror&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>collect</h2>
+
+<p>在发送完成的时候将一系列的值聚合为一个数组</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>scopedExample("`collect()`") {
+</span><span class='line'>    SignalProducer&lt;int, noerror&gt; { observer, disposable in
+</span><span class='line'>            observer.sendNext(1)
+</span><span class='line'>            observer.sendNext(2)
+</span><span class='line'>            observer.sendNext(3)
+</span><span class='line'>            observer.sendNext(4)
+</span><span class='line'>            observer.sendCompleted()
+</span><span class='line'>        }
+</span><span class='line'>        .collect()
+</span><span class='line'>        .startWithNext { value in
+</span><span class='line'>            print(value)
+</span><span class='line'>        }
+</span><span class='line'>}
+</span><span class='line'>--- `collect()` ---
+</span><span class='line'>[1, 2, 3, 4]&lt;/int, noerror&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>collect(count:)</h3>
+
+<p>在发送数据的时候（不需要发送complete）的时候将一系列的值聚合为数组，数组的长度为count,如果有很多数据，将会返回多个数组</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>scopedExample("`collect(count:)`") {
+</span><span class='line'>    SignalProducer&lt;int, noerror&gt; { observer, disposable in
+</span><span class='line'>            observer.sendNext(1)
+</span><span class='line'>            observer.sendNext(2)
+</span><span class='line'>            observer.sendNext(3)
+</span><span class='line'>            observer.sendNext(4)
+</span><span class='line'>        observer.sendNext(5)
+</span><span class='line'>//            observer.sendCompleted()
+</span><span class='line'>        }
+</span><span class='line'>        .collect(count: 2)
+</span><span class='line'>        .startWithNext { value in
+</span><span class='line'>            print(value)
+</span><span class='line'>        }
+</span><span class='line'>}
+</span><span class='line'>--- `collect(count:)` ---
+</span><span class='line'>[1, 2]
+</span><span class='line'>[3, 4]&lt;/int, noerror&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>collect(predicate:) matching values inclusively</h3>
+
+<p>通过谓词将一系列的值聚合为一个数组，注意在发送complete时候，如果前面只剩下一个值，就不需要聚合（因为没有其它元素和最后一个元素聚合），直接返回一个只有一个元素的数组。如果没有数据则返回一个空数组</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>scopedExample("`collect(predicate:)` matching values inclusively") {
+</span><span class='line'>    SignalProducer&lt;int, noerror&gt; { observer, disposable in
+</span><span class='line'>//            observer.sendNext(1)
+</span><span class='line'>//            observer.sendNext(2)
+</span><span class='line'>//            observer.sendNext(3)
+</span><span class='line'>//            observer.sendNext(4)
+</span><span class='line'>            observer.sendCompleted()
+</span><span class='line'>        }
+</span><span class='line'>        .collect { values in values.reduce(0, combine: +) == 3 }
+</span><span class='line'>        .startWithNext { value in
+</span><span class='line'>            print(value)
+</span><span class='line'>        }
+</span><span class='line'>}
+</span><span class='line'>--- `collect(predicate:)` matching values inclusively ---
+</span><span class='line'>[]&lt;/int, noerror&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>尝试打开注释看看会有什么结果</p>
+
+<h3>collect(predicate:) matching values exclusively</h3>
+
+<p>和上一个不同的是，如果谓词成功就把之前的聚合在一起，可以理解为把成功的界限当做分隔符</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>scopedExample("`collect(predicate:)` matching values exclusively") {
+</span><span class='line'>    SignalProducer&lt;int, noerror&gt; { observer, disposable in
+</span><span class='line'>            observer.sendNext(1)
+</span><span class='line'>            observer.sendNext(2)
+</span><span class='line'>            observer.sendNext(3)
+</span><span class='line'>            observer.sendNext(4)
+</span><span class='line'>            observer.sendNext(5)
+</span><span class='line'>            observer.sendCompleted()
+</span><span class='line'>        }
+</span><span class='line'>        .collect { values, next in next == 3 || next == 5  }
+</span><span class='line'>        .startWithNext { value in
+</span><span class='line'>            print(value)
+</span><span class='line'>        }
+</span><span class='line'>}
+</span><span class='line'>--- `collect(predicate:)` matching values exclusively ---
+</span><span class='line'>[1, 2]
+</span><span class='line'>[3, 4] // 3满足了条件所以被分开
+</span><span class='line'>[5] // 5也是&lt;/int, noerror&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>combineLatestWith</h3>
+
+<p>将第一个信号生成器的values和被聚合信号生成器的最后一个值聚合为一个元组</p>
+
+<p>新产生的信号生成器不会发送任何值，只是转发，任何一个原来的信号被中断，这个新的信号生成器也会中断</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>scopedExample("`combineLatestWith`") {
+</span><span class='line'>    let producer1 = SignalProducer&lt;int, noerror&gt;(values: [ 1, 2, 3, 4 ])
+</span><span class='line'>    let producer2 = SignalProducer&lt;int, noerror&gt;(values: [ 1, 2 ])
+</span><span class='line'>    producer1
+</span><span class='line'>        .combineLatestWith(producer2)
+</span><span class='line'>        .startWithNext { value in
+</span><span class='line'>            print("\(value)")
+</span><span class='line'>        }
+</span><span class='line'>}
+</span><span class='line'>--- `combineLatestWith` ---
+</span><span class='line'>(1, 2)
+</span><span class='line'>(2, 2)
+</span><span class='line'>(3, 2)
+</span><span class='line'>(4, 2)&lt;/int, noerror&gt;&lt;/int, noerror&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>skip</h3>
+
+<p>skip（num），跳过num此发送的事件</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>scopedExample("`skip`") {
+</span><span class='line'>    let producer1 = SignalProducer&lt;int, noerror&gt;(values: [ 1, 2, 3, 4 ])
+</span><span class='line'>    producer1
+</span><span class='line'>        .skip(2)
+</span><span class='line'>        .startWithNext { value in
+</span><span class='line'>            print(value)
+</span><span class='line'>        }
+</span><span class='line'>}
+</span><span class='line'>--- `skip` ---
+</span><span class='line'>3
+</span><span class='line'>4&lt;/int, noerror&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>materialize</h3>
+
+<p>将被发送的值(value)编程Event,允许他们被修改。还句话说，允许他们被修改，把一个值变成一个Monad</p>
+
+<p>当收到一个complete或者Failure事件，这个新的信号生成器，会发送事件并且结束。当收到一个interrupted事件，这个新的信号生成器也会中断</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>scopedExample("`materialize`") {
+</span><span class='line'>    SignalProducer&lt;int, noerror&gt;(values: [ 1, 2, 3, 4 ])
+</span><span class='line'>        .materialize()
+</span><span class='line'>        .startWithNext { value in
+</span><span class='line'>            print(value)
+</span><span class='line'>        }
+</span><span class='line'>}
+</span><span class='line'>--- `materialize` ---
+</span><span class='line'>NEXT 1
+</span><span class='line'>NEXT 2
+</span><span class='line'>NEXT 3
+</span><span class='line'>NEXT 4
+</span><span class='line'>COMPLETED
+</span><span class='line'>// 注意 value  如果不做materialize就是Int类型</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>sampleOn</h3>
+
+<p>当sampler（被操作的信号生成器）发送任何事件的时候，都转发原来信号生成器的最后一个值</p>
+
+<p>如果当一个sampler启动时，当前的值没有被观察者，没有任何事情发生</p>
+
+<p>新产生的信号生成器从源信号生成器哪里发送数据，如果两个信号生成器任何一个complete或者interrupt,新产生的都会中断</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>/*:
+</span><span class='line'> ### `sampleOn`
+</span><span class='line'> Forwards the latest value from `self` whenever `sampler` sends a Next
+</span><span class='line'> event.
+</span><span class='line'> If `sampler` fires before a value has been observed on `self`, nothing
+</span><span class='line'> happens.
+</span><span class='line'> Returns a producer that will send values from `self`, sampled (possibly
+</span><span class='line'> multiple times) by `sampler`, then complete once both input producers have
+</span><span class='line'> completed, or interrupt if either input producer is interrupted.
+</span><span class='line'> */
+</span><span class='line'>scopedExample("`sampleOn`") {
+</span><span class='line'>    let baseProducer = SignalProducer&lt;int, noerror&gt;(values: [ 1, 2, 3, 4 ])
+</span><span class='line'>    let sampledOnProducer = SignalProducer&lt;int, noerror&gt;(values: [ 1, 2 ])
+</span><span class='line'>        .map { _ in () }
+</span><span class='line'>    let newProduce = baseProducer
+</span><span class='line'>        .sampleOn(sampledOnProducer)
+</span><span class='line'>      newProduce  .startWithNext { value in
+</span><span class='line'>            print(value)
+</span><span class='line'>        }
+</span><span class='line'>}
+</span><span class='line'>--- `sampleOn` ---
+</span><span class='line'>4
+</span><span class='line'>4&lt;/int, noerror&gt;&lt;/int, noerror&gt;
+</span><span class='line'>sampler发送的2次值都被变换成baseProduce 的comlete前的最后一个值</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>combinePrevious</h3>
+
+<p>向前合并，没法送一个值就结合历史发送数据的最后一个构造成一个新的元组返回。在第一个发送时由于没有历史数据，所以combinePrevious传递了一个默认值。当做第一次的合并。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>scopedExample("`combinePrevious`") {
+</span><span class='line'>    SignalProducer&lt;int, noerror&gt;(values: [ 1, 2, 3, 4 ])
+</span><span class='line'>        .combinePrevious(42)
+</span><span class='line'>        .startWithNext { value in
+</span><span class='line'>            print("\(value)")
+</span><span class='line'>        }
+</span><span class='line'>}
+</span><span class='line'>--- `combinePrevious` ---
+</span><span class='line'>(42, 1) // 第一次没有历史记录默认值是42
+</span><span class='line'>(1, 2) // 第二次默认记录是1
+</span><span class='line'>(2, 3)
+</span><span class='line'>(3, 4)&lt;/int, noerror&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>scan</h3>
+
+<p>类似reduce,将值聚合为一个新的值，每次聚合都保留结果作为下次的默认值，首次需给出默认值</p>
+
+<p>每次聚合都会发送这个值</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>scopedExample("`scan`") {
+</span><span class='line'>    SignalProducer&lt;int, noerror&gt;(values: [ 1, 2, 3, 4 ])
+</span><span class='line'>        .scan(0, +)
+</span><span class='line'>        .startWithNext { value in
+</span><span class='line'>            print(value)
+</span><span class='line'>        }
+</span><span class='line'>}
+</span><span class='line'>--- `scan` ---
+</span><span class='line'>1
+</span><span class='line'>3
+</span><span class='line'>6
+</span><span class='line'>10&lt;/int, noerror&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>reduce</h3>
+
+<p>和scan类似，区别为reduce只发送聚合后的值并且立即结束</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>scopedExample("`reduce`") {
+</span><span class='line'>    SignalProducer&lt;int, noerror&gt;(values: [ 1, 2, 3, 4 ])
+</span><span class='line'>        .reduce(0, +)
+</span><span class='line'>        .startWithNext { value in
+</span><span class='line'>            print(value)
+</span><span class='line'>    }
+</span><span class='line'>}
+</span><span class='line'>--- `reduce` ---
+</span><span class='line'>10&lt;/int, noerror&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>skipRepeats</h3>
+
+<p>跳过表达式里返回true的值，第一个值不会被跳过</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>scopedExample("`skipWhile`") {
+</span><span class='line'>    SignalProducer&lt;int, noerror&gt;(values: [ 3, 3, 3, 3, 1, 2, 3, 4 ])
+</span><span class='line'>        .skipWhile { $0 &gt; 2 }
+</span><span class='line'>        .startWithNext { value in
+</span><span class='line'>            print(value)
+</span><span class='line'>        }
+</span><span class='line'>}
+</span><span class='line'>--- `skipRepeats` ---
+</span><span class='line'>1
+</span><span class='line'>2
+</span><span class='line'>3
+</span><span class='line'>1
+</span><span class='line'>2
+</span><span class='line'>4
+</span><span class='line'>1</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>skipWhile</h3>
+
+<p>对每个值都去做判断，知道返回false,之前的值会被跳过</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>scopedExample("`skipWhile`") {
+</span><span class='line'>    SignalProducer&lt;int, noerror&gt;(values: [ 3, 3, 3, 3, 1, 2, 3, 4 ])
+</span><span class='line'>        .skipWhile { $0 &gt; 2 }
+</span><span class='line'>        .startWithNext { value in
+</span><span class='line'>            print(value)
+</span><span class='line'>        }
+</span><span class='line'>}
+</span><span class='line'>--- `skipWhile` ---
+</span><span class='line'>1  // 到1 返回false  之前的值被忽略掉
+</span><span class='line'>2
+</span><span class='line'>3
+</span><span class='line'>4&lt;/int, noerror&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>takeUntilReplacement</h3>
+
+<p>在被替换的信号发生器发送信号之后，发送被替换的信号</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>scopedExample("`takeUntilReplacement`") {
+</span><span class='line'>    let (replacementSignal, incomingReplacementObserver) = Signal&lt;int, noerror&gt;.pipe()
+</span><span class='line'>    let baseProducer = SignalProducer&lt;int, noerror&gt; { incomingObserver, _ in
+</span><span class='line'>        incomingObserver.sendNext(1)
+</span><span class='line'>        incomingObserver.sendNext(2)
+</span><span class='line'>        incomingObserver.sendNext(3)
+</span><span class='line'>// 下面被替换的信号生成器发送了事件，之后就不再发送baseProducer的事件了
+</span><span class='line'>// 相当于被替换了
+</span><span class='line'>        incomingReplacementObserver.sendNext(42)
+</span><span class='line'>        incomingObserver.sendNext(4)
+</span><span class='line'>        incomingReplacementObserver.sendNext(42)
+</span><span class='line'>    }
+</span><span class='line'>    let producer = baseProducer.takeUntilReplacement(replacementSignal)
+</span><span class='line'>    producer.startWithNext { value in
+</span><span class='line'>        print(value)
+</span><span class='line'>    }
+</span><span class='line'>}
+</span><span class='line'>--- `takeUntilReplacement` ---
+</span><span class='line'>1
+</span><span class='line'>2
+</span><span class='line'>3
+</span><span class='line'>42
+</span><span class='line'>42&lt;/int, noerror&gt;&lt;/int, noerror&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>takeLast</h3>
+
+<p>在发送complete事件后只取count此数据</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>scopedExample("`takeLast`") {
+</span><span class='line'>    SignalProducer&lt;int, noerror&gt;(values: [ 1, 2, 3, 4 ])
+</span><span class='line'>        .takeLast(2)
+</span><span class='line'>        .startWithNext { value in
+</span><span class='line'>            print(value)
+</span><span class='line'>        }
+</span><span class='line'>}
+</span><span class='line'>只取了2次数据
+</span><span class='line'>--- `takeLast` ---
+</span><span class='line'>3
+</span><span class='line'>4&lt;/int, noerror&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>ignoreNil</h3>
+
+<p>如果发送的事件是可选类型，解包这些可选类型，并且丢弃nil值</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>scopedExample("`ignoreNil`") {
+</span><span class='line'>    SignalProducer&lt;int?, noerror&gt;(values: [ nil, 1, 2, nil, 3, 4, nil ])
+</span><span class='line'>        .ignoreNil()
+</span><span class='line'>        .startWithNext { value in
+</span><span class='line'>            print(value)
+</span><span class='line'>        }
+</span><span class='line'>}
+</span><span class='line'>--- `ignoreNil` ---
+</span><span class='line'>1
+</span><span class='line'>2
+</span><span class='line'>3
+</span><span class='line'>4&lt;/int?, noerror&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>zipWith</h3>
+
+<p>压缩信号生成器，只有再两个信号都有数据发送之后，新的信号生成器才会发送数据</p>
+
+<p>新的数据被组合为元组</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>scopedExample("`zipWith`") {
+</span><span class='line'>    let baseProducer = SignalProducer(values: [ 1, 2, 3, 4 ])
+</span><span class='line'>    let zippedProducer = SignalProducer(values: [ 42, 43 ])
+</span><span class='line'>    baseProducer
+</span><span class='line'>        .zipWith(zippedProducer)
+</span><span class='line'>        .startWithNext { value in
+</span><span class='line'>            print("\(value)")
+</span><span class='line'>        }
+</span><span class='line'>}
+</span><span class='line'>--- `zipWith` ---
+</span><span class='line'>(1, 42)
+</span><span class='line'>(2, 43)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>后面应为第二个没有数据了，所以不会再聚合了</p>
+
+<h3>times</h3>
+
+<p>time(count)重复发送count数据，每次重复必须上次发送完成事件</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>scopedExample("`times`") {
+</span><span class='line'>    var counter = 0
+</span><span class='line'>    SignalProducer&lt;(), NoError&gt; { observer, disposable in
+</span><span class='line'>            counter += 1
+</span><span class='line'>            observer.sendCompleted()
+</span><span class='line'>        }
+</span><span class='line'>        .times(42)
+</span><span class='line'>        .start()
+</span><span class='line'>    print(counter)
+</span><span class='line'>}
+</span><span class='line'>--- `times` ---
+</span><span class='line'>42</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>retry</h3>
+
+<p>如果收到失败事件重试retry(count)次</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>scopedExample("`retry`") {
+</span><span class='line'>    var tries = 0
+</span><span class='line'>    SignalProducer&lt;int, nserror&gt; { observer, disposable in
+</span><span class='line'>            if tries == 0 {
+</span><span class='line'>                tries += 1
+</span><span class='line'>                observer.sendFailed(NSError(domain: "retry", code: 0, userInfo: nil))
+</span><span class='line'>            } else {
+</span><span class='line'>                observer.sendNext(42)
+</span><span class='line'>                observer.sendCompleted()
+</span><span class='line'>            }
+</span><span class='line'>        }
+</span><span class='line'>        .retry(1)
+</span><span class='line'>        .startWithResult { result in
+</span><span class='line'>            print(result)
+</span><span class='line'>        }
+</span><span class='line'>}
+</span><span class='line'>--- `retry` ---
+</span><span class='line'>.Success(42)&lt;/int, nserror&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>当第一个信号发送complete时，第二个信号被替换成信号发送线路上，如果有任何失败事件，后面的就替换失败。</p>
+
+<p>第一个信号发送的所有事件都会被忽略</p>
+
+<p><img src="http://cc.cocimg.com/api/uploads/20160726/1469505056118233.png" alt="1" /></p>
+
+<h3>flatMap</h3>
+
+<p>将收到的每个事件都映射为新的Product,然后摊平，如果原来的producer发送失败，新产生也得立即失败</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>scopedExample("`flatMap(.Latest)`") {
+</span><span class='line'>    SignalProducer&lt;int, noerror&gt;(values: [ 1, 2, 3, 4 ])
+</span><span class='line'>        .flatMap(.Latest) { SignalProducer(value: $0 + 3) }
+</span><span class='line'>        .startWithNext { value in
+</span><span class='line'>            print(value)
+</span><span class='line'>        }
+</span><span class='line'>}
+</span><span class='line'>--- `flatMap(.Latest)` ---
+</span><span class='line'>4
+</span><span class='line'>5
+</span><span class='line'>6
+</span><span class='line'>7&lt;/int, noerror&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>flatMapError</h3>
+
+<p>把收到的failer事件映射为新的Producer,并且摊平它</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>scopedExample("`flatMapError`") {
+</span><span class='line'>    SignalProducer&lt;int, nserror&gt;(error: NSError(domain: "flatMapError", code: 42, userInfo: nil))
+</span><span class='line'>        .flatMapError { SignalProducer&lt;int, noerror&gt;(value: $0.code) }
+</span><span class='line'>        .startWithNext { value in
+</span><span class='line'>            print(value)
+</span><span class='line'>        }
+</span><span class='line'>}
+</span><span class='line'>--- `flatMapError` ---</span></code></pre></td></tr></table></div></figure>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">安路</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2016-11-16T10:29:29+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>16</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>10:29 am</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/swift/'>swift</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+
+<!-- JiaThis Button BEGIN -->
+<div class="jiathis_style_32x32">
+	<a class="jiathis_button_qzone"></a>
+	<a class="jiathis_button_tsina"></a>
+	<a class="jiathis_button_tqq"></a>
+	<a class="jiathis_button_weixin"></a>
+	<a class="jiathis_button_renren"></a>
+	<a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank"></a>
+	<a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+<br><br>
+<!-- UY BEGIN -->
+<div id="uyan_frame"></div>
+<script type="text/javascript" src="http://v2.uyan.cc/code/uyan.js?uid=2052593"></script>
+<!-- UY END -->
+
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2016/11/11/swift-package-managerru-men/" title="Previous Post: swift Package Manager入门">&laquo; swift Package Manager入门</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2016/11/22/ip-tcp-he-http/" title="Next Post: IP  TCP 和HTTP">IP  TCP 和HTTP &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+<h1>
+	QQ群
+</h1>
+   <br/>
+	<p>欢迎加入swift学习交流群:252710124</p>
+</section>
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/11/28/shi-yong-carthageguan-li-iosyi-lai/">使用Carthage管理ios依赖</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/11/22/ip-tcp-he-http/">IP TCP 和HTTP</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/11/16/reactiveswiftru-men/">ReactiveSwift入门</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/11/11/swift-package-managerru-men/">Swift Package Manager入门</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/11/07/ioszhong-de-re-qi-dong/">iOS中的热修复</a>
+      </li>
+    
+  </ul>
+</section>
+<section>
+	<h1>文章分类</h1>
+	<ul id="categories">
+		<li class='category'><a href='/blog/categories/cocoapods/'>cocoapods (1)</a></li>
+<li class='category'><a href='/blog/categories/git/'>git (3)</a></li>
+<li class='category'><a href='/blog/categories/ios/'>ios (29)</a></li>
+<li class='category'><a href='/blog/categories/life/'>life (1)</a></li>
+<li class='category'><a href='/blog/categories/mac/'>mac (2)</a></li>
+<li class='category'><a href='/blog/categories/nodejs/'>nodejs (2)</a></li>
+<li class='category'><a href='/blog/categories/octopress/'>octopress (2)</a></li>
+<li class='category'><a href='/blog/categories/swift/'>swift (21)</a></li>
+<li class='category'><a href='/blog/categories/xcode/'>xcode (1)</a></li>
+
+	</ul>
+</section>
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/andrew-anlu">@andrew-anlu</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'andrew-anlu',
+            count: 3,
+            skip_forks: false,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+<section>
+  <h1>On Delicious</h1>
+  <div id="delicious"></div>
+  <script type="text/javascript" src="http://feeds.delicious.com/v2/json/Andrewswift1987?count=3&amp;sort=date&amp;callback=renderDeliciousLinks"></script>
+  <p><a href="http://delicious.com/Andrewswift1987">My Delicious Bookmarks &raquo;</a></p>
+</section>
+
+ <section>
+      <h1>访客统计</h1>
+      <br/>
+    <a href="http://info.flagcounter.com/Bkif"><img src="http://s01.flagcounter.com/count2/Bkif/bg_ffffff/txt_000000/border_CCCCCC/columns_3/maxflags_10/viewers_0/labels_1/pageviews_1/flags_1/percent_0/" alt="Free counters!" border="0"></a>
+    </section>
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><!--返回顶部开始-->
+<div id="full" style="width:0px; height:0px; position:fixed; right:180px; bottom:150px; z-index:100; text-align:center; background-color:transparent; cursor:pointer;">
+  <a href="#" onclick="goTop();return false;"><img src="http://7xsn4e.com2.z0.glb.clouddn.com/top.png" border=0 alt="返回顶部" width="50" height="50"></a>
+</div>
+<script src="/javascripts/top.js" type="text/javascript"></script>
+<!--返回顶部结束-->
+
+
+<p>
+  Copyright &copy; 2016 - 安路 -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'Andrewswift1987';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://andrew-anlu.github.io/blog/2016/11/16/reactiveswiftru-men/';
+        var disqus_url = 'http://andrew-anlu.github.io/blog/2016/11/16/reactiveswiftru-men/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

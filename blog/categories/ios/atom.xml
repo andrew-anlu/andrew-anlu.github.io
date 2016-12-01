@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Ios | 安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/blog/categories/ios/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-11-04T21:51:06+08:00</updated>
+  <updated>2016-12-02T07:34:25+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -12,6 +12,682 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[IP TCP 和HTTP]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/11/22/ip-tcp-he-http/"/>
+    <updated>2016-11-22T10:04:46+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/11/22/ip-tcp-he-http</id>
+    <content type="html"><![CDATA[<p>当app和服务器进行通信的额时候，大多数情况下，都是采用http协议。http最初是为web浏览器而定制的，如果在浏览器输入 <code>http://www.baidu.com</code>。浏览器就会通过http协议和baidu所对应的服务器进行通信。</p>
+
+<p>HTTP是运行在应用层上的应用协议，而不同的层级上都有相应的协议在运行。层级的堆栈关系一般可以这么描述：</p>
+
+<pre><code>Application Layer -- e.g. HTTP
+----
+Transport Layer -- e.g. TCP
+----
+Internet Layer -- e.g. IP
+----
+Link Layer -- e.g. IEEE 802.2
+</code></pre>
+
+<p>所谓的<a href="https://en.wikipedia.org/wiki/OSI_model">OSI(Open Systems Interconnnection),开放式系统互联</a>模型定义了七层结构。本文会关注应用层(application layer)传输层(transport layer)和网络层(internet layer),他们分别代表了典型的HTTP的应用的HTTP,TCP,以及IP.在ip之下的是数据连接和物理层级，比如像Ethernet的实现之类的东西</p>
+
+<p>如上文所述，我们只关注应用层，传输层和网络层部分，更确切的说，着重探讨一种特殊的混合模式：基于IP的TCP,以及基于TCP实现的HTTP.这就是我们每天使用的app的基本网络配置。</p>
+
+<p>通过本文，希望大家能够对HTTP工作原理有一个细致的了解，知道一些常见的HTTP问题产生的原因，从而能在实践中尽量避免这些问题的发生。</p>
+
+<p>其实在互联网上传递数据的方式并不只是HTTP一种，HTTP之所以被广泛使用的原因是其非常稳定，易用，即便是防火墙一般也是允许HTTP协议穿透的。</p>
+
+<p>接下来，我们从最低的一层谈起，说说IP网络协议。</p>
+
+<h3>IP网络协议(IP_Internet Protocol)</h3>
+
+<p>TCP/IP 中的Ip是<a href="https://en.wikipedia.org/wiki/Internet_Protocol">网络协议(Internet Protocol)</a>的缩写。从字面意思便知，它是互联网众多协议的基础。</p>
+
+<p>IP实现了分组交换网络，在协议下，机器被叫做主机(host)，IP协议明确了host之间的资料包（数据包）的传输方式。</p>
+
+<p>所谓数据包是指一段二进制的数据，其中包含了发送源主机和目标主机的信息。IP网络负责源主机和目标主机之间的数据包传输。IP协议的特点是best effort(尽力服务，其目标是提供有效服务并尽力传输)。这意味着，在传输过程中，数据包可能会丢失，也有可能被重复传送导致目标主机收到多个同样的数据包</p>
+
+<p>IP网络中的主机都配有自己的地址，被称为IP地址。每个数据包中都包含了源主机和目标主机的IP地址，IP协议负责路径计算，即IP数据包在网络中的传输时，数据包所经过的灭一个主机几点都会读取数据包中的目标主机地址信息，以便选择朝着什么地方传输数据包</p>
+
+<p>今天，绝大多数的数据包仍旧是IPv4的，每一个IPV4的地址的长度是32位的，常见采用dotted-decimal(点分十进制)表示法，具体形式如下：198.51.100.42</p>
+
+<p>新的IPv6标准也正在逐渐推广中。它有更大的地址空间：长度为128位，这使得数据包在网络中传输中传输时的寻址更容易一些。另外，由于有更多的地址可以分配，注入网络地址转换等问题也迎刃而解。IPv6的表示形式为:八组十六进制数以冒号分割，比如：2001:0db8:85a3:0042:1000:8a2e:0370:7334。</p>
+
+<h2>IP Header</h2>
+
+<p>一个ip数据包通常包含header（报头信息）和payload（有效载荷）</p>
+
+<p>payload中的内容即是要传输的真正信息，而header承载的是与传输数据有关的元数据(metadata)</p>
+
+<h3>IPV4 Header</h3>
+
+<p>ipv4的header信息内容如下：</p>
+
+<pre><code>IPv4 Header Format
+Offsets  Octet    0                       1                       2                       3
+Octet    Bit      0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31|
+ 0         0     |Version    |IHL        |DSCP            |ECN  |Total Length                                   |
+ 4        32     |Identification                                |Flags   |Fragment Offset                       |
+ 8        64     |Time To Live           |Protocol              |Header Checksum                                |
+12        96     |Source IP Address                                                                             |
+16       128     |Destination IP Address                                                                        |
+20       160     |Options (if IHL &gt; 5)                                                                          |
+</code></pre>
+
+<p>header长度为20字节（不包含极少用到的可选信息）</p>
+
+<p>header信息中最关键的是源和目标IP地址，除此之外，版本信息是4，代表ipv4.protocol(协议区)代表payload采用的传输协议。TCP的协议号是6.Total Length(总长度区)表明了header加payload整个数据包的大小</p>
+
+<h3>Ipv6 Header</h3>
+
+<p>ipv6的地址长度为128位，IPv6的header信息内容如下：</p>
+
+<pre><code>Offsets  Octet    0                       1                       2                       3
+Octet    Bit      0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31|
+ 0         0     |Version    |Traffic Class         |Flow Label                                                 |
+ 4        32     |Payload Length                                |Next Header            |Hop Limit              |
+ 8        64     |Source Address                                                                                |
+12        96     |                                                                                              |
+16       128     |                                                                                              |
+20       160     |                                                                                              |
+24       192     |Destination Address                                                                           |
+28       224     |                                                                                              |
+32       256     |                                                                                              |
+36       288     |                                                                                              |
+</code></pre>
+
+<p>Ipv6 header采用固定长度40字节。经过多年来对Ipv4使用的总结，如今Ipv6的header信息简化了很多。</p>
+
+<p>除了源和目标地址这种必备信息外，IPv6提供专门的next header区域来指明紧跟header的数据是什么。也就是说，Ipv6允许在数据包中将header链接起来，每一个被链接的Ipv6 header 都会有一个next header 字段，直到到达实际的payload数据，比如说，当next header的值为6(TCP的协议号)时，数据包的其它信息就是tcp协议要传输的数据</p>
+
+<h2>Fragmentation(数据分片)</h2>
+
+<p>由于底部链路层对所传输的数据帧有最大长度限制，所以有时候IPV4需要对所传数据包进行分片。具体表现为，如果数据包尺寸超过了索要经过的数据链路层的最大传输限制，路由就会对数据包进行分片，当分片数据到达目标主机后，可以根据分片信息进行数据重组。当然，数据发送源有权决定路由是否启用对传输数据包进行分片，加入所传输的数据超过了输送限制，又禁止了路由分片，发送源会收到<a href="https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol">ICMP</a>的数据帧超长报告信息</p>
+
+<p>在Ipv6中，如果数据包超限制，路由会直接丢弃数据包并且向发送源回传ICMP6的数据帧超长报告信息。源和目标两端会基于这个特性进行<a href="https://en.wikipedia.org/wiki/Path_MTU">路径MTU发现</a>，以此寻找两端之间最大传输单元所在的路由，找到MTU路由后，仅当上层数据包的最小payload确实超过了MTU,IPV6才会进行分片传输，对于IPV6下的tCp来说，这不会造成什么问题。</p>
+
+<h2>TCP-传输控制协议(Transmission Control Protocol)</h2>
+
+<p>TCP层位于IP层之上，是最受欢迎的因特网通讯协议之一，人们通常用TCP/IP来泛指整个因特网协议族。</p>
+
+<p>刚刚提到，IP协议允许两个主机之间传送单一的数据包，为了保证对所传送数据包达到尽力服务的目的，最终的传输结果可能是数据包乱序，重复甚至丢包。</p>
+
+<p>TCP是基于IP 层的协议。但是TCP是可靠地，有序的，有错误检查机制的基于字节流传输的协议。这样当两个设备上的应用通过TCP来传递数据的时候，总能够保证目标接收方收到的数据的顺序和内容与发送方所发出的是一致的。TCP做的这些事看起来很平常，但是比起IP层的粗犷处理方式已经是显著的进步了。</p>
+
+<p>应用程序之间可以通过TCP建立链接，TCP建立的是双向连接，通信双方可以同时进行数据的传输。连接的双方都不需要操心数据是否分块，或者是否采用了尽力服务等。TCP会确保所传输的数据的正确性，即接受方收到的数据与发出方的数据一致。</p>
+
+<p>HTTP是典型的TCP应用，用户浏览器(应用1)与web服务器(应用2)建立连接后，浏览器可以通过连接发送服务请求，web服务器可以通过同样的连接请求作出响应。</p>
+
+<p>同一个host主机上可以有多个应用同时使用TCP协议。TCP用不同的端口来区分应用，作为连接的两端，发送源和接收目标分别拥有自己的IP地址和端口号，凭借这样一对IP地址和端口号，就可以唯一标识一个连接。</p>
+
+<p>使用HTTPS的web服务器会监听443端口，浏览器作为发送源会启用一个临时端口结合自己的IP地址与目标服务器对应的端口和IP地址建立TCP连接。</p>
+
+<p>TCP在IPv4和Ipv6上是无差别运行的。所以如果ipv4和protocol活IPv6的Next Header的协议号被设置为6，表示执行TCP协议。</p>
+
+<h2>TCP Segments (TCP 报文段)</h2>
+
+<p>主机之间传输的数据流一般会先被分块，再转为为TCP报文段，最终会生成IP数据包中的payload的载荷数据</p>
+
+<p>每个TCP报文段都有header信息和对应的载荷payload.payload信息就是待传输的数据块。TCP报文段的header信息中主要包含的是源和目标端口号，至于说源和目标的IP地址信息则已经包含在IP header信息中了。</p>
+
+<p>TCP的报文段header信息中还有报文序列号，确认号等其他一些用于管理连接的信息。</p>
+
+<p>所谓序列号信息，其实就是为每个报文段分配的唯一编号，第一个报文段的序列号是随机的，比如1721092979，其后的每一个报文段的序列号都以此号为基础以此加1，1721092980，1721092981 等等。至于确认号，是目标端反馈给源的确认信息，通知源目前已经接到那些报文段了。由于TCP是双向的，所以数据和确认信息发送也都是双向的。</p>
+
+<h2>TCP连接</h2>
+
+<p>连接管理是TCP的核心功能之一，而且协议需要解决由于IP层采用不可靠传输引发的一系列复杂问题。下面会分别介绍TCP的连接简历，数据传输以及连接终止的详细过程。</p>
+
+<p>TCP连接全过程的状态变化是复杂的，但是大多数情况下还是比较简单的。</p>
+
+<h3>连接建立</h3>
+
+<p>TCP连接都是简历在两个主机之间的。所以，每个连接建立过程中都存在两个角色：一端（例如web服务器）监听连接，另一端(例如应用)主动连接正在监听的一端(web服务器).服务器端的这种监听行为被称为passive open(被动打开)。客户端主动连接服务器的行为称为active open(主动打开)</p>
+
+<p>TCP会通过三次握手来完成连接建立，具体过程是这样的：</p>
+
+<ol>
+<li>客户端首先向服务器端发送一个SYn包和一个随机序列号A</li>
+<li>服务器端收到回回复客户端一个SYn_ACK包以及各一个确认号（用于确认收到SYN）A+1,同时再发送一个随机序列号B</li>
+<li>客户端收到后会发送一个ACK包以及确认号（用于确认收到SYN-ACK）B+1和序列号A+1给服务端</li>
+</ol>
+
+
+<p>SYN是Synchronize sequence numbers（同步序列号）的缩写。两端在传递数据时，所传递的每个TCP报文段都有一个序列号。就是利用这种机制，TCP可以确保分块传输的数据包最终都已正确的个数和顺序抵达目标端。在正式传输开始之前，源和目标端需要同步确认第一个报文的序列号。</p>
+
+<p>ACK 是acknowledgment(确认)的缩写。当某一端接到了报文包后，通过回传已报文序列号来确认接收到报文这件事。</p>
+
+<p>运行如下语句：</p>
+
+<pre><code>curl -4 http://www.apple.com/contact/
+</code></pre>
+
+<p>这是通过<code>curl</code>命令与www.apple.com 的 80端口创建一个TCPl连接</p>
+
+<p>www.apple.com所在服务器23.63.125.15（注意，整个 IP 不是固定的）会监听80端口。我们自己的IP地址是<code>10.0.1.6</code>，启用的临时端口52181(这个端口是从可用端口中随机选择的)。利用tcpdump(1)输出的三次握手过程是这样的、</p>
+
+<pre><code>% sudo tcpdump -c 3 -i en3 -nS host 23.63.125.15
+18:31:29.140787 IP 10.0.1.6.52181 &gt; 23.63.125.15.80: Flags [S], seq 1721092979, win 65535, options [mss 1460,nop,wscale 4,nop,nop,TS val 743929763 ecr 0,sackOK,eol], length 0
+18:31:29.150866 IP 23.63.125.15.80 &gt; 10.0.1.6.52181: Flags [S.], seq 673593777, ack 1721092980, win 14480, options [mss 1460,sackOK,TS val 1433256622 ecr 743929763,nop,wscale 1], length 0
+18:31:29.150908 IP 10.0.1.6.52181 &gt; 23.63.125.15.80: Flags [.], ack 673593778, win 8235, options [nop,nop,TS val 743929773 ecr 1433256622], length 0
+</code></pre>
+
+<p>这里的信息量很大，下面要逐个分析一下：</p>
+
+<p>最左边的是系统时间。当执行命令的时间是晚上18:31。后面的IP代表的是这些都是IP协议数据包。</p>
+
+<p>接下来看这段10.0.1.6.52181 > 23.63.125.15.80，这一对是源和目标端的IP地址+端口。第一行和第三行是客户端发向服务端的信息，第二行是服务端发向客户端的。tcpdump会自动把端口号加到IP地址后头，比如 10.0.1.6.52181 表示 IP 地址为 10.0.1.6，端口号为 52181。</p>
+
+<p><code>Flags</code>表示TCP报文段header信息中的一些缩写标识：<code>S</code>代表SYN,<code>.</code>代表ACK,<code>P</code>代表PUSH,F是FIN.还有一些其他的标识，这边就不罗列了。注意上面三行Flags中先是携带SYN,接着是SYN-ACK,最后是ACK,这就是三次握手确认的全过程。</p>
+
+<p>另外，第一行中客户端发送了一个随机序列号1721092979（就是上文中所说的A）给服务器，第二行展示的是服务器回传给客户端的确认号<code>1721092980 (A+1)</code>和一个随机序列号 673593777 (B).最后在第三行，客户端将自己的确认号 673593778 (B+1) 发送给服务端.</p>
+
+<h2>其他选项</h2>
+
+<p>当然，在连接建立过程中还会配置一些其他信息。比如第一行中客户端发送的内容:</p>
+
+<pre><code>[mss 1460,nop,wscale 4,nop,nop,TS val 743929763 ecr 0,sackOK,eol]
+</code></pre>
+
+<p>还有第二行服务端发送的：</p>
+
+<pre><code>[mss 1460,sackOK,TS val 1433256622 ecr 743929763,nop,wscale 1]
+</code></pre>
+
+<p>其中<code>TS val / ecr</code>是TCP用来创建RTT 往返时间(round-trip time)的。TS val 是发送方的时间戳，ECR 是相应应答时间戳，通常情况下就是发送方收到的最后时间戳。TCP以RTT作为其拥塞控制算法 (congestion-control algorithms) 的依据</p>
+
+<p>连接的两端都发送 sackOK.这样会启用选择性确认(Selective Acknowledagement)机制，使连接双方能够确认收到的字节返回。一般情况下，确认机制只是确认接受方已收到的数据的字节总数。</p>
+
+<p><code>mss</code>选项声明了最大报文长度，表示接收端希望接收的单个报文的最大长度。wscale是窗口放大因子。</p>
+
+<h2>数据传输</h2>
+
+<p>一旦建立了连接，双方就可以互发数据了。发送端所发出的每个报文段都有一个序列号，这个序列号与当下已传送的字节总数有关。接收端会针对已接收的数据包向源端发送确认报文，确认信息同样是由报文header所携带的ACK</p>
+
+<p>假设现在传送的信息是除最后一个报文5字节外，其它都是10字节。具体是这样的：</p>
+
+<pre><code>host A sends segment with seq 10
+host A sends segment with seq 20
+host A sends segment with seq 30    host B sends segment with ack 10
+host A sends segment with seq 35    host B sends segment with ack 20
+                                    host B sends segment with ack 30
+                                    host B sends segment with ack 35
+</code></pre>
+
+<p>整个机制是双向运转的，A主机会持续的发送数据包。B收到数据包后会向A发送确认信息。A发送数据包的过程不需要等待B的确认。</p>
+
+<p>TCP将流量控制和其它一系列复杂机制结合起来进行拥塞控制。需要处理以下问题：针对丢失的报文采用重发机制，同时还需要动态的调整发送报文的频率。</p>
+
+<p>流量控制的原则是发送方发送数据的速度不能比接收方处理数据的速度快。接收方，也就是所谓的接收窗口会告知发送方自身接收窗口数据缓冲区的大小。从上面tcpdump的输出看，窗口大小是 <code>win 65535</code>,<code>wscale</code>（窗口放大因子）是4.这些数字的意思是说：<code>10.0.1.6</code>主机的接收窗口大小是4＊64 kB = 256 kB,<code>23.63.125.15</code>主机的<code>win</code>是<code>14480</code>,<code>wscale</code>是1，接收窗口约为14kb.总之，不管哪一方作为数据接收方，都会向对方通报自己的接收窗口的大小。</p>
+
+<p>拥塞控制要更负责一些，所有拥塞控制的目标都是要计算出当前网络中数据传输的最佳速率。所谓最佳速率就是要达到一种微妙的平衡。一方面，是希望速度越快越好，另一方面，速度快意味着数据传输多，这样处理性能会打打打折甚至崩溃。而这种超负荷崩溃是分组交换网络的固有特点。当负载过大，数据包之间会产生拥塞，直接导致丢包率急速上升。</p>
+
+<p>拥塞控制还需要充分考虑对流量的影响。发送方要时刻关注来自接收方的确认信息。要做到这点并不简单，有的时候还需要一定的妥协。要知道底部IP协议数据包是无序传输的，数据包会丢失也会重复。发送方需要评估RTT往返时间，然后基于RTT去确定是否收到了接收方的确认信息。重发数据包也有很大代价，除了连接延迟问题，网络的负载也会发生明显的波动。导致TCP需要不停的去适应当前网络情况。</p>
+
+<p>更重要的是，TCP连接本身是易变的。除了数据传输，连接的两端还会不时的发送一些提醒和确认信息以便可以适当的调整状态来维持连接。</p>
+
+<p>基于这种一直在相互协调中的连接关系，TCP连接往往会是短暂而低效的。在简历连接的初期，TCP协议算法还不能完全了解当前网络状况。而在连接将要结束的时候，反馈给发送方的信息又可能不充分，这样就很难对连接状况作出实时的合理的评估。</p>
+
+<p>之前展示了客户单和服务端之间交换的三段报文，再看看关于连接的其它信息：</p>
+
+<pre><code>18:31:29.150955 IP 10.0.1.6.52181 &gt; 23.63.125.15.80: Flags [P.], seq 1721092980:1721093065, ack 673593778, win 8235, options [nop,nop,TS val 743929773 ecr 1433256622], length 85
+18:31:29.161213 IP 23.63.125.15.80 &gt; 10.0.1.6.52181: Flags [.], ack 1721093065, win 7240, options [nop,nop,TS val 1433256633 ecr 743929773], length 0
+</code></pre>
+
+<p>客户端<code>10.0.1.6</code>发送的第一段报文长度是85 bytes(http请求)。由于在上一个报文发送后没有收到来自服务端的信息，所以ACK确认号值不变。</p>
+
+<p>服务端 <code>23.63.125.15</code>只是对接收客户端的数据进行确认回复，没有向客户端发送数据，所以length为0，由于当前连接是采用选择性确认，所以序列号和确认好之间的字节长度从1721092980到1721093065，也就是85 bytes.接收方发送的ACK确认号是1721093065,这代表目前已接收的数据确认累计到1721093065字节了。至于说为什么数字会如此之大，这要说道初次握手时发出的随机数，数字的范围和那个初始数字是相关的。</p>
+
+<p>这种模式会一直持续到全部数据传送完成：</p>
+
+<pre><code>18:31:29.189335 IP 23.63.125.15.80 &gt; 10.0.1.6.52181: Flags [.], seq 673593778:673595226, ack 1721093065, win 7240, options [nop,nop,TS val 1433256660 ecr 743929773], length 1448
+18:31:29.190280 IP 23.63.125.15.80 &gt; 10.0.1.6.52181: Flags [.], seq 673595226:673596674, ack 1721093065, win 7240, options [nop,nop,TS val 1433256660 ecr 743929773], length 1448
+18:31:29.190350 IP 10.0.1.6.52181 &gt; 23.63.125.15.80: Flags [.], ack 673596674, win 8101, options [nop,nop,TS val 743929811 ecr 1433256660], length 0
+18:31:29.190597 IP 23.63.125.15.80 &gt; 10.0.1.6.52181: Flags [.], seq 673596674:673598122, ack 1721093065, win 7240, options [nop,nop,TS val 1433256660 ecr 743929773], length 1448
+18:31:29.190601 IP 23.63.125.15.80 &gt; 10.0.1.6.52181: Flags [.], seq 673598122:673599570, ack 1721093065, win 7240, options [nop,nop,TS val 1433256660 ecr 743929773], length 1448
+18:31:29.190614 IP 23.63.125.15.80 &gt; 10.0.1.6.52181: Flags [.], seq 673599570:673601018, ack 1721093065, win 7240, options [nop,nop,TS val 1433256660 ecr 743929773], length 1448
+18:31:29.190616 IP 23.63.125.15.80 &gt; 10.0.1.6.52181: Flags [.], seq 673601018:673602466, ack 1721093065, win 7240, options [nop,nop,TS val 1433256660 ecr 743929773], length 1448
+18:31:29.190617 IP 23.63.125.15.80 &gt; 10.0.1.6.52181: Flags [.], seq 673602466:673603914, ack 1721093065, win 7240, options [nop,nop,TS val 1433256660 ecr 743929773], length 1448
+18:31:29.190619 IP 23.63.125.15.80 &gt; 10.0.1.6.52181: Flags [.], seq 673603914:673605362, ack 1721093065, win 7240, options [nop,nop,TS val 1433256660 ecr 743929773], length 1448
+18:31:29.190621 IP 23.63.125.15.80 &gt; 10.0.1.6.52181: Flags [.], seq 673605362:673606810, ack 1721093065, win 7240, options [nop,nop,TS val 1433256660 ecr 743929773], length 1448
+18:31:29.190679 IP 10.0.1.6.52181 &gt; 23.63.125.15.80: Flags [.], ack 673599570, win 8011, options [nop,nop,TS val 743929812 ecr 1433256660], length 0
+18:31:29.190683 IP 10.0.1.6.52181 &gt; 23.63.125.15.80: Flags [.], ack 673602466, win 7830, options [nop,nop,TS val 743929812 ecr 1433256660], length 0
+18:31:29.190688 IP 10.0.1.6.52181 &gt; 23.63.125.15.80: Flags [.], ack 673605362, win 7830, options [nop,nop,TS val 743929812 ecr 1433256660], length 0
+18:31:29.190703 IP 10.0.1.6.52181 &gt; 23.63.125.15.80: Flags [.], ack 673605362, win 8192, options [nop,nop,TS val 743929812 ecr 1433256660], length 0
+18:31:29.190743 IP 10.0.1.6.52181 &gt; 23.63.125.15.80: Flags [.], ack 673606810, win 8192, options [nop,nop,TS val 743929812 ecr 1433256660], length 0
+18:31:29.190870 IP 23.63.125.15.80 &gt; 10.0.1.6.52181: Flags [.], seq 673606810:673608258, ack 1721093065, win 7240, options [nop,nop,TS val 1433256660 ecr 743929773], length 1448
+18:31:29.198582 IP 23.63.125.15.80 &gt; 10.0.1.6.52181: Flags [P.], seq 673608258:673608401, ack 1721093065, win 7240, options [nop,nop,TS val 1433256670 ecr 743929811], length 143
+18:31:29.198672 IP 10.0.1.6.52181 &gt; 23.63.125.15.80: Flags [.], ack 673608401, win 8183, options [nop,nop,TS val 743929819 ecr 1433256660], length 
+</code></pre>
+
+<h2>终止连接</h2>
+
+<p>最终连接会终止(或结束)，连接的每一端都会发送FIN标识给另一端来声明结束传输，接着另一端会对收到的FIN进行通知，当连接两端均发送完各自FIN和做出相应的确认后，连接将会彻底关闭：</p>
+
+<pre><code>18:31:29.199029 IP 10.0.1.6.52181 &gt; 23.63.125.15.80: Flags [F.], seq 1721093065, ack 673608401, win 8192, options [nop,nop,TS val 743929819 ecr 1433256660], length 0
+18:31:29.208416 IP 23.63.125.15.80 &gt; 10.0.1.6.52181: Flags [F.], seq 673608401, ack 1721093066, win 7240, options [nop,nop,TS val 1433256680 ecr 743929819], length 0
+18:31:29.208493 IP 10.0.1.6.52181 &gt; 23.63.125.15.80: Flags [.], ack 673608402, win 8192, options [nop,nop,TS val 743929828 ecr 1433256680], length 0
+</code></pre>
+
+<p>这里值得注意的是第二行，<code>23.63.125.15</code>发送了FIN，同时在这个报文信息中还对第一行中的另一端发送的FIN予以ACK(以.代表)确认。</p>
+
+<h2>HTTP-超文本传输协议（Hypertext Transfer Protocol）</h2>
+
+<p>1989年，Tim Berners lee 在<a href="https://en.wikipedia.org/wiki/CERN">CERN</a>担任软件咨询师的时候，开发了一套程序，奠定了万维网的基础。HyperText Transform Protocol（超文本转移协议，即HTTP）,是用于从WWW服务器传输超文件到本地浏览器的传送协议。<a href="https://tools.ietf.org/html/rfc2616">RFC 2616</a> 定义了今天普通使用的一个版本:HTTP 1.1</p>
+
+<h3>请求与响应</h3>
+
+<p>HTTP采用简单的请求和响应机制，在safari输入<code>http://www.apple.com</code>时，会向www.apple.com所在的服务器发送一个http请求。服务器会在对请求作出一个响应，将请求结果信息返回给Safari.</p>
+
+<p>每一个请求都有一个对应的响应信息。请求和响应遵从同样的格式，第一行是请求行或者响应状态行，接下来是header信息，header信息之后会有一个空行。空行之后是body请求信息体</p>
+
+<h3>一个简答请求</h3>
+
+<p>当safari加载html页面<a href="http://www.objc.io/about.html">http://www.objc.io/about.html</a>的时候，先是发送HTTP请求到<code>www.objc.io</code>,请求的内容是:</p>
+
+<pre><code>GET /about.html HTTP/1.1
+Host: www.objc.io
+Accept-Encoding: gzip, deflate
+Connection: keep-alive
+If-None-Match: "a54907f38b306fe3ae4f32c003ddd507"
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+If-Modified-Since: Mon, 10 Feb 2014 18:08:48 GMT
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.74.9 (KHTML, like Gecko) Version/7.0.2 Safari/537.74.9
+Referer: http://www.objc.io/
+DNT: 1
+Accept-Language: en-us
+</code></pre>
+
+<p>第一样是请求行，它包含三部分信息：动作，资源信息，还有HTTP的版本</p>
+
+<p>本例中，动作是GET,所谓动作也就是常说的HTTP请求方法， 资源信息表明所请求的资源。例子中的资源信息是 /about.html,这表示我们想get服务器的在/about.html位置中的文档。当前HTTP版本是HTTP/1.1</p>
+
+<p>接下来10行是HTTP header信息。跟着是一行空行。例子中请求没有body信息。</p>
+
+<p>header的作用是向服务器传递一些额外的辅助信息，它的内容比较宽泛，维基百科中又<a href="https://en.wikipedia.org/wiki/List_of_HTTP_header_fields">常用HTTP header关键字</a>信息的清单。例子中的header信息:<code>Host: www.objc.io</code>表示告诉服务器，本次请求的服务器名称是什么。这样可以让同一个服务器处理针对多个域名的请求。</p>
+
+<p>下面是一些常见的header信息：</p>
+
+<pre><code>Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-us
+</code></pre>
+
+<p>服务器可能具备返回多种媒体类型的能力，Accept表示safari希望接收的媒体格式类型，text/html是胡亮媒体，也被称为MIME类型或者是内容类型(Content-TYpes).<code>q=0.9</code>表示Safari对给定媒体类型的优先级要求。Accept_Lanaguage 代表Safari希望接收的自然语言清单。这回要求服务器尽可能的根据清单要求去匹配相应的语言。</p>
+
+<pre><code>Accept-Encoding: gzip, deflate
+</code></pre>
+
+<p>通过这个header,Safari告诉服务器可以对响应boday做压缩处理，如果header信息中没有设置压缩标识，那么服务器就必须返回没有压缩过的信息。压缩可以大大减少数据的传输量，在文本信息(比如HTML)中尤为明显。</p>
+
+<pre><code>If-Modified-Since: Mon, 10 Feb 2014 18:08:48 GMT
+If-None-Match: "a54907f38b306fe3ae4f32c003ddd507"
+</code></pre>
+
+<p>这两行信息表明Safari已经对请求结果做过缓存，如果服务器上的请求内容在2月10号以后发生过变化或者是etag与<code>a54907f38b306fe3ae4f32c003ddd507</code>不匹配，这就表示请求结果与当前缓存信息不一致，需要服务器返回最新的请求结果。</p>
+
+<p>user-agent 是告知服务器当前发送请求的客户端类型。</p>
+
+<h3>一个简单响应</h3>
+
+<p>作为上面的请求的响应，服务器的返回是：</p>
+
+<pre><code>HTTP/1.1 304 Not Modified
+Connection: keep-alive
+Date: Mon, 03 Mar 2014 21:09:45 GMT
+Cache-Control: max-age=3600
+ETag: "a54907f38b306fe3ae4f32c003ddd507"
+Last-Modified: Mon, 10 Feb 2014 18:08:48 GMT
+Age: 6
+X-Cache: Hit from cloudfront
+Via: 1.1 eb67cb25620df959ba21a943fbc49ef6.cloudfront.net (CloudFront)
+X-Amz-Cf-Id: dDSBgR86EKBemW6el-pBI9kAnuYJEaPQYEqGmBnilD12CbixCuZYVQ==
+</code></pre>
+
+<p>第一行是状态航，它包括HTTP版本，状态码(204)和状态信息</p>
+
+<p>HTTP定义了一系列状态码，他们各有用途，本利中的304表示所请求的信息自上次访问以来没有变化</p>
+
+<p>响应中没有包含body信息。也就说服务器通知客户端：你的版本已经是最新的了，可以直接使用当前缓存信息</p>
+
+<h3>关闭缓存</h3>
+
+<p>用curl 发送一个请求:</p>
+
+<pre><code>% curl http://www.apple.com/hotnews/ &gt; /dev/null
+</code></pre>
+
+<p><code>curl</code>没有使用本地缓存，整个请求会是这样:</p>
+
+<pre><code>GET /hotnews/ HTTP/1.1
+User-Agent: curl/7.30.0
+Host: www.apple.com
+Accept: */*
+</code></pre>
+
+<p>这个请求与之前Safari发的请求很类似，但是curl请求的header信息中没有<code>If-None-Match</code>,所以服务器必须将请求结果返回。</p>
+
+<p>此处<code>curl</code>头信息中声明的<code>Accept: */*</code>表示可以接收任何媒体类型。</p>
+
+<p>来自www.apple.com的响应：</p>
+
+<pre><code>HTTP/1.1 200 OK
+Server: Apache
+Content-Type: text/html; charset=UTF-8
+Cache-Control: max-age=424
+Expires: Mon, 03 Mar 2014 21:57:55 GMT
+Date: Mon, 03 Mar 2014 21:50:51 GMT
+Content-Length: 12342
+Connection: keep-alive
+
+&lt;!DOCTYPE html&gt;
+&lt;html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-US" lang="en-US"&gt;
+&lt;head&gt;
+    &lt;meta charset="utf-8" /&gt;
+</code></pre>
+
+<p>后面还会有一些，现在收到的响应里body中包含了HTML文档信息</p>
+
+<p>Apple服务器响应的状态码是200,这是标准的表示HTTP请求成功的状态码。</p>
+
+<p>服务器同时还告知响应媒体类型是 <code>text/html</code>;字符集<code>charset=utf-t</code>；内容长度：<code>Content-length:12342</code>,还代表了body信息的大小</p>
+
+<h2>HTTPS-安全的HTTP</h2>
+
+<p><a href="https://en.wikipedia.org/wiki/Transport_Layer_Security">Transport Layer Security</a>(安全传输层协议，TLS)是一种基于TCP的加密协议，它支持两件事情：传输的两端可以互相验证对方的身份，以及加密所传输的数据。基于TLS的HTTP请求就是HTTPS</p>
+
+<p>用https去替代http,在安全方面会有显著的提升。也许你还会采用一些其他的安全措施，总之这都会为安全通信提供保障。</p>
+
+<h3>TLS 1.2</h3>
+
+<p>如果服务器支持的话，你应该讲<code>TLSMinmumSupportedProtocol</code>设置为<code>kTLSProtocol12</code>,以要求使用<a href="https://en.wikipedia.org/wiki/Transport_Layer_Security#TLS_1.2"><code>TLS1.2</code></a>版本，这能有效的防御<a href="https://en.wikipedia.org/wiki/Man-in-the-middle_attack">中间人攻击</a></p>
+
+<h2>证书锁定(Certificate Pinning)</h2>
+
+<p>如果不确定数据接收方的身份，那么即便对所传输数据进行加密也没什么意义。服务器的证书可以表明服务器的身份，只允许好持有某个特定证书的一方建立连接，就是<a href="https://en.wikipedia.org/wiki/Certificate_pinning#Certificate_pinning">证书锁定</a></p>
+
+<p>如果一个客户端通过TLS和服务器建立连接，操作系统会验证服务器证书的有效性。当然，有很多手段可以绕开这个校验，最直接的是在iOS设备上安装证书并且将其设置为可信的，这种情况下，实施<a href="https://en.wikipedia.org/wiki/Certificate_pinning#Certificate_pinning">中间人攻击</a>也不是什么难事。</p>
+
+<p>可以使用证书锁定来规避这种风险。当监理TLS连接后，应立即检查服务器的证书，不仅要验证证书的有效性，还需要确定证书和其持有者是否匹配。考到应用和服务器需要同时升级证书的要求，这种方式比较适合应用在访问自家服务器的情况下。</p>
+
+<p>为了实现证书锁定，在建立连接的过程中需要对服务器进行信任检查，每当通过NSURLSession创建了连接，<code>NSUrlSession</code>的代理就会收到一个
+<code>-URLSession:didReceiveChallenge:completionHandler:</code>的调用。传递的参数<code>NSURLAuthenticationChallenge</code>有一个属性<code>protectionSpace</code>，它是<code>NSURLProtectionSpace</code>的实例，它有一个<code>serverTrust</code>属性。</p>
+
+<p><code>serverTrust</code>是一个<code>SecTrustRef</code>对象，<code>Security</code>框架提供了很多方法用于验证<code>SecTrustRef</code>。<code>AFNetworking</code>项目中的<code>AFSecurityPolicy</code>就是一个不错的使用。一如既往的提醒大家，如果要自己构建全验证相关的代码，请一定要认真做好代码审查，千万不要再出现诸如<code>goto fail</code>这类bug</p>
+
+<h2>综合讨论</h2>
+
+<p>现在大家多IP，TCP，和http的工作原理有了一定的了解了。下面说说还可以做些什么</p>
+
+<h3>有效地使用连接</h3>
+
+<p>TCP连接容易在两个时点出现问题：初始设置，以及通过连接传输的最后一部分报文</p>
+
+<h3>建立连接</h3>
+
+<p>连接设置可能会非常耗时，正如前文所说，TCPj建立连接的过程中需要进行三次握手，这个过程中本身没有太多的数据需要传递，但是，对于移动网络来说，从手机端向服务器端发送一个数据包普遍需要250ms,也就是四分之一秒。推及到三次握手，也就是说在还没有传送任何数据之前，光建立连接就花费了750ms</p>
+
+<p>https的情况更夸张，由于Https是基于TLS的http,而http又基于TCP,TCP连接就要执行三次握手，然后到了TLS层还会再握手三次，估算一下，建立一个HTTPS连接的耗时只要是创建一个https连接的两倍。如果RTT时间是500ms(假设单程250ms)，HTTPS建立连接累计总耗时1.5秒</p>
+
+<p>不管建立连接后传递多少数据，建立连接本身都太过耗时了。</p>
+
+<p>另一个影响TCP连接的因素是传送大规模的数据。如果要在网络情况未知的条件下传送报文，TCP需要侦测当前网络的能力。换句话说，TCP得花费一定的事件去计算此网络最佳传输速率。上文提到过，TCP需要逐步调整以便找到最佳速度。这种算法成为<a href="https://en.wikipedia.org/wiki/Slow-start">慢启动</a>。还有一点值得注意，慢启动策略在那些数据链路层传输质量较差的网络环境中的表现更差，无线网络就是典型的例子</p>
+
+<h3>结束连接</h3>
+
+<p>另一个问题主要存在于数据传输的最后阶段。每当客户端发起HTTP请求某些资源的时候，服务器会持续的向客户端发送TCP报文数据，客户端收到数据后会给服务器反馈ACK报文数据，客户端收到数据后会给服务器反馈ACK确认信息。假如某个报文在传输过程中发生丢包，那么服务器也就不会收到该包的确认ACK.一旦服务器发现现有数据包没有ACK反馈，就会触发快速重传。</p>
+
+<p>每当某个数据包丢失，数据接收方在收到下个数据包后发出的确认ACK与所接收的前一个数据包的确认ACK相同。那么数据发送方自然就会收到重复的ACK.除了报文丢失，还有很多网络状况会导致重复ACK的问题。一般情况下，如果数据发送方连续收到3个重复的ACK就会立即进行快速重发</p>
+
+<p>这所导致的问题将发生在数据传输的收尾阶段。如果发送方完成数据发送，接受方自然会停止发送ACK确认。在最后四个报文传输的过程中，快速重发算法是没有办法处理这四个报文的数据包丢失问题的（以为不会收到三个相同的确认ACK,所以不能界定传输丢包），在常规的网络环境下，四个数据包相当于5.7kb的数据规模。总之，在这最后的5.7kb的传输过程中，快速重发机制是无效的。针对这种情况，TCP会启用其它机制来侦测丢包问题。对于这种情况，重传操作可能要消耗几秒钟去执行，这并不奇怪</p>
+
+<h3>长连接和管线化</h3>
+
+<p>HTTP有两种策略来解决这些问题，最简单的是<a href="https://en.wikipedia.org/wiki/HTTP_persistent_connection">HTTP持久连接(persistent connection)</a>，也被称为长连接。具体就是,每当HTTP完成一组请求-响应后，还会继续复用相同的TCP连接。而HTTPS会复用同样的TLS连接：</p>
+
+<pre><code>open connection
+client sends HTTP request 1 -&gt;
+                            &lt;- server sends HTTP response 1
+client sends HTTP request 2 -&gt;
+                            &lt;- server sends HTTP response 2
+client sends HTTP request 3 -&gt;
+                            &lt;- server sends HTTP response 3
+close connection
+</code></pre>
+
+<p>第二部就是利用了<a href="https://en.wikipedia.org/wiki/Http_pipelining">HTTP管线</a>处理，即允许客户端利用同样的连接并行发送多个请求，也就是说无需等待上一个请求的响应完成可以发下一个请求。这表示能同时处理请求和响应，请求处理的顺序采用先进先出的原则，响应结果会按照请求发出的顺序依次返回给客户端</p>
+
+<p>稍微简化一下，看起来会是这样：</p>
+
+<pre><code>open connection
+client sends HTTP request 1 -&gt;
+client sends HTTP request 2 -&gt;
+client sends HTTP request 3 -&gt;
+client sends HTTP request 4 -&gt;
+                            &lt;- server sends HTTP response 1
+                            &lt;- server sends HTTP response 2
+                            &lt;- server sends HTTP response 3
+                            &lt;- server sends HTTP response 4
+close connection
+</code></pre>
+
+<p>注意，服务器发出的响应是实时的，不会等到接收完全请求才处理。</p>
+
+<p>可以利用这个特点来提升TCP的效率，只需要在简建立连接初始阶段执行握手，而后一直复用同样的连接。这样TCP就可以最大限度的利用带宽，此种情况下，拥塞控制也会随之提升。因为快速重复机制无法处理的最末四个报文丢失情况只会发生在使用本地连接的最后一个请求-响应中，而不是像之前那样每一个请求-响应都需要建立自己的连接，每个连接中都可能出现最后四个报文丢失的问题。</p>
+
+<p>HTTP管线化对高网络延迟连接的通讯性能提升尤为显著，在你的iPhone没有通过wifi访问网络的时候，此类网络连接就属于高延迟范畴。实际上，有调差显示，在移动网络环境下，<a href="https://en.wikipedia.org/wiki/SPDY">SPDY</a>的通讯性能并不优于HTTP管线。</p>
+
+<p><a href="https://tools.ietf.org/html/rfc2616">RFC 2616</a>指明，在与同一个服务器通讯的时候，如果启用了http管线，建议启用两个连接。按照说明所述，这样能获得最优的响应效率，能最大限度避免拥塞，增加更多的连接也不会再对性能有什么明显改善。</p>
+
+<p>遗憾的是，还有相当多的服务器不支持管线话，由于这个原因，HTTP管线在<code>NSURlSession</code>中默认是关闭的，如果想要开启HTTP管线，需要将<code>NSURLSessionConfiguration</code>中的<code>HTTPShouldUsePipelining</code>设置为YES.另外，建议服务器最好还是支持管线化</p>
+
+<h3>超时处理</h3>
+
+<p>我们都有在网络不太好的情况下使用app的经历，很多app大概15s左右就会结束请求并且反馈一个超时信息，这种设计其实是很不好有的。应该给用户一个他们理解的友好提示，比如：“你好，现在网络状态不太好，你需要多等一会”。但是即便网络状况良好，只要连接还在，TCP都会保证将请求发出去并且会一直等待响应的返回，只是时间长短问题。</p>
+
+<p>从另一个角度来说，在较慢的网络中，请求-响应的RTT时间可能会有17秒。如果15秒就决定终止请求，就算用户有足够的耐心，他们也没积水等到想要的操作结果，反过来，如果我们给出用户响应的提示信息，而他们又刚好愿意多等一会，用户可能会更喜欢使用这样的应用。</p>
+
+<p>一直以来都有一种误解，用重发请求来解决上面的问题，注意，这不是问题的关键，因为TCP有自己的重复机制。</p>
+
+<p>正确的处理方式应该是：没放发起一个请求的时候，同时启动一个10秒计时器，如果请求在10秒之内返回，就把计时器关掉。如果超过10秒，可以给用户一个提示：“网络不好请稍后”。我建议再给用户一个取消按钮，让他们可以自行选择等待还是取消请求，当然提示信息的具体内容和是否配备取消按钮，这个可以视各app的情况去决定。总而言之，开发者最好不要直接替用户做决定，比如直接终止他们的请求。</p>
+
+<p>只要连接双方的IP地址是不变的，可用的，连接就一定是活跃的。如果把iPhone从wifi连接切换到3G网络，这样连接就会变得不可用，因为的IP地址发生了变化，基于原IP地址创建的路由自然是失效的。</p>
+
+<h2>缓存</h2>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[iOS中的热修复]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/11/07/ioszhong-de-re-qi-dong/"/>
+    <updated>2016-11-07T16:46:54+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/11/07/ioszhong-de-re-qi-dong</id>
+    <content type="html"><![CDATA[<h2>背景需求</h2>
+
+<h3>为什么我们需要热修复</h3>
+
+<ul>
+<li>工作中容易犯错，bug难以避免</li>
+<li>开发和测试人力有限</li>
+<li>苹果AppStore审核周期太长，一旦出现严重bug难以快速上线新版本</li>
+</ul>
+
+
+<h2>JSPatch简介</h2>
+
+<p>JSPatch诞生于2015年5月，最初是腾讯广研高级ios开发@bang的人格项目。它能够使用JavaScripit调用Objective-C的原声接口，从而动态植入代码来替换旧代码，以实现修复线上bug.</p>
+
+<h2>JSPatch与wax对比</h2>
+
+<p><img src="http://upload-images.jianshu.io/upload_images/611240-3d1af75ebfe7de01.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="1" /></p>
+
+<p>最关键的是JSpath可实现方法粒度的线上代码替换，能修复一切代码引起的bug.而Wax无法实现。</p>
+
+<h2>JSPatch实现原理</h2>
+
+<h3>基础原理</h3>
+
+<p>Objective-C是动态语言，具有运行时特性，该特性可通过类名称和方法名的字符换获取该类和该方法，并实例化调用</p>
+
+<pre><code>Class class = NSClassFromString(“UIViewController");
+id viewController = [[class alloc] init];  
+SEL selector = NSSelectorFromString(“viewDidLoad");
+[viewController performSelector:selector];
+</code></pre>
+
+<p>也可以替换某个类的方法为新的实现：</p>
+
+<pre><code>static void newViewDidLoad(id slf, SEL sel) {}
+class_replaceMethod(class, selector, newViewDidLoad, @"");
+</code></pre>
+
+<p>还可以注册一个类，为类添加方法：</p>
+
+<pre><code>Class cls = objc_allocateClassPair(superCls, "JPObject", 0);
+objc_registerClassPair(cls);
+class_addMethod(cls, selector, implement, typedesc);
+</code></pre>
+
+<h3>JavaScript调用</h3>
+
+<p>我们可以用JavaScript对象定义一个Objective-C类：</p>
+
+<pre><code>{
+  __isCls: 1,
+  __clsName: "UIView"
+}
+</code></pre>
+
+<p>在OC执行JS脚本前，通过正则把所有方法调用都改成__c()函数，再执行这个JS脚本，做到了类似OC/Lua/Ruby等的消息转发机制：</p>
+
+<pre><code>UIView.alloc().init()
+-&gt;
+UIView.__c('alloc')().__c('init')()
+</code></pre>
+
+<p>给JS对象基类Object的prototype加上c成员，这样所有对象都可以调用到c,根据当前对象类型判断进行不同操作：</p>
+
+<pre><code>Object.prototype.__c = function(methodName) {
+  if (!this.__obj &amp;&amp; !this.__clsName) return this[methodName].bind(this);
+  var self = this
+  return function(){
+    var args = Array.prototype.slice.call(arguments)
+    return _methodFunc(self.__obj, self.__clsName, methodName, args, self.__isSuper)
+  }
+}
+</code></pre>
+
+<h2>互传消息</h2>
+
+<p>JS和OC是通过JavaScriptCore互传消息的。OC端在启动JSPatch引擎会创建一个JSContext实例，JSContext是js代码的执行环境，可以给JSContext添加方法。JS通过调用JSContext定义的方法把数据传给OC,OC通过返回值传回给JS.调用这种方法，它的参数/返回值 javaScripotCore都会自动转换，OC里的NSArray,NSdictionary
+,NSString,NSNumber,NSBlock会分别转为JS端的数组/对象/字符串/数字/函数类型  对于一个自定义ID对象，JavaScriptCore会把这个自定义对象的指针传给JS,这个对象在JS无法使用，但在回传给OC时OC可以找到这个对象。对于这个对象声明周期的管理，如果JS有变量引用时，这个OC对象引用计数就加1，JS变量的引用释放了就减一，如果OC上没别的持有者，这个OC对象的生命周期就跟着JS走了，会在JS进行垃圾回收时释放。</p>
+
+<h2>方法替换</h2>
+
+<ol>
+<li>把UIViewContrller的 <code>-viewWillAppear:</code>方法通过<code>class_replaceMethod()</code>接口指向<code>_objc_msgForward</code>,这是一个全局IMP,OC调用方法不存在时都会转发到这个IMP上，这里直接把方法替换成这个IMP,这样调用这个方法时就会走到<code>-forwardInvocation:</code></li>
+<li>为UIViewController添加<code>-ORIGviewWillAppear:</code>和<code>-_JPviewWillAppear:</code>两个方法，前者指向原来的IMP实现，后者是新的实现，稍后会在这个实现里回调JS函数</li>
+<li>改写UIViewController的<code>-forwardInvocation:</code>方法为自定义实现。一旦OC里调用UIViewController的<code>-viewWillAppear:</code>方法，经过上面的处理会把这个调用转发到<code>forwardInvocation:</code>，这时已经组装好了一个NSInvocation,包含了这个调用的参数。在这里把参数从NSInvocation反解出来，待着参数调用删除新增加的方法<code>-JPviewWillAppear:</code>,在这个新方法里获取到参数传给JS,调用JS的实现函数，整个调用过程就结束了，整个过程图示如下：</li>
+</ol>
+
+
+<p><img src="http://upload-images.jianshu.io/upload_images/611240-d079409a185f394c.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="1" /></p>
+
+<p>最后一个问题，我们把UIViewController的<code>-forwardInvocation:</code>方法的实现给替换掉了，如果程序里挣得有用到这个方法对消息进行转发，原来的逻辑怎么办？首先我们在替换<code>-forwardInvocation:</code>方法前会新建一个方法<code>-ORIGforwardInvocation:</code>，保存原来的实现IMP，在新的<code>-forwardInvocation:</code>实现了做个判断，如果转发的方法是我们想改写的，就走我们的逻辑，若不是，就调用<code>-ORIGforwardInvocation:</code>走原来的流程</p>
+
+<h2>JSPatch代码示例</h2>
+
+<p>jspatch在oc上的调用十分简单</p>
+
+<pre><code>- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions { 
+[JPEngine startEngine]; 
+NSString *sourcePath = [[NSBundle mainBundle] pathForResource:@"demo" ofType:@"js"]; 
+NSString *script = [NSString stringWithContentsOfFile:sourcePath encoding:NSUTF8StringEncoding error:nil]; 
+[JPEngine evaluateScript:script];
+}
+</code></pre>
+
+<p>一个JavaScript修复Objective-C的bug的示例:</p>
+
+<pre><code>@implementation JPTableViewController
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+  NSString *content = self.dataSource[[indexPath row]];  //可能会超出数组范围导致crash
+  JPViewController *ctrl = [[JPViewController alloc] initWithContent:content];
+  [self.navigationController pushViewController:ctrl];
+}
+
+@end
+</code></pre>
+
+<p>上述代码中取数组元素出可能会超出数组范围导致crash.如果在项目里引用了JSPatch,就可以发JS脚本修复这个bug:</p>
+
+<pre><code>defineClass("JPTableViewController", {
+  tableView_didSelectRowAtIndexPath: function(tableView, indexPath) {
+    var row = indexPath.row()
+    if (self.dataSource().length &gt; row) {  //加上判断越界的逻辑
+      var content = self.dataArr()[row];
+      var ctrl = JPViewController.alloc().initWithContent(content);
+      self.navigationController().pushViewController(ctrl);
+    }
+  }
+}, {})
+</code></pre>
+
+<h2>热修复的解决方案</h2>
+
+<ol>
+<li><p>版本更新策略</p></li>
+<li><p>考虑到下一个提交的App版本已经修复了上一个版本的bug,所以不同的App版本对应的补丁肯定也不同，同一个App版本下，可以出现递增的补丁版本</p></li>
+<li>补丁为全量更新，即最新的版本补丁包括旧版的补丁的内容，更新后新版补丁覆盖旧版补丁</li>
+<li>补丁分为可选补丁和必选补丁，必选补丁用于重大bug的修复，如果不更新必须补丁则App无法继续使用。如下图2中，补丁版本v1234对应各自版本的用户，补丁v3为必须更新，补丁v1,v2,v4为可选补丁，则v1,v2必须更新到v4才可使用；而v3的哟过户可先使用，同事后台静默更新到v4</li>
+</ol>
+
+
+<h2>安全策略</h2>
+
+<p>安全问题在于JS脚本可能被中间人攻击替换代码。可采取一下三种方法</p>
+
+<ol>
+<li>对称加密： 如zip的加密压缩，Aes等加密算法。优点是简单，缺点是安全性低，易被破解。若客户端被反编译，密码字段泄露，则完全破解。</li>
+<li><a href="HTTPS:%E4%BC%98%E7%82%B9%E6%98%AF%E5%AE%89%E5%85%A8%E6%80%A7%E9%AB%98%EF%BC%8C%E8%AF%81%E4%B9%A6%E5%9C%A8%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%9C%AA%E6%B3%84%E9%9C%B2%EF%BC%8C%E5%B0%B1%E4%B8%8D%E4%BC%9A%E8%A2%AB%E7%A0%B4%E8%A7%A3%EF%BC%8C%E7%BC%BA%E7%82%B9%E6%98%AF%E9%83%A8%E7%BD%B2%E9%BA%BB%E7%83%A6%EF%BC%8C%E5%A6%82%E6%9E%9C%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%9C%AC%E6%9D%A5%E5%B0%B1%E6%94%AF%E6%8C%81Https,%E4%BD%BF%E7%94%A8%E8%BF%99%E7%A7%8D%E6%96%B9%E6%A1%88%E4%B9%9F%E6%98%AF%E4%B8%80%E7%A7%8D%E4%B8%8D%E9%94%99%E7%9A%84%E9%80%89%E6%8B%A9%E3%80%82">HTTPS:%E4%BC%98%E7%82%B9%E6%98%AF%E5%AE%89%E5%85%A8%E6%80%A7%E9%AB%98%EF%BC%8C%E8%AF%81%E4%B9%A6%E5%9C%A8%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%9C%AA%E6%B3%84%E9%9C%B2%EF%BC%8C%E5%B0%B1%E4%B8%8D%E4%BC%9A%E8%A2%AB%E7%A0%B4%E8%A7%A3%EF%BC%8C%E7%BC%BA%E7%82%B9%E6%98%AF%E9%83%A8%E7%BD%B2%E9%BA%BB%E7%83%A6%EF%BC%8C%E5%A6%82%E6%9E%9C%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%9C%AC%E6%9D%A5%E5%B0%B1%E6%94%AF%E6%8C%81Https,%E4%BD%BF%E7%94%A8%E8%BF%99%E7%A7%8D%E6%96%B9%E6%A1%88%E4%B9%9F%E6%98%AF%E4%B8%80%E7%A7%8D%E4%B8%8D%E9%94%99%E7%9A%84%E9%80%89%E6%8B%A9%E3%80%82</a></li>
+<li>RSA校验：安全性高，部署简单</li>
+</ol>
+
+
+<p><img src="http://upload-images.jianshu.io/upload_images/611240-14723080a9823ced.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="1" /></p>
+
+<p>详细校验步骤如下：</p>
+
+<ol>
+<li>服务器计算出脚本文件的MD5值，作为这个文件的数字签名</li>
+<li>服务器通过私钥加密算出的MD5值，得到一个加密后的md5值</li>
+<li>把脚本文件和加密后的md5值一起发给客户端</li>
+<li>客户端拿到加密后的md5值，通过保存在客户端的公钥解密</li>
+<li>客户端计算脚本文件的md5值</li>
+<li>对比第 4/5 步的两个md5值(分别是客户端和服务器端计算出来的MD5值)，若相等则通过校验</li>
+</ol>
+
+
+<h2>客户端策略</h2>
+
+<p>客户端具体策略如下图：</p>
+
+<p><img src="http://upload-images.jianshu.io/upload_images/611240-3f5d0d89e0b3833d.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="1" /></p>
+
+<ol>
+<li>用户打开App时，同步进行本地补丁的加载</li>
+<li>用户打开App时，后台进程发起异步网络请求，获取服务器中当前App版本所对应的最新补丁版本和必须的补丁版本</li>
+<li>获取补丁版本的请求回来后，跟本地的补丁版本进行对比</li>
+<li>如果本地补丁版本小于必须版本，则提示用户，展示下载补丁界面，进行进程同步的补丁下载。下载完成后重新加载App和最新补丁，再进入App</li>
+<li>如果本地补丁版本不小于必须版本，但小于最新版本，则进入App,不影响用户操作。同时进行后台进程异步静默下载，下载后补丁保存在本地，下次App启动时再加载最新补丁。</li>
+<li>如果版本为最新，则进入App</li>
+</ol>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Ios10 UserNotifications]]></title>
@@ -991,477 +1667,6 @@ key2 = value2;
 
 
 <p>QQ/微信聊天，会同时下发一组通知+消息，如果用户没有启动QQ,虽有延迟但必须能够先收到通知，在收到通知的提醒之后，用户打开App,此时收到了离线消息，即使更新UI，与好友即使地发送/接收消息，（在收到通知后，断网，然后启动APP，你会发现此时手机里并不会显示刚刚通知的内容，因为它是依靠拉取消息来刷新页面的，而不是不够稳定的通知）</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[组合与继承]]></title>
-    <link href="http://andrew-anlu.github.io/blog/2016/09/10/zu-he-yu-ji-cheng/"/>
-    <updated>2016-09-10T08:45:55+08:00</updated>
-    <id>http://andrew-anlu.github.io/blog/2016/09/10/zu-he-yu-ji-cheng</id>
-    <content type="html"><![CDATA[<h2>何时使用子类</h2>
-
-<p>首先，我们讨论几种使用子类比较合适的场景。如果你要写一个自定义布局的UITableViewCell,那就创建一个子类。这同样适用于几乎每个视图。一旦你开始布局，把这块代码放入子类就更合理一些，不管代码得到了更好的封装，你也能得到一个可在工程之间重用的组件。</p>
-
-<!--more-->
-
-
-<p>假设你的代码是针对多平台多版本的，并且你需要针对每个平台每个版本写一些代码。这时候更合理的做法可能是创建一个<code>OBJDevice</code>类，让一些子类如 <code>OBJIPhoneDevice</code>和<code>OBJIPadDevice</code>,甚至更深层次的子类如<code>OBJIPhone5Device</code>来继承，并让这些子类重写特定的方法，例如，你的<code>OBJDevice</code>类可能包含了函数<code>applyRoundedCornersToView:withRadius</code>,它有一个默认的实现，但是也能被特定的子类重写。</p>
-
-<p>另一个子类可能很有用的场景是模型对象（model object）.绝大多数情况下，我的模型对象继承自一个实现了 <code>isEqual:</code>,<code>hash</code>,<code>copyWithzone:</code>,和<code>description</code>等方法的类。这些方法只被实现一次，并且迭代循环遍历所有属性，所以极不容易出错。（如果你也想找这样的一个基类，可以考虑使用<a href="https://github.com/mantle/mantle">Mantle</a>,它就是这么做的，并且做的更多）</p>
-
-<h2>何时不适用子类</h2>
-
-<p>在以往工作过得很多工程中，我见过很多继承层次很深的子类。当我也这么干的时候，总会感到内疚。除非继承的层次非常浅，否则你会很快发现它的局限性。</p>
-
-<p>幸运的是，如果你发现自己正在使用深层次的继承，还有很多替代的方案可选。在下面的章节中，我们会逐个进行更详细的描述。如果你的子类只是使用相同的接口，协议会是非常好的替代方案。如果你知道某个对象需要大量的修改，你可能会使用代理来动态改变和配置它。当你想给已有的对象增加一些简单功能时，类别可能是个选择。当你有一堆重写了相同方法的子类时，你可以使用配置对象来代替。最后，当你想重用某些功能时，组合多个对象而不是扩展它们可能会更好。</p>
-
-<h1>替代方案</h1>
-
-<h2>协议(Protocols)</h2>
-
-<p>很多时候，使用子类的原因是你想保证某个对象可以响应某些消息。假设在app中你有一个播放器对象，它可以播放视频。现在你想添加对YouTube的支持，使用相同的接口，但是具体实现不同。你可以像这样用子类来实现:</p>
-
-<pre><code>@class Player : NSObject
-
-- (void)play;
-- (void)pause;
-
-@end
-
-
-@class YouTubePlayer : Player
-
-@end
-</code></pre>
-
-<p>事实上可能这两个类并没有太多共用的代码，它们只不过具有相同的接口。如果这样的话，使用协议可能会是更好的昂奋。可以这样用协议来写你的代码：</p>
-
-<pre><code>@protocol VideoPlayer &lt;NSObject&gt;
-
-- (void)play;
-- (void)pause;
-
-@end
-
-
-@class Player : NSObject &lt;VideoPlayer&gt;
-
-@end
-
-
-@class YouTubePlayer : NSObject &lt;VideoPlayer&gt;
-
-@end
-</code></pre>
-
-<p>这样，<code>YouTubePlayer</code>类就不必知道<code>Player</code>类内部实现了</p>
-
-<h2>替代方案:代理(delegate)</h2>
-
-<p>再一次假设你有一个像上面例子中的<code>Player</code>类，现在，你想在开始播放的时候在某个地方执行一个自定的函数。这么做相对容易一些：创建一个自定义的子类，重写<code>play</code>方法，调用<code>[super play]</code>，然后开始做你自定义的工作。这么做是一种方法，另外一种方法是，改动你的<code>Player</code>对象，然后给它设置一个代理。如下：</p>
-
-<pre><code>@class Player;
-
-@protocol PlayerDelegate
-
-- (void)playerDidStartPlaying:(Player *)player;
-
-@end
-
-
-@class Player : NSObject
-
-@property (nonatomic,weak) id&lt;PlayerDelegate&gt; delegate;
-
-- (void)play;
-- (void)pause;
-
-@end
-</code></pre>
-
-<p>现在，在播放器的<code>play</code>方法里，就可以给代理发<code>playerDidStartPlaying :</code>消息了。这个<code>Player</code>类的任何使用者都可以仅仅实现这个代理协议，而不用继承该类，<code>Player</code>类也能够保持通用性。这是个强大有效的技术，苹果在自己的框架里大量地使用它。你想想像<code>UITextField</code>这样的类，还有<code>NSLayoutManager</code>。有时候你还会想把几个不同的方法打包分组到几个单独的协议里，比如<code>UITableView</code>,它不仅有个一个代理(delegate),还有一个数据源(dataSource)</p>
-
-<h2>替代方案：类别(Categories)</h2>
-
-<p>有时候，你可能会想给你一个对象增加一点点额外的功能，比如你想给NSArray增加一个方法<code>arrayByRemovingFirstObject</code>.不用子类，你可以把这个函数放到一个类别里。像这样：</p>
-
-<pre><code>@interface NSArray (OBJExtras)
-
-- (void)obj_arrayByRemovingFirstObject;
-
-@end
-</code></pre>
-
-<p>在用类别扩展一个不是你自己的类的时候，在方法前欠佳前缀是个比较好的习惯做法。如果不这么做，有可能别人也用类别对此类添加了相同名字的函数。那时候程序的行为可能跟你想要的并不一样，未预期的事情可能会发生。</p>
-
-<p>使用类别还有一个另外一个风险，那就是，到最后你可能会使用一大堆的类别，连你自己都会失去对代码全局的认识。假如那样的话，创建自定义的类可能更简单一些。</p>
-
-<h2>替代方案:配置对象(Configuration Objects)</h2>
-
-<p>在我经常犯的错误中，其中一条就是：使用一个含有几个抽象方法的类并让很多子类来重写某个方法。假如，在一个幻灯片应用里，你有一个主题类<code>Theme</code>,它含有几个属性，比如<code>backgroundColor</code>和<code>Font</code>，还有一些在一张幻灯片上如何布局的逻辑函数</p>
-
-<p>然后，对每种主题，你都创建一个<code>Theme</code>的子类，重写某个函数(例如 <code>setup</code>)并且配置其属性。直接使用父类对此做不了什么事。在这种情况下，你可以使用配置对象来让代码更简单些。你可以把共有的逻辑（比如 幻灯片布局）放在<code>Theme</code>类中，把属性的配置放到比较简单的对象中，这些对象中只包含有这些属性。</p>
-
-<p>例如，类<code>ThemeConfiguration</code>具有<code>backgroundColor</code>和<code>font</code>属性，而类<code>Theme</code>在其初始化函数中获取一个配置类<code>ThemeConfiguration</code>的值</p>
-
-<h2>替代方案:组合</h2>
-
-<p>组合是代替子类化的最强大有效的方案。如果你想重用已有代码而不像共享同样的接口，组合就是你的首选武器，例如，假设你要设计一个缓存类:</p>
-
-<pre><code>@interface OBJCache : NSObject
-
-- (void)cacheValue:(id)value forKey:(NSString *)key;
-- (void)removeCachedValueForKey:(NSString *)key;
-
-@end
-</code></pre>
-
-<p>简单点的做法是直接继承<code>NSDictionary</code>，通过调用字典的函数来实现上面的两个方法.</p>
-
-<pre><code>@interface OBJCache : NSDictionary
-</code></pre>
-
-<p>但是这么做有几个弊端，它本来是应该被详细实现的，但只是通过字典来实现，现在，在任何需要一个<code>NSDictionary</code>参数的时候，你可以直接提供一个<code>OBJCache</code>值。但如果你想把它转为其它完全不同的东西，你就可能需要重构很多代码了。</p>
-
-<p>更好的方式是，将这个字典存在一个私有属性(或者实例变量)中，对外仅仅暴露这两个<code>cache</code>方法。现在，当你有了更深入想法的时候，你可以在灵活地修改其实现，而该类的使用者们不用进行重构。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[View-Layer协作]]></title>
-    <link href="http://andrew-anlu.github.io/blog/2016/07/19/view-layerxie-zuo/"/>
-    <updated>2016-07-19T13:44:10+08:00</updated>
-    <id>http://andrew-anlu.github.io/blog/2016/07/19/view-layerxie-zuo</id>
-    <content type="html"><![CDATA[<p>在ios中，所有的View都是由一个底层的layer来驱动的。View和它的layer之间有着紧密的联系，View其实直接从layer对象中获取了绝大多数它所需要的数据。在ios中也有一些单独的layer,比如<code>AVCaptureVideoPreviewLayer</code>和<code>CAShapeLayer</code>，它们不需要附加到view上就可以在屏幕上显示内容。两种情况下都是layer起决定作用。当然了，附加到view上的layer和单独的layer在行为上还是稍有不同的。</p>
-
-<!--more-->
-
-
-<p>基本上你改变一个单独的layer的任何属性的时候，都会触发一个从旧值过渡到新值的简单动画（就是所谓的动画<code>animatable</code>）。然而，如果你改变的是view中layer的同一个属性，它只会从这一帧直接跳变到下一帧。尽管两种情况中都有layer,但是当layer附加在view上时，它的默认的隐式动画的layer行为就不起作用了。</p>
-
-<blockquote><p><em>注意</em>
-animatable 几乎所有的层的属性都是隐性可动画的。你可以在文档中看到它们的简介是以'animatable'结尾的。这不仅包括了比如位置，尺寸，颜色或者透明度这样的绝大多数的数值属性，设置也囊括了像isHidden和doubleSides这样的布尔值。像paths这样的属性也是animatable的。但是它不支持隐式动画。</p></blockquote>
-
-<p>在 Core Animation 编程指南的"How to Animate Layer-Backed Views"中，对为什么会这样做出了一个解释:</p>
-
-<blockquote><p>UIView默认情况下进制了layer动画，但是在animation block中又重新启用了它们</p></blockquote>
-
-<p>这正是我们所看到的额行为，当一个属性在动画block之外被改变时，没有动画，但是当属性在动画block内改变时，就带上了动画。对于这是如何发生的这一问题的答案十分简单和优雅，它优美地阐明和揭示了view和layer之间是如何协同工作和被精心设计的。</p>
-
-<p>无论何时一个可动画的layer属性改变时，layer都会寻找并运行何时的'Action'来实行这个改变。在core Animation的专业术语中就把这样的动画统称为动作(Action,或者CAAction)</p>
-
-<blockquote><p>CAAction:从技术上来说，这是一个接口，并可以用来做各种事情，但是实际上，某种程度上你可以只把它理解为用来处理动画</p></blockquote>
-
-<p>layer将像文档中缩写的那样去寻找动作，整个过程分为5个步骤。第一步中的view和layer中交互的部分是最有意思的：</p>
-
-<p>layer通过向它的代理发送 <code>actionForLayer:forKey:</code>消息来询问提供一个对应属性变化的action.delegate可以通过返回以下三者之一来进行响应:</p>
-
-<ol>
-<li>它可以返回一个动作对象，这种情况下layer将使用这个动作</li>
-<li>它可以返回一个nil,这样layer就会到其他地方继续寻找</li>
-<li>它可以返回一个NShull对象，告诉layer这里不需要执行一个动作，搜索也会就此停止</li>
-</ol>
-
-
-<p>而让这一切变得有趣的是，当layer在背后支持一个view的时候，view就是它的delegate;</p>
-
-<blockquote><p>在ios中，如果layer与一个UIview对象关联时，这个属性必须被设置为持有这个layer的那个view</p></blockquote>
-
-<p>理解这些之后，前一分钟解释起来还复杂无比的现象瞬间就易如反掌了；属性改变时layer会向View请求一个动作，而一般情况下view将返回一个NSNull,只有当属性改变发生在动画block中时，view才会返回实际的动作。哈，但是请别轻信我的这些话，你可以非常容易地验证到底是不是这样。只要对一个一般来说可以动画的layer属性向view询问动作就可以了，比如对于'position':</p>
-
-<pre><code>NSLog(@"outside animation block: %@",
-      [myView actionForLayer:myView.layer forKey:@"position"]);
-
-[UIView animateWithDuration:0.3 animations:^{
-    NSLog(@"inside animation block: %@",
-          [myView actionForLayer:myView.layer forKey:@"position"]);
-}];
-</code></pre>
-
-<p>运行上面的代码，可以看到在block外view返回的是NSNull对象，而在block中时返回的是一个CABasicAnimation.很优雅，对吧?值得注意的是打印出的 NSNull 是带着一对尖括号的 (&ldquo;<null>&rdquo;)，这和其他对象一样，而打印 nil 的时候我们得到的是普通括号((null))：</p>
-
-<pre><code>outside animation block: &lt;null&gt;
-inside animation block: &lt;CABasicAnimation: 0x8c2ff10&gt;
-</code></pre>
-
-<p>对于view中的layer来说，对动作的搜索只会到第一步为止。对于单独的layer来说，剩余的4个步骤可以在 <a href="https://developer.apple.com/library/mac/documentation/graphicsimaging/reference/CALayer_class/Introduction/Introduction.html#//apple_ref/occ/instm/CALayer/actionForKey:">CALayer</a>actionForKey: 文档中找到。</p>
-
-<h2>从UIKit中学习</h2>
-
-<p>我很确定我们都会同意UIview动画是一组非常优秀的API,它简洁明确，实际上，它使用了Core Animation来执行动画，这给了我们一个绝佳的积水来深入研究UIKit是如何使用Core Animation的。在这里甚至还有很多非常棒的实践和技巧可以让我们借鉴.</p>
-
-<p>当属性在动画block中改变时，view将向layer返回一个基本的动画，然后动画通过通常的addAnimation:forKey:方法将添加到layer中，就像显示地添加动画那样。再一次，别直接相信我，让我们实践检验一下</p>
-
-<p>归功于UIview的layerClass 类方法，View和layer之间的交互很容易被观测到。通过这个方法我们可以在为View创建layer时为其指定要使用的类。通过子类一个UIView,以及用这个方法返回一个自定义的layer类，我们就可以重写layer子类中的 <code>addAnimaiton:ForKey:</code>并输出一些东西来验证它是佛确实被调用。唯一要记住的是我们需要调用super方法，不然的话我们就把要观测的行为完全改变了：</p>
-
-<pre><code>@interface DRInspectionLayer : CALayer
-@end
-
-@implementation DRInspectionLayer
-- (void)addAnimation:(CAAnimation *)anim forKey:(NSString *)key
-{
-    NSLog(@"adding animation: %@", [anim debugDescription]);
-    [super addAnimation:anim forKey:key];
-}
-@end
-
-
-@interface DRInspectionView : UIView
-@end
-
-@implementation DRInspectionView
-+ (Class)layerClass
-{
-    return [DRInspectionLayer class];
-}
-@end
-</code></pre>
-
-<p>通过输出动画的debug信息，我们不仅可以验证它确实如逾期一样被调用了，还可以看到动画是如何组织构建的：</p>
-
-<pre><code>&lt;CABasicAnimation:0x8c73680; 
-    delegate = &lt;UIViewAnimationState: 0x8e91fa0&gt;;
-    fillMode = both; 
-    timingFunction = easeInEaseOut; 
-    duration = 0.3; 
-    fromValue = NSPoint: {5, 5}; 
-    keyPath = position
-&gt;
-</code></pre>
-
-<p>当动画被添加到layer时，属性的新值还没有被改变。在构建动画时，只有fromValue(也就是当前值)被显式地指定了。<a href="https://developer.apple.com/library/ios/documentation/GraphicsImaging/Reference/CABasicAnimation_class/Introduction/Introduction.html">CABasicAnimation 的文档</a>向我们简单介绍了这么做对于动画的插值来说的行为应该是:</p>
-
-<blockquote><p>只有FromValue不是nil时，在fromvalue和属性当前显示层的值之间进行插值</p></blockquote>
-
-<p>这也是我在处理显式动画时选择的做法，将一个属性改变为新的值，然后将动画对象添加到layer上：</p>
-
-<pre><code>CABasicAnimation *fadeIn = [CABasicAnimation animationWithKeyPath:@"opacity"];
-fadeIn.duration  = 0.75;
-fadeIn.fromValue = @0;
-
-myLayer.opacity = 1.0; // 更改 model 的值 ...
-// ... 然后添加动画对象
-[myLayer addAnimation:fadeIn forKey:@"fade in slowly"];
-</code></pre>
-
-<p>这很简洁，你也不需要再动画被移除的时候做什么额外的操作，如果动画是在一段延迟后才开始的话，你可以使用backward填充模式(或者'both'填充模式)，就像UIKit所创建的动画那样</p>
-
-<p>可能你看见上面输出中的动画的delegate了，想知道这个类是用来做什么的呢？我们可以来看看 <a href="https://github.com/rpetrich/iphoneheaders/blob/master/UIKit/UIViewAnimationState.h">dump出来的头文件</a>,它主要用来维护动画的一些状态(持续时间，延时，重复次数等等)，它还负责对一个栈做push和pop,这是为了在多个动画block嵌套时能够获取正确的动画状态。这些都是事先细节，除非你想要写一套自己的基于block的动画API,否则可能你不会用到它们</p>
-
-<p>然后真正有意思的是这个delegate事先了 animationDidStart: 和 animationDidStop:finished: 并将信息传给了它自己的delegate</p>
-
-<blockquote><p>这里不太容易理解，加以说明:从上面的头文件可以看出，作为CAAnimation的delegate的私有类UIViewAnimationState中还有个<code>_delegate</code>成员，并且<code>animationDidStart</code>和<code>animationDidStop:finished:</code>也是典型的delegate的实现方法.</p></blockquote>
-
-<p>通过打印这个delegate的delegate,我们可以发现它也是一个私有类：<code>UIViewAnimationBlockDelegate</code>。同样进行<a href="https://github.com/EthanArbuckle/IOS-7-Headers/blob/master/Frameworks/UIKit.framework/UIViewAnimationBlockDelegate.h">class dump 得到它的头文件</a>，这是一个很小的类，只负责一件事情：响应动画的delegate回调并且进行相应的block.如果我们使用自己的Core Animation代码，并且选阿泽block而不是delegate做回调的话，添加这个是很容易的：</p>
-
-<pre><code>@interface DRAnimationBlockDelegate : NSObject
-
-@property (copy) void(^start)(void);
-@property (copy) void(^stop)(BOOL);
-
-+(instancetype)animationDelegateWithBeginning:(void(^)(void))beginning
-                                   completion:(void(^)(BOOL finished))completion;
-
-@end
-
-@implementation DRAnimationBlockDelegate
-
-+ (instancetype)animationDelegateWithBeginning:(void (^)(void))beginning
-                                    completion:(void (^)(BOOL))completion
-{
-    DRAnimationBlockDelegate *result = [DRAnimationBlockDelegate new];
-    result.start = beginning;
-    result.stop  = completion;
-    return result;
-}
-
-- (void)animationDidStart:(CAAnimation *)anim
-{
-    if (self.start) {
-        self.start();
-    }
-    self.start = nil;
-}
-
-- (void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag
-{
-    if (self.stop) {
-        self.stop(flag);
-    }
-    self.stop = nil;
-}
-
-@end
-</code></pre>
-
-<p>虽然是我的个人喜好，但是我觉得像这样的基于block的回调风格可能会比实现一个delegate回调更适合你的代码:</p>
-
-<pre><code>fadeIn.delegate = [DRAnimationBlockDelegate animationDelegateWithBeginning:^{
-    NSLog(@"beginning to fade in");
-} completion:^(BOOL finished) {
-    NSLog(@"did fade %@", finished ? @"to the end" : @"but was cancelled");
-}];
-</code></pre>
-
-<h2>自定义基于block的动画APIS</h2>
-
-<p>一旦你知道了<code>actionForKey:</code>的原理之后，UIview就远没有它一开始看起来那么神秘了。实际上我们完全可以按照我们的需求量身定制地写出一套自己的基于block的动画Apis。我所设计的动画将通过block中用一个很激进的时间曲线来做动画，以吸引用户对该View的注意，之后做一个缓慢的动画回到原始状态。你可以把它看做一种类似pop的行为。与一般使用<code>UIViewAnimationOptionAutoreverse</code>的动画block不同，因为动画设计和概念上的需要，我自己实现了将model值改变回原始值的过程。自定义的动画API的使用方法就像这样:</p>
-
-<pre><code>[UIView DR_popAnimationWithDuration:0.7
-                             animations:^{
-                                 myView.transform = CGAffineTransformMakeRotation(M_PI_2);
-                                }];
-</code></pre>
-
-<p>当我们完成后，效果是这样样子的(对四个不同的View为位置，尺寸，颜色和旋转进行动画)</p>
-
-<p><img src="http://7xsn4e.com1.z0.glb.clouddn.com/2014-05-01-view-layer-synergy-custom-block-animations.gif" alt="1" /></p>
-
-<p>要开始实现它，我们首先要做的是当一个layer属性变化时获取delegate的回调，因为我们无法实现预测layer要改变什么，所以我选择在一个UIView的category中的swizzle<code>actionForLayer:forKey:</code>方法:</p>
-
-<pre><code>@implementation UIView (DR_CustomBlockAnimations)
-
-+ (void)load
-{        
-    SEL originalSelector = @selector(actionForLayer:forKey:);
-    SEL extendedSelector = @selector(DR_actionForLayer:forKey:);
-
-    Method originalMethod = class_getInstanceMethod(self, originalSelector);
-    Method extendedMethod = class_getInstanceMethod(self, extendedSelector);
-
-    NSAssert(originalMethod, @"original method should exist");
-    NSAssert(extendedMethod, @"exchanged method should exist");
-
-    if(class_addMethod(self, originalSelector, method_getImplementation(extendedMethod), method_getTypeEncoding(extendedMethod))) {
-        class_replaceMethod(self, extendedSelector, method_getImplementation(originalMethod), method_getTypeEncoding(originalMethod));
-    } else {
-        method_exchangeImplementations(originalMethod, extendedMethod);
-    }
-}
-</code></pre>
-
-<p>为了保证我们不破坏其他依赖于<code>actionForLayer:forKey:</code>的回调代码，我们使用一个静态变量来判断现在是不是处于我们自己定义的上下文中。对于这个例子莱索一个简单的Bool其实就够了，但是如果我们之后要写更多内容的话，上下文的话要灵活得多了：</p>
-
-<pre><code>static void *DR_currentAnimationContext = NULL;
-static void *DR_popAnimationContext     = &amp;DR_popAnimationContext;
-
-- (id&lt;CAAction&gt;)DR_actionForLayer:(CALayer *)layer forKey:(NSString *)event
-{
-    if (DR_currentAnimationContext == DR_popAnimationContext) {
-        // 这里写我们自定义的代码...
-    }
-
-    // 调用原始方法
-    return [self DR_actionForLayer:layer forKey:event]; // 没错，你没看错。因为它们已经被交换了
-}
-</code></pre>
-
-<p>在我们的实现中，我们要确保在执行动画block之前设置动画的上下文，并且在执行后恢复上下文：</p>
-
-<pre><code> + (void)DR_popAnimationWithDuration:(NSTimeInterval)duration
-                          animations:(void (^)(void))animations
- {
-     DR_currentAnimationContext = DR_popAnimationContext;
-     // 执行动画 (它将触发交换后的 delegate 方法)
-     animations();
-     /* 一会儿再添加 */
-     DR_currentAnimationContext = NULL;
- }
-</code></pre>
-
-<p>如果我们想要做的不过是添加一个从旧值向新值过渡的动画的话，我们可以直接在delegate的回调中来做。然后因为我们想要更精确的控制动画，我们需要用一个帧动画来实现。帧动画需要所有的值都是已知的，而对我们的情况来说，新的值还没有被设定，因此我们也就无从知晓</p>
-
-<p>有意思的是，ios添加的一个基于block的动画API也遇到了同样了问题，使用和上面一样的观察手段，我们就能知道它是如何绕开这个麻烦的。对于每一个关键帧，在属性变化时，view返回nil,但是却存储下需要的状态。这样就能在所有关键帧block执行后创建一个<code>CAKeyframeAnimationz</code>对象。</p>
-
-<p>受到这种方法的启发，我们可以创建一个小的类来存储我们创建动画时所需要的信息：什么layer被更改了，什么key path的值被改变了，以及原来的值是什么:</p>
-
-<pre><code> @interface DRSavedPopAnimationState : NSObject
-
- @property (strong) CALayer  *layer;
- @property (copy)   NSString *keyPath;
- @property (strong) id        oldValue;
-
- + (instancetype)savedStateWithLayer:(CALayer *)layer
-                             keyPath:(NSString *)keyPath;
-
- @end
-
- @implementation DRSavedPopAnimationState
-
- + (instancetype)savedStateWithLayer:(CALayer *)layer
-                             keyPath:(NSString *)keyPath
- {
-     DRSavedPopAnimationState *savedState = [DRSavedPopAnimationState new];
-     savedState.layer    = layer;
-     savedState.keyPath  = keyPath;
-     savedState.oldValue = [layer valueForKeyPath:keyPath];
-     return savedState;
- }
-
- @end
-</code></pre>
-
-<p>接下来，在我们的交换后的delegate回调中，我们简单地讲被变更的属性的状态存入一个静态可变数组中：</p>
-
-<pre><code> if (DR_currentAnimationContext == DR_popAnimationContext) {
-       [[UIView DR_savedPopAnimationStates] addObject:[DRSavedPopAnimationState savedStateWithLayer:layer
-                                                                                 keyPath:event]];
-
-       // 没有隐式的动画 (稍后添加)
-       return (id&lt;CAAction&gt;)[NSNull null];
-   }
-</code></pre>
-
-<p>在动画block执行完毕后，所有的属性都被变更了，它们的状态也被保存了，现在，创建关键帧动画:</p>
-
-<pre><code> + (void)DR_popAnimationWithDuration:(NSTimeInterval)duration
-                          animations:(void (^)(void))animations
- {
-     DR_currentAnimationContext = DR_popAnimationContext;
-
-     // 执行动画 (它将触发交换后的 delegate 方法)
-     animations();
-
-     [[self DR_savedPopAnimationStates] enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-         DRSavedPopAnimationState *savedState   = (DRSavedPopAnimationState *)obj;
-         CALayer *layer    = savedState.layer;
-         NSString *keyPath = savedState.keyPath;
-         id oldValue       = savedState.oldValue;
-         id newValue       = [layer valueForKeyPath:keyPath];
-
-         CAKeyframeAnimation *anim = [CAKeyframeAnimation animationWithKeyPath:keyPath];
-
-         CGFloat easing = 0.2;
-         CAMediaTimingFunction *easeIn  = [CAMediaTimingFunction functionWithControlPoints:1.0 :0.0 :(1.0-easing) :1.0];
-         CAMediaTimingFunction *easeOut = [CAMediaTimingFunction functionWithControlPoints:easing :0.0 :0.0 :1.0];
-
-         anim.duration = duration;
-         anim.keyTimes = @[@0, @(0.35), @1];
-         anim.values = @[oldValue, newValue, oldValue];
-         anim.timingFunctions = @[easeIn, easeOut];
-
-         // 不带动画地返回原来的值
-         [CATransaction begin];
-         [CATransaction setDisableActions:YES];
-         [layer setValue:oldValue forKeyPath:keyPath];
-         [CATransaction commit];
-
-         // 添加 "pop" 动画
-         [layer addAnimation:anim forKey:keyPath];
-
-     }];
-
-     // 扫除工作 (移除所有存储的状态)
-     [[self DR_savedPopAnimationStates] removeAllObjects];
-
-     DR_currentAnimationContext = nil;
- }
-</code></pre>
-
-<p>注意老的model值被设置到了layer上，所以在当动画结束和移除后，model的值和persentation的值是相符合的。</p>
-
-<p>创建像这样的你自己的API不会对每种情况都很适合，但是如果你需要在你的应用中的很多地方都做同样的动画的话，这可以帮助你写出整洁的代码，并减少重复。就算你之后从来不会使用这种方法，实际做一遍也能帮助你搞懂UIview block动画的APis,特别是你已经在core Animation的舒适区的时候，这非常有助于你的提高。</p>
 ]]></content>
   </entry>
   

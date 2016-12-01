@@ -1,0 +1,410 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>使用Carthage管理ios依赖 - 安路的技术博客</title>
+  <meta name="author" content="安路">
+
+  
+  <meta name="description" content="Carthage官网已经针对cocopods和carthage进行了详细的说明： 首先，cocoaPods会直接创建和修改项目的workspace配置，一切都是为了便捷，我们只需要修改pod文件并不需要过多的关心其它事情，CocoaPods创建的也是高度集成的项目。而Carthage的特点是灵活， &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://andrew-anlu.github.io/blog/2016/11/28/shi-yong-carthageguan-li-iosyi-lai/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="安路的技术博客" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//libs.baidu.com/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">安路的技术博客</a></h1>
+  
+    <h2>Nothing in life is to be feared. It is only to be understood</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://andrew-anlu.github.io" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="andrew-anlu.github.io">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/blog/">About me</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">使用Carthage管理ios依赖</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-11-28T15:55:02+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>28</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>3:55 pm</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p><a href="https://github.com/Carthage/Carthage.git">Carthage</a>官网已经针对cocopods和carthage进行了详细的说明：</p>
+
+<!--more-->
+
+
+<p>首先，cocoaPods会直接创建和修改项目的workspace配置，一切都是为了便捷，我们只需要修改pod文件并不需要过多的关心其它事情，CocoaPods创建的也是高度集成的项目。而Carthage的特点是灵活，耦合度不高，集成时不需要集成相应的project,不需要创建workspace,而仅仅需要依赖打包好的framework文件。</p>
+
+<p>其次，CocoaPods相对来说功能要比Carthage多很多，在国内由于墙的原因，我们都改成了淘宝的源来更新CocoaPods,相信我，如果你不翻墙，很多东西不能用，更新不下来，版本错误等一系列原因会让你不得不放弃一起看起来非常好用的第三方库。而Carthage似乎只需要从github上下载项目即可，配置更是简单，使用的项目项目干干净净，所有的第三方库就像苹果原生的framework一样美好，从此你不再需要担心CocoaPods的库用不了，不用花大量时间去修复用CocoaPods打包时出现的各种问题了，如果你用过CocoaPods，当你开始使用Carthage的时候，你会爱上这个工具的。</p>
+
+<h2>安装使用Carthage</h2>
+
+<p>假如你的电脑上已经安装了Homebrew,打开终端，输入如下命令:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ brew update
+</span><span class='line'>
+</span><span class='line'>$ brew install carthage</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果你不喜欢使用终端，也可以从网站<code>https://github.com/Carthage/Carthage/releases</code>下载最新版的Carthage.pkg来更新。</p>
+
+<p>现在，你已经安装好了Carthage,接下来就是在你的项目中使用carthage了：</p>
+
+<ol>
+<li>通过终端进入到项目所在的文件夹</li>
+</ol>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd ~/Path/Project</span></code></pre></td></tr></table></div></figure>
+
+
+<p>后面的路径替换成你的项目所在的路径</p>
+
+<ol>
+<li>创建一个空的carthage文件：</li>
+</ol>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ vim Cartfile</span></code></pre></td></tr></table></div></figure>
+
+
+<p>此时在你的项目文件夹里会创建一个名为Cartfile的文件</p>
+
+<ol>
+<li>在Cartfile文件里输入</li>
+</ol>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>github "Alamofire/Alamofire" ~&gt; 3.0
+</span><span class='line'>
+</span><span class='line'>github "SwiftyJSON/SwiftyJSON"</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上面仅仅是举个栗子
+，如果您是用命令行打开的，按下ESC,输入 :wq，保存关闭当前窗口</p>
+
+<h3>版本的含义</h3>
+
+<p>~> 3.0 表示使用版本3.0以上但是低于4.0的最新版本，如3.5，3.7&hellip;</p>
+
+<p>== 3.0表示使用3.0版本</p>
+
+<p><code>&gt;=</code> 3.0表示使用3.0或者更高的版本
+如果你没有指明版本号，则会自动使用最新的版本</p>
+
+<ol>
+<li>在终端执行命令</li>
+</ol>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ carthage update --platform iOS</span></code></pre></td></tr></table></div></figure>
+
+
+<p>carthage会为你下载和编译所需要的第三方库，当命令执行完毕，在你的项目文件夹中会创建一个名为Carthage的文件夹</p>
+
+<p>在 ~/Carthage/Build/iOS里会出现xxx.framework文件已经为你创建好了</p>
+
+<ol>
+<li>现在打开你的项目，点击Project,选择target,点击<code>+</code>,将刚才生成的framework文件拖到<code>Linked frameworks and Binaries</code>里；</li>
+</ol>
+
+
+<p>同样也要把生成的framework拖到<code>Embedded Binaries</code>中</p>
+
+<h2>开始使用</h2>
+
+<p>如果你已经导入framework成功了，然后使用：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>import Alamofire
+</span><span class='line'>
+</span><span class='line'>import SwiftyJSON</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Please enjoy it!</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">安路</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2016-11-28T15:55:02+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>28</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>3:55 pm</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/swift/'>swift</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+
+<!-- JiaThis Button BEGIN -->
+<div class="jiathis_style_32x32">
+	<a class="jiathis_button_qzone"></a>
+	<a class="jiathis_button_tsina"></a>
+	<a class="jiathis_button_tqq"></a>
+	<a class="jiathis_button_weixin"></a>
+	<a class="jiathis_button_renren"></a>
+	<a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank"></a>
+	<a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+<br><br>
+<!-- UY BEGIN -->
+<div id="uyan_frame"></div>
+<script type="text/javascript" src="http://v2.uyan.cc/code/uyan.js?uid=2052593"></script>
+<!-- UY END -->
+
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2016/11/22/ip-tcp-he-http/" title="Previous Post: IP  TCP 和HTTP">&laquo; IP  TCP 和HTTP</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+<h1>
+	QQ群
+</h1>
+   <br/>
+	<p>欢迎加入swift学习交流群:252710124</p>
+</section>
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/11/28/shi-yong-carthageguan-li-iosyi-lai/">使用Carthage管理ios依赖</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/11/22/ip-tcp-he-http/">IP TCP 和HTTP</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/11/16/reactiveswiftru-men/">ReactiveSwift入门</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/11/11/swift-package-managerru-men/">Swift Package Manager入门</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/11/07/ioszhong-de-re-qi-dong/">iOS中的热修复</a>
+      </li>
+    
+  </ul>
+</section>
+<section>
+	<h1>文章分类</h1>
+	<ul id="categories">
+		<li class='category'><a href='/blog/categories/cocoapods/'>cocoapods (1)</a></li>
+<li class='category'><a href='/blog/categories/git/'>git (3)</a></li>
+<li class='category'><a href='/blog/categories/ios/'>ios (29)</a></li>
+<li class='category'><a href='/blog/categories/life/'>life (1)</a></li>
+<li class='category'><a href='/blog/categories/mac/'>mac (2)</a></li>
+<li class='category'><a href='/blog/categories/nodejs/'>nodejs (2)</a></li>
+<li class='category'><a href='/blog/categories/octopress/'>octopress (2)</a></li>
+<li class='category'><a href='/blog/categories/swift/'>swift (21)</a></li>
+<li class='category'><a href='/blog/categories/xcode/'>xcode (1)</a></li>
+
+	</ul>
+</section>
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/andrew-anlu">@andrew-anlu</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'andrew-anlu',
+            count: 3,
+            skip_forks: false,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+<section>
+  <h1>On Delicious</h1>
+  <div id="delicious"></div>
+  <script type="text/javascript" src="http://feeds.delicious.com/v2/json/Andrewswift1987?count=3&amp;sort=date&amp;callback=renderDeliciousLinks"></script>
+  <p><a href="http://delicious.com/Andrewswift1987">My Delicious Bookmarks &raquo;</a></p>
+</section>
+
+ <section>
+      <h1>访客统计</h1>
+      <br/>
+    <a href="http://info.flagcounter.com/Bkif"><img src="http://s01.flagcounter.com/count2/Bkif/bg_ffffff/txt_000000/border_CCCCCC/columns_3/maxflags_10/viewers_0/labels_1/pageviews_1/flags_1/percent_0/" alt="Free counters!" border="0"></a>
+    </section>
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><!--返回顶部开始-->
+<div id="full" style="width:0px; height:0px; position:fixed; right:180px; bottom:150px; z-index:100; text-align:center; background-color:transparent; cursor:pointer;">
+  <a href="#" onclick="goTop();return false;"><img src="http://7xsn4e.com2.z0.glb.clouddn.com/top.png" border=0 alt="返回顶部" width="50" height="50"></a>
+</div>
+<script src="/javascripts/top.js" type="text/javascript"></script>
+<!--返回顶部结束-->
+
+
+<p>
+  Copyright &copy; 2016 - 安路 -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'Andrewswift1987';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://andrew-anlu.github.io/blog/2016/11/28/shi-yong-carthageguan-li-iosyi-lai/';
+        var disqus_url = 'http://andrew-anlu.github.io/blog/2016/11/28/shi-yong-carthageguan-li-iosyi-lai/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

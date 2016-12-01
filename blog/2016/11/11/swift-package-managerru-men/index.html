@@ -1,0 +1,716 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Swift Package Manager入门 - 安路的技术博客</title>
+  <meta name="author" content="安路">
+
+  
+  <meta name="description" content="大部分语言都有官方的代码分配解决方案，幸好苹果也在开发替代Cocoapods和Carthage的管理工具，Swift Package Manager(Swift包管理器，下面我们简称SPM)就是一个用来管理Swift代码的分配的官方工具，它为Swift编译系统集成了自动进行下载， &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://andrew-anlu.github.io/blog/2016/11/11/swift-package-managerru-men/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="安路的技术博客" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//libs.baidu.com/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">安路的技术博客</a></h1>
+  
+    <h2>Nothing in life is to be feared. It is only to be understood</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://andrew-anlu.github.io" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="andrew-anlu.github.io">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/blog/">About me</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Swift Package Manager入门</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-11-11T14:09:18+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>11</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>2:09 pm</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>大部分语言都有官方的代码分配解决方案，幸好苹果也在开发替代<a href="https://cocoapods.org/">Cocoapods</a>和<a href="https://github.com/Carthage/Carthage">Carthage</a>的管理工具，<a href="https://swift.org/package-manager/#conceptual-overview">Swift Package Manager</a>(Swift包管理器，下面我们简称SPM)就是一个用来管理Swift代码的分配的官方工具，它为Swift编译系统集成了自动进行下载，编译和连接依赖的过程</p>
+
+<p>目前，SPM还处于早起阶段，现在仅仅支持OS X和linux系统，尚不支持Ios,watchOS以及tvOS平台，但未来很大希望会支持上述平台。</p>
+
+<h2>概念概述</h2>
+
+<p>在swift中我们使用模块来管理代码，每个模块指定一个命名空间并强制指定模块外那些部分是代码是可以被访问控制的。</p>
+
+<p>一个程序可以将它所有代码聚合到一个模块中，也可以将它作为依赖关系导入到其他模块，除了少量系统提供的模块，像OS X中的Darwin或者 Linux中的Glibc等大多数依赖需要代码被下载或者内置才能被使用。</p>
+
+<p>当你将编写额解决待定问题的代码独立成一个模块时，这段代码可以在其他情况下呗重新利用。例如，一个模块提供了发起网络请求的功能，在一个照片分享的app或者一个天气的app里它都是可以使用的。使用模块可以让你的代码建立在其他开发者的代码之上，而不是你自己去重复实现相同的功能。</p>
+
+<p>一个包由Swift源文件和一个清单文件组成，这个清单文件称为<code>Package.swift</code>,定义包或者它的内容使用<code>PackageDescription</code>模块。</p>
+
+<p>一个包邮一个或者多个目标，每个目标制定一个铲平并且可能声明一个后者多个依赖。</p>
+
+<p>一个目标可能构建一个库或者一个可执行文件作为其产品。库是包含可以被其它Swift代码导入的模块。可执行文件是一段可以被操作系统运行的程序</p>
+
+<p>目标依赖是指保重代码必须添加的模块。依赖由包资源的绝对或者相对URL和一些可以被使用的包的版本要求所组成。包管理器的作用是通过自动为工程下载和编译所有依赖的过程中，减少协调的成本。这是一个递归的过程：依赖能有自己的依赖，其中每一个也可以具有依赖，形成一个依赖的相关图。包管理器下载和编译所需要满足整个依赖相关图的一切。</p>
+
+<h2>开源Swift入门</h2>
+
+<ul>
+<li><a href="#%E4%B8%8B%E8%BD%BD%E5%92%8C%E5%AE%89%E8%A3%85Swift">下载和安装Swift</a></li>
+<li><a href="#%E4%BD%BF%E7%94%A8REPL">使用REPL</a></li>
+<li><a href="#%E4%BD%BF%E7%94%A8%E7%BC%96%E8%AF%91%E7%B3%BB%E7%BB%9F">使用编译系统</a></li>
+<li><a href="#%E4%BD%BF%E7%94%A8LLDB%E8%B0%83%E8%AF%95%E5%99%A8">使用LLDB调试器</a></li>
+</ul>
+
+
+<p>关于使用REPL和LLDB调试器的内容具体可以参阅官方文档<a href="https://swift.org/getting-started/#using-the-repl">使用REPL</a>和<a href="https://swift.org/getting-started/#using-the-lldb-debugger">使用LLDB调试器</a></p>
+
+<h2><a name = "下载和安装Swift"></a>下载和安装Swift</h2>
+
+<p>刚开始下载和安装swift需要下载并安装编译器和其它必备组件，进入到 <a href="https://swift.org/download/#releases">https://swift.org/download/#releases</a>按目标平台的说明进行。</p>
+
+<p>下载完成后，点击按步骤安装就可以</p>
+
+<p>在OS X上下载工具链的默认地址是:<code>/Library/Developer/Toolchains</code>.接着，我们可以输入以下命令导出编译路径:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ export PATH=/Library/Developer/Toolchains/swift-latest.xctoolchain/usr/bin:"${PATH}"</span></code></pre></td></tr></table></div></figure>
+
+
+<p>首先需要安装clang:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-get install clang</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果你在Linux上安装的Swift工具链在系统根目录以外的目录，你需要使用你安装Swift的实际路径来运行下面的命令：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ export PATH=/path/to/Swift/usr/bin:"${PATH}"</span></code></pre></td></tr></table></div></figure>
+
+
+<p>导出路径之后，你可以通过输入 swift 命令并传入 &ndash;version 标志来校验你是否运行了 Swift 的预期版本</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ swift --version
+</span><span class='line'>Apple Swift version 3.0-dev (LLVM ..., Clang ..., Swift ...)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在版本号的后缀 -dev 用来表明它是一个开发的编译，而不是一个发布的版本</p>
+
+<h2><a name = "使用REPL"></a>使用REPL</h2>
+
+<h2><a name = "使用编译系统"></a>使用编译系统</h2>
+
+<p>Swift编译系统为编译库，可执行文件和不同工程之间共享代码提供了基本的约定。</p>
+
+<p>创建一个新的Swift包，首先创建并进入到一个新的目录命令为Hello:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ mkdir Hello
+</span><span class='line'>$ cd Hello</span></code></pre></td></tr></table></div></figure>
+
+
+<p>每个包在其根目录下都必须拥有一个命名为<code>Package.swift</code>清单文件，如果清单文件为空，那包管理器将会使用常规默认的方式来编译包，创建一个空的清空文件使用命令:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ touch Package.swift</span></code></pre></td></tr></table></div></figure>
+
+
+<p>当使用默认方式时，包管理器预计将包含在Source/子目录下的所有源代码。创建方式：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ mkdir Sources</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>编译可执行文件</h3>
+
+<p>默认方式下，目录中包含一个文件称为<code>main.swift</code>将会将文件编译成与包名称相同的二进制可执行文件。</p>
+
+<p>在这个例子中，包将生成一个可以输出<code>hello world</code>的可执行文件为 <em>hello</em></p>
+
+<p>在<em>Source/</em>目录下创建一个命名为<code>main.swift</code>的文件，并使用你喜欢的任意一种编译器输入如下代码:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>print("Hello, world!")</span></code></pre></td></tr></table></div></figure>
+
+
+<p>返回到 Hello 目录中，通过运行 swift build 命令来编译包：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ swift build</span></code></pre></td></tr></table></div></figure>
+
+
+<p>当命令完成之后，编译产品将会出现在 .build 目录中。通过如下命令运行 Hello 程序:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ .build/debug/Hello
+</span><span class='line'>Hello, world!</span></code></pre></td></tr></table></div></figure>
+
+
+<p>下一步，让我们在新的资源文件里定义一个新的方法 <code>sayHello(_:)</code>然后直接用<code>print(_:)</code>替换执行调用的内容。</p>
+
+<h3>多了源文件协作</h3>
+
+<p>在<code>Sources/</code>目录下创建一个新文件命名为<code>Greeter.swift</code>然后输入如下代码:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>func sayHello(name: String) {
+</span><span class='line'>  print("Hello, \(name)!")
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>sayHello(_:)</code>方法带一个单一的字符串参数，然后在前面打印一个"hello",后面跟着函数参数单词"World".</p>
+
+<p>现在打开<code>main.swift</code>，然后替换原来的内容为下面代码:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>if Process.arguments.count != 2 {
+</span><span class='line'>    print("Usage: hello NAME")
+</span><span class='line'>} else {
+</span><span class='line'>    let name = Process.arguments[1]
+</span><span class='line'>    sayHello(name)
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>跟之前的硬编码不同，<code>main.swift</code>现在从命令行参数中读取。替代之前直接调用<code>print(_:)</code>，<code>main.swift</code>现在调用<code>sayHello(_:)</code>方法，因为这个方法是<code>Hello</code>模块的一部分，所以不需要使用到<code>import</code>语句。</p>
+
+<p>运行<code>swift build</code>并尝试<code>Hello</code>的新版本：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ swift build
+</span><span class='line'>$ .build/debug/Hello 'whoami'</span></code></pre></td></tr></table></div></figure>
+
+
+<p>目前为止，你已经能够运用开源Swift来运行一些你想要的程序了。接下来我们就可以进入正题开始入手SPM.</p>
+
+<h3>快速入门实例</h3>
+
+<p>在本章节中，我们简单地学会了编译一个"`Hello world"程序。</p>
+
+<p>为了了解SPM究竟能做什么，我们来看一下下面这个由4个独立的包组成的例子:</p>
+
+<ul>
+<li><a href="https://github.com/marklin2012/O2PlayingCard.git">O2PlayingCard</a>-定义了O2PlayingCard ， O2Suit ， O2Rank ， 3个类型</li>
+<li><a href="https://github.com/marklin2012/O2FisherYates.git">O2FisherYates</a>-定义了 shuffle() 和 shuffleInPlace() 方法实现的扩展</li>
+<li><a href="https://github.com/marklin2012/O2DeckOfPlayingCards.git">O2DeckOfPlayingCards</a>-定义了一个 O2Deck 类型对 O2PlayingCard 值得数据进行洗牌和抽牌。</li>
+<li><a href="https://github.com/marklin2012/O2Dealer.git">O2Dealer</a>-定义了一个用来创建 O2DeckOfPlayingCards 进行洗牌和抽出前10个卡片的可执行文件。</li>
+</ul>
+
+
+<p>你可以从<a href="https://github.com/marklin2012/O2Dealer.git">O2Dealer from GitHub </a>编译并运行完整例子，然后运行如下命令:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd O2Dealer
+</span><span class='line'>$ swift build
+</span><span class='line'>$ .build/debug/O2Dealer</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>创建一个库包</h3>
+
+<p>我们将从创建一个代表一副标准的52张扑克牌的模块开始。 O2PlayingCard 模块定义了 由 O2Suit 枚举值（Clubs, Diamonds, Hearts, spades）和 O2Rank 枚举值（Ace, Two, Three, …, Jack, Queen, King）组成的 O2PlayingCard 类。各个类的核心代码如下：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>public enum O2Rank : Int {
+</span><span class='line'>    case Ace = 1
+</span><span class='line'>    case Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten
+</span><span class='line'>    case Jack, Queen, King
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>public enum O2Suit: String {
+</span><span class='line'>    case Spades, Hearts, Diamonds, Clubs
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>public struct O2PlayingCard {
+</span><span class='line'>    let rank: O2Rank
+</span><span class='line'>    let suit: O2Suit
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>一般来说，一个包包括位于Source/的源文件</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>O2PlayingCard
+</span><span class='line'>├── Sources
+</span><span class='line'>│   ├── O2PlayingCard.swift
+</span><span class='line'>│   ├── O2Rank.swift
+</span><span class='line'>│   └── O2Suit.swift
+</span><span class='line'>└── Package.swift</span></code></pre></td></tr></table></div></figure>
+
+
+<p>由于<code>O2PlayingCard</code>模块并不会生成可执行文件，这里应该成为库。库表示被编译成一个可以被其它包导入的模块的包，默认情况下，库模块公开所有位于<code>Sources/</code>目录下的源代码中声明的公共类型的方法。</p>
+
+<p>运行 swift build 开始启动 Swift 编译的过程。如果一切进行顺利，将会在 .build/debug 目录下生成 O2PlayingCard.build 目录。</p>
+
+<p>接下来，我们在<code>Package.swift</code>文件中定义包名，代码如下：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>import PackageDescription
+</span><span class='line'>
+</span><span class='line'>let package = Package(
+</span><span class='line'>  name: "O2PlayingCard"
+</span><span class='line'>)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>然后我们只要将<code>O2PlayingCard</code>提交到Github上，并且给他发布一个Release版本即可完成该库包，这里可以自己手动添加一个<code>.gitignore</code>文件，忽略掉<code>/.build</code>，因为我们的包是不需要包括生成的编译结果的内容的。</p>
+
+<h2>使用编译配置语句</h2>
+
+<p>下一个即将编译的模块是<code>O2FisherYates</code>.跟之前<code>O2PlayingCard</code>有所不同，该模块没有定义新的类，取而代之的是该模块拓展了一个已经存在的特殊的<code>CollectionType</code>和<code>MutableCollectionType</code>接口协议，用来添加<code>shuffle()</code>方法和对应的<code>shuffleInPlace()</code>方法。</p>
+
+<p>在 OS X 中，系统模块是 Darwin , 提供的函数是 arc4random_uniform(_:) 。在 Linux 中， 系统模块是 Glibc ， 提供的函数是 random() ：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>#if os(Linux)
+</span><span class='line'>  import Glibc
+</span><span class='line'>#else
+</span><span class='line'>  import Darwin.C
+</span><span class='line'>#endif
+</span><span class='line'>
+</span><span class='line'>public extension Collection {
+</span><span class='line'>  func shuffle() -&gt; [Generator.Element] {
+</span><span class='line'>    var array = Array(self)
+</span><span class='line'>    array.shuffleInPlace()
+</span><span class='line'>    
+</span><span class='line'>    return array
+</span><span class='line'>  }
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>public extension MutableCollection where Index == Int {
+</span><span class='line'>  mutating func shuffleInPlace() {
+</span><span class='line'>    guard count &gt; 1 else { return }
+</span><span class='line'>    v 
+</span><span class='line'>    for i in 0..&lt;count - 1 {
+</span><span class='line'>      #if os(Linux)
+</span><span class='line'>        let j = Int(random() % (count - i)) + i
+</span><span class='line'>      #else
+</span><span class='line'>        let j = Int(arc4random_uniform(UInt32(count - i))) + i
+</span><span class='line'>      #endif
+</span><span class='line'>      guard i != j else { continue }
+</span><span class='line'>      swap(&self[i], &self[j])
+</span><span class='line'>    }
+</span><span class='line'>  }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>剩下的步骤和前面的类似，编译通过后上传到GitHub,发布Release版本。</p>
+
+<h3>导入依赖</h3>
+
+<p><code>O2DeckOfPlayingCards</code>包把前两个包聚合到一起：它定义了一个<code>O2PlayingCard</code>数组中使用<code>O2FisherYates</code>的<code>shuffle()</code>方法的Deck类型。</p>
+
+<p>为了使用 O2FisherYates 和 O2PlayingCards 模块， O2DeckOfPlayingCards 包必须在 Package.Swift 清单中将上述模块声明为依赖。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>import PackageDescription
+</span><span class='line'>
+</span><span class='line'>let package = Package(
+</span><span class='line'>    name: "O2DeckOfPlayingCards",
+</span><span class='line'>    dependencies: [
+</span><span class='line'>        .Package(url: "https://github.com/marklin2012/O2PlayingCard.git",
+</span><span class='line'>                 majorVersion: 1),
+</span><span class='line'>        .Package(url: "https://github.com/marklin2012/O2FisherYates.git",
+</span><span class='line'>                 majorVersion: 1),
+</span><span class='line'>    ]
+</span><span class='line'>)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>每个依赖都需要指定一个源URL和版本号，源URL是指允许当前用户解析到对应的Git仓库。版本号遵循 <a href="http://semver.org/lang/zh-CN/">语义化版本号 2.0.0</a> 的约定,用来决定检出或者使用哪个Git标签版本来建立依赖。对于<code>FisherYates</code>和<code>PlayingCard</code>这两个依赖来说， 最新的将要被使用的主版本号为1.</p>
+
+<p>当你运行<code>swift build</code>命令时，包管理器将会下载所有的依赖，并将它们编译成静态库，再把它们链接到包模块中。这样将会使<code>O2DeckOfPlayingCards</code>可以访问依赖import语句的模块的公共成员</p>
+
+<p>你可以看到这些资源被下载到你工程根目录的 Packages 目录下，并且会生成编译产品在你工程根目录的 .build 目录下。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>O2DeckOfPlayingcards
+</span><span class='line'>├── .build
+</span><span class='line'>│   └── debug
+</span><span class='line'>│       ├── O2DeckOfPlayingCards.build
+</span><span class='line'>│       ├── O2DeckOfPlayingCards.swiftdoc
+</span><span class='line'>│       ├── O2DeckOfPlayingCards.swiftmodule
+</span><span class='line'>│       ├── O2FisherYates.build
+</span><span class='line'>│       ├── O2FisherYates.swiftdoc
+</span><span class='line'>│       ├── O2FisherYates.swiftmodule
+</span><span class='line'>│       ├── O2PlayingCard.build
+</span><span class='line'>│       ├── O2PlayingCard.swiftdoc
+</span><span class='line'>│       └── O2PlayingCard.swiftmodule
+</span><span class='line'>└── Packages
+</span><span class='line'>    └── O2FisherYates-1.0.0
+</span><span class='line'>    │   ├── Package.swift
+</span><span class='line'>    │   ├── README.md
+</span><span class='line'>    │   └── Sources
+</span><span class='line'>    └── O2Playingcard-1.0.1
+</span><span class='line'>        ├── Package.swift
+</span><span class='line'>        ├── README.md
+</span><span class='line'>        └── Sources</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>Package</code>目录包含了被复制的包依赖的所有仓库，这样将使你能修改源代码并直接推送这些修改到它们的源，而不需要再对每个包在单独进行复制。</p>
+
+<p>Swift是一门先进的语言，SPM的社区也在不断地完善中。在swift开源之后，我们很容可以看到它的潜力，看来掌握这门语言必将是一个大趋势。</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">安路</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2016-11-11T14:09:18+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>11</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>2:09 pm</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/swift/'>swift</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+
+<!-- JiaThis Button BEGIN -->
+<div class="jiathis_style_32x32">
+	<a class="jiathis_button_qzone"></a>
+	<a class="jiathis_button_tsina"></a>
+	<a class="jiathis_button_tqq"></a>
+	<a class="jiathis_button_weixin"></a>
+	<a class="jiathis_button_renren"></a>
+	<a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank"></a>
+	<a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+<br><br>
+<!-- UY BEGIN -->
+<div id="uyan_frame"></div>
+<script type="text/javascript" src="http://v2.uyan.cc/code/uyan.js?uid=2052593"></script>
+<!-- UY END -->
+
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2016/11/07/ioszhong-de-re-qi-dong/" title="Previous Post: iOS中的热修复">&laquo; iOS中的热修复</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2016/11/16/reactiveswiftru-men/" title="Next Post: ReactiveSwift入门">ReactiveSwift入门 &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+<h1>
+	QQ群
+</h1>
+   <br/>
+	<p>欢迎加入swift学习交流群:252710124</p>
+</section>
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/11/28/shi-yong-carthageguan-li-iosyi-lai/">使用Carthage管理ios依赖</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/11/22/ip-tcp-he-http/">IP TCP 和HTTP</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/11/16/reactiveswiftru-men/">ReactiveSwift入门</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/11/11/swift-package-managerru-men/">Swift Package Manager入门</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/11/07/ioszhong-de-re-qi-dong/">iOS中的热修复</a>
+      </li>
+    
+  </ul>
+</section>
+<section>
+	<h1>文章分类</h1>
+	<ul id="categories">
+		<li class='category'><a href='/blog/categories/cocoapods/'>cocoapods (1)</a></li>
+<li class='category'><a href='/blog/categories/git/'>git (3)</a></li>
+<li class='category'><a href='/blog/categories/ios/'>ios (29)</a></li>
+<li class='category'><a href='/blog/categories/life/'>life (1)</a></li>
+<li class='category'><a href='/blog/categories/mac/'>mac (2)</a></li>
+<li class='category'><a href='/blog/categories/nodejs/'>nodejs (2)</a></li>
+<li class='category'><a href='/blog/categories/octopress/'>octopress (2)</a></li>
+<li class='category'><a href='/blog/categories/swift/'>swift (21)</a></li>
+<li class='category'><a href='/blog/categories/xcode/'>xcode (1)</a></li>
+
+	</ul>
+</section>
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/andrew-anlu">@andrew-anlu</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'andrew-anlu',
+            count: 3,
+            skip_forks: false,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+<section>
+  <h1>On Delicious</h1>
+  <div id="delicious"></div>
+  <script type="text/javascript" src="http://feeds.delicious.com/v2/json/Andrewswift1987?count=3&amp;sort=date&amp;callback=renderDeliciousLinks"></script>
+  <p><a href="http://delicious.com/Andrewswift1987">My Delicious Bookmarks &raquo;</a></p>
+</section>
+
+ <section>
+      <h1>访客统计</h1>
+      <br/>
+    <a href="http://info.flagcounter.com/Bkif"><img src="http://s01.flagcounter.com/count2/Bkif/bg_ffffff/txt_000000/border_CCCCCC/columns_3/maxflags_10/viewers_0/labels_1/pageviews_1/flags_1/percent_0/" alt="Free counters!" border="0"></a>
+    </section>
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><!--返回顶部开始-->
+<div id="full" style="width:0px; height:0px; position:fixed; right:180px; bottom:150px; z-index:100; text-align:center; background-color:transparent; cursor:pointer;">
+  <a href="#" onclick="goTop();return false;"><img src="http://7xsn4e.com2.z0.glb.clouddn.com/top.png" border=0 alt="返回顶部" width="50" height="50"></a>
+</div>
+<script src="/javascripts/top.js" type="text/javascript"></script>
+<!--返回顶部结束-->
+
+
+<p>
+  Copyright &copy; 2016 - 安路 -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'Andrewswift1987';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://andrew-anlu.github.io/blog/2016/11/11/swift-package-managerru-men/';
+        var disqus_url = 'http://andrew-anlu.github.io/blog/2016/11/11/swift-package-managerru-men/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
