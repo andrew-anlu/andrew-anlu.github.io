@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Ios | 安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/blog/categories/ios/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-12-02T07:34:25+08:00</updated>
+  <updated>2016-12-24T21:40:23+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -19,6 +19,9 @@
     <updated>2016-11-22T10:04:46+08:00</updated>
     <id>http://andrew-anlu.github.io/blog/2016/11/22/ip-tcp-he-http</id>
     <content type="html"><![CDATA[<p>当app和服务器进行通信的额时候，大多数情况下，都是采用http协议。http最初是为web浏览器而定制的，如果在浏览器输入 <code>http://www.baidu.com</code>。浏览器就会通过http协议和baidu所对应的服务器进行通信。</p>
+
+<!--more-->
+
 
 <p>HTTP是运行在应用层上的应用协议，而不同的层级上都有相应的协议在运行。层级的堆栈关系一般可以这么描述：</p>
 

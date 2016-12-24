@@ -1,0 +1,875 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>用CoreLocation实现-地理围栏 - 安路的技术博客</title>
+  <meta name="author" content="安路">
+
+  
+  <meta name="description" content="地理围栏就是当你的手机设备进入或者离开某个区域的时候进行消息提醒,它会让你的程序变得更cool,设想一下，当你离开家，或者靠近一家你喜欢的商场附近时，能够及时给你发送最新的或者最优惠的信息。 在这个教程中，你将会学会如何用region监听区域，这个工程是采用swift3语言实现的。 为了练习， &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://andrew-anlu.github.io/blog/2016/12/19/yong-corelocationshi-xian-di-li-wei-lan/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="安路的技术博客" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//libs.baidu.com/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">安路的技术博客</a></h1>
+  
+    <h2>Nothing in life is to be feared. It is only to be understood</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://andrew-anlu.github.io" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="andrew-anlu.github.io">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/blog/">About me</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">用CoreLocation实现-地理围栏</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-12-19T14:58:38+08:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>2:58 pm</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>地理围栏就是当你的手机设备进入或者离开某个区域的时候进行消息提醒,它会让你的程序变得更cool,设想一下，当你离开家，或者靠近一家你喜欢的商场附近时，能够及时给你发送最新的或者最优惠的信息。</p>
+
+<!--more-->
+
+
+<p>在这个教程中，你将会学会如何用region监听区域，这个工程是采用swift3语言实现的。</p>
+
+<p>为了练习，你将要创建一个位置点去提醒app调用地理围栏进行提醒，假想它们就是现实世界中的位置坐标。好了，让我们开始吧。</p>
+
+<h2>开始</h2>
+
+<p>下载这个<a href="https://koenig-media.raywenderlich.com/uploads/2016/09/Geotify-Starter-1.zip">开始工程</a>,这个工程提供了简单的在地图上添加/删除 地图注解(Annotation)的方法</p>
+
+<p>编译运行程序，你将会看到一个空白的地图:</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2016/06/GeoInitial-281x500.png" alt="1" /></p>
+
+<p>点击<code>+</code>按钮，去添加一个新的地理围栏，首先会打开一个新的页面，你可以设置你想要的位置坐标，点击<code>Add</code>就添加到了地图上，并且大头针显示</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2016/06/GeoLooking-Around-281x500.png" alt="2" /></p>
+
+<p>这个<code>radius</code>代表指定地点的半径范围，单位是米
+<code>note</code>在导航过程中，能够展示你想要展示的任何内容。</p>
+
+<p>这个App也能够设置触发提醒方式，当用户进入或者离开某个区域的时候，进行提醒。</p>
+
+<p>对radius设置1000，并且设置note为<code>Say Hi to Tim!</code>,选择触发类型为<code>Upon Entry</code>,然后点击<code>Add</code></p>
+
+<p>然后你将要看到的地理围栏已经出来了一个新的大头针在地图上，下面还有一个圆形的渲染图层</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2016/06/Geo-Say-Hi-281x500.png" alt="2" /></p>
+
+<p>点击这个大头针，将会显示详细信息，比如提示信息和半径大小，不要点击左边的删除按钮，因为点击之后这个地理围栏信息将会被删除掉从地图上和内存中</p>
+
+<blockquote><p><em>注意:</em>
+所有的地理围栏的信息都存储到了NSUserDefaults中</p></blockquote>
+
+<h2>设置 Location Manager和权限</h2>
+
+<p>你添加到地图上的地理围栏仅仅是能看的，但是不能进行消息提醒。</p>
+
+<p>你将要修复这个通过core location来进行监听</p>
+
+<p>打开<code>GeotificationsViewController.swift</code>，然后在类的顶部定义一个常量实例<code>CLLocationManager</code>:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>class GeotificationsViewController: UIViewController {
+</span><span class='line'> 
+</span><span class='line'>  @IBOutlet weak var mapView: MKMapView!
+</span><span class='line'> 
+</span><span class='line'>  var geotifications = [Geotification]()
+</span><span class='line'>  let locationManager = CLLocationManager() // Add this statement
+</span><span class='line'> 
+</span><span class='line'>  ...
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>下一步，替换<code>viewDidLoad()</code>中为下面的代码:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>override func viewDidLoad() {
+</span><span class='line'>  super.viewDidLoad()
+</span><span class='line'>  // 1
+</span><span class='line'>  locationManager.delegate = self
+</span><span class='line'>  // 2
+</span><span class='line'>  locationManager.requestAlwaysAuthorization()
+</span><span class='line'>  // 3
+</span><span class='line'>  loadAllGeotifications()
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们解析下代码:</p>
+
+<ol>
+<li>设置locationManager的代理，只有设置了代理，相关的代理方法才会被调用</li>
+<li>你调用了<code>requestAlwaysAuthorization()</code>方法，它会调用一个提示，"Always"总是允许使用定位服务，因为App一直需要拥有<code>Always</code>权限去进行地理围栏的监听，直到这个app不在运行的时候，就不再需要这个权限了。在info.plist中已经设置了消息去告诉用户当请求定位信息时必须设置key:<code>NSLocationAlwaysUsageDescription</code></li>
+<li>调用<code>loadAllGeotifications()</code>，转换存储在<code>NSUserDefaults</code>中的地理围栏的信息，然后加载它们，这个方法加载地图上所有的地理围栏和大头针的数据</li>
+</ol>
+
+
+<p>当app设置了用户权限之后，界面上将会显示<code>NSLocationAlwaysUsageDescription</code>提示，一个友好的提示为什么app需要请求用户的地理坐标。这个key是强制性假如你使用定位服务的话，如果这个key没有的话，系统将会忽略程序请求并且终止定位服务</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2016/06/GeoLocationWhenNotUsing-281x500.png" alt="2" /></p>
+
+<p>OK，你已经设置好了app的请求权限，点击<code>Allow</code>去允许<code>location manager</code>在合适的时机调用代理方法</p>
+
+<p>在你实现地理围栏的提醒之前，这里有个小的问题你必须解决：用户的当前坐标没有展示在地图上，这个特性是不能实现的，你必须手动的点击左上角的那个定位按钮，才能定位到当前用户的地理坐标。</p>
+
+<p>幸运的是，修复这个是很容易的-在你允许了app获取权限之后，仅仅需要点下那个定位按钮</p>
+
+<p>在<code>GeotificationsViewController.swift</code>，添加<code>CLLocationManagerDelegate</code>的扩展如下:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>extension GeotificationsViewController: CLLocationManagerDelegate {
+</span><span class='line'>  func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
+</span><span class='line'>    mapView.showsUserLocation = (status == .authorizedAlways)
+</span><span class='line'>  }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>不管什么时候用户的权限状态改变的时候，location manager都会调用<code>locationManager(_:didChangeAuthorizationStatus:)</code>代理方法。假如用户授权app去使用当前定位服务，在你初始化好后locationManager,并且设置了代理之后，这个方法将会被调用</p>
+
+<p>这个方法是个理想的地方去检查这个app是否被授权，如果是，你将能确保mapView展示当前用户的坐标</p>
+
+<p>编译运行这个app,如果你用真机测试，你将会在mapView中看到当前的坐标；如果你运行在模拟器上，点击 <code>Debug\Location\Apple</code> 来查看地图上的标记</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2016/06/GeoLocationFar-281x500.png" alt="1" /></p>
+
+<p>放大地方，你看到的将会是这样:</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2016/06/GeoLocationZoomed-281x500.png" alt="1" /></p>
+
+<h2>注册你自己的地理围栏</h2>
+
+<p>当你的location manager配置好了之后，下一步就是允许你的app去注册一个地理围栏用来被监听</p>
+
+<p>在你的app中，你的地理围栏的信息是被存储为<code>Geotification</code>模型，在你注册为被监听之前，core Location 请求每一个地理围栏去返回一个<code>CLCircularRegion</code>实例。为了去处理这个请求，你将要创建一个helper方法，然后从指定的<code>Geotification</code>对象中返回一个  <code>CLCircularRegion</code></p>
+
+<p>打开<code>GeotificationsViewController.swift</code>，然后在主体代码中添加如下方法:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>func region(withGeotification geotification: Geotification) -&gt; CLCircularRegion {
+</span><span class='line'>  // 1
+</span><span class='line'>  let region = CLCircularRegion(center: geotification.coordinate, radius: geotification.radius, identifier: geotification.identifier)
+</span><span class='line'>  // 2
+</span><span class='line'>  region.notifyOnEntry = (geotification.eventType == .onEntry)
+</span><span class='line'>  region.notifyOnExit = !region.notifyOnEntry
+</span><span class='line'>  return region
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上面的方法做的工作如下：</p>
+
+<ol>
+<li>你用地理围栏的坐标进行<code>CLCircularRegion</code>的初始化，这个地理围栏的半径和identifier允许ios去判断注册的地理围栏的距离，这个初始化是很简单的，<code>Geotification</code>模型已经包含了要请求的属性。</li>
+<li><code>CLCircularRegion</code>实例也需要设置两个BOOL值得属性，<code>notifyOnEntry</code>和<code>notifyOnExit</code>,这是两个标识，当设备进入或者离开指定的地理围栏的时候，定义的地理围栏的回调事件将会被触发，你也可以为你的每个地理围栏设计去响应一个消息通知，你可以设置一个是true,另外一个是false,前提是你需要使用<code>Geotification</code>实体的枚举值</li>
+</ol>
+
+
+<p>下一步，当用户添加坐标的时候，你需要一个方法去开始监听这个地理围栏</p>
+
+<p>添加下面的方法在<code>GeotificationsViewController</code>：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>func startMonitoring(geotification: Geotification) {
+</span><span class='line'>  // 1
+</span><span class='line'>  if !CLLocationManager.isMonitoringAvailable(for: CLCircularRegion.self) {
+</span><span class='line'>    showAlert(withTitle:"Error", message: "Geofencing is not supported on this device!")
+</span><span class='line'>    return
+</span><span class='line'>  }
+</span><span class='line'>  // 2
+</span><span class='line'>  if CLLocationManager.authorizationStatus() != .authorizedAlways {
+</span><span class='line'>    showAlert(withTitle:"Warning", message: "Your geotification is saved but will only be activated once you grant Geotify permission to access the device location.")
+</span><span class='line'>  }
+</span><span class='line'>  // 3
+</span><span class='line'>  let region = self.region(withGeotification: geotification)
+</span><span class='line'>  // 4
+</span><span class='line'>  locationManager.startMonitoring(for: region)
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>让我们一步一步讲解上面的方法:</p>
+
+<ol>
+<li><code>isMonitoringAvailableForClass(_:)</code>方法决定我们的设备是否支持监听地理围栏，假如不能够监听，程序将会返回并且弹出一个提示框进行提醒。</li>
+<li>下一步，你检查当前权限的状态，确保这个app已经被授权去请求用户的定位服务，加入这个app没有被授权，这个设备将不会接受到地理围栏的任何提示信息。然而，在这个案例中，你将要始终允许用户去保存地理围栏信息，因为当你的app没有权限的时候，core loaction会让你注册地理围栏。当用户权限给这个app的时候，监听这些地理围栏将会自动开启</li>
+<li>在之前定义的方法中，你创建一个<code>CLCircularRegion</code>实例从指定的(geotification)中。</li>
+<li>最后，你用Core Location注册监听<code>CLCircularRegion</code>实例</li>
+</ol>
+
+
+<p>当用户删除地理围栏的时候，你同样需要停止监听</p>
+
+<p>在<code>GeotificationsViewController.swift</code>中，添加如下方法:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>func stopMonitoring(geotification: Geotification) {
+</span><span class='line'>  for region in locationManager.monitoredRegions {
+</span><span class='line'>    guard let circularRegion = region as? CLCircularRegion, circularRegion.identifier == geotification.identifier else { continue }
+</span><span class='line'>    locationManager.stopMonitoring(for: circularRegion)
+</span><span class='line'>  }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这个方法执行调用<code>locationManager</code>去停止监听<code>CLCircularRegion</code>通过<code>geotification</code>对象去判断</p>
+
+<p>现在你已经完成了开始和停止的方法，当你不管什么时候添加和删除geotification,你将会调用到这两个方法</p>
+
+<p>首先，在<code>GeotificationsViewController.swift</code>中找到<code>addGeotificationViewController(_:didAddCoordinate)</code>方法，这个方法是一个代理方法，在创建geotification的时候调用；</p>
+
+<p>当创建一个新的新的<code>Geotification</code>通过 AddGeotificationsViewController，同时更新mapView和<code>geotifications</code>的集合，然后调用<code>saveAllGeotifications()</code>进行数据保存，最新的数据是被保存到<code>NSUserDefaults</code>中。</p>
+
+<p>现在，替换为下面的代码:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>func addGeotificationViewController(controller: AddGeotificationViewController, didAddCoordinate coordinate: CLLocationCoordinate2D, radius: Double, identifier: String, note: String, eventType: EventType) {
+</span><span class='line'>  controller.dismiss(animated: true, completion: nil)
+</span><span class='line'>  // 1
+</span><span class='line'>  let clampedRadius = min(radius, locationManager.maximumRegionMonitoringDistance)
+</span><span class='line'>  let geotification = Geotification(coordinate: coordinate, radius: clampedRadius, identifier: identifier, note: note, eventType: eventType)
+</span><span class='line'>  add(geotification: geotification)
+</span><span class='line'>  // 2
+</span><span class='line'>  startMonitoring(geotification: geotification)
+</span><span class='line'>  saveAllGeotifications()
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<ol>
+<li>你调用了location manager的<code>maximumRegionMonitoringDistance</code>属性和半径值进行比较，如果半径值超过了这个属性值，则获取该属性值，反之则取半径值，这是重要的一点，因为任何大于最大值的半径将会引发监听程序失败</li>
+<li>用core location对新创建的geotification进行监听，通过调用<code>startMonitoringGeotification(_:)</code>方法，参数为<code>geofence</code></li>
+</ol>
+
+
+<p>通过这些代码，这个注册的App是有能力去进行监听，然而，有一个限制，作为地理围栏是和系统资源共享的，Core loaction要求每个设备最多只能注册20个地理围栏。</p>
+
+<p>添加如下代码在<code>updateGeotificationsCount()</code>方法中:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>func updateGeotificationsCount() {
+</span><span class='line'>  title = "Geotifications (\(geotifications.count))"
+</span><span class='line'>  navigationItem.rightBarButtonItem?.isEnabled = (geotifications.count &lt; 20)  // Add this line
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这行代码意义就是当数量达到限制数量值得时候，导航栏的<code>Add</code>按钮将会变成<code>不可用</code>状态</p>
+
+<p>最后，让我们处理删除地理围栏的操作，这个函数是在<code>mapView(_:annotationView:calloutAccessoryControlTapped:)</code>这个代理方法中进行处理的，当用户点击每一个annotationView的左边的<code>delete</code>按钮的时候，将调用删除地理围栏的处理函数</p>
+
+<p>添加停止监听的方法在<code>mapView(_:annotationView:calloutAccessoryControlTapped:)</code>代理方法调用的时候：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>func mapView(_ mapView: MKMapView, annotationView view: MKAnnotationView, calloutAccessoryControlTapped control: UIControl) {
+</span><span class='line'>  // Delete geotification
+</span><span class='line'>  let geotification = view.annotation as! Geotification
+</span><span class='line'>  stopMonitoring(geotification: geotification)   // Add this statement
+</span><span class='line'>  removeGeotification(geotification)
+</span><span class='line'>  saveAllGeotifications()
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>添加声明去停止监听地理围栏通过传递<code>geotification</code>参数，在删除之前，请先改变<code>NSUserDefaults</code>中存储的值</p>
+
+<p>通过这个方法，你的App可以停止监听地理围栏。</p>
+
+<p>编译运行，你不会看到任何改变，但是这个App已经注册成了地理围栏的监听并且可以监听该区域，然而，它还不能响应任何的地理围栏的监听事件，不要着急-那就是你下一步需要做的事情.</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2015/03/These_eyes.png" alt="1" /></p>
+
+<h2>响应地理围栏的事件</h2>
+
+<p>你将要实现一些当发生错误时的代理方法，当发生错误的时候这些代理将会被调用.</p>
+
+<p>在<code>GeotificationsViewController.swift</code>中，添加CLLocationManagerDelegate的代理方法：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>func locationManager(_ manager: CLLocationManager, monitoringDidFailFor region: CLRegion?, withError error: Error) {
+</span><span class='line'>  print("Monitoring failed for region with identifier: \(region!.identifier)")
+</span><span class='line'>}
+</span><span class='line'> 
+</span><span class='line'>func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+</span><span class='line'>  print("Location Manager failed with the following error: \(error)")
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这些代理方法仅仅是打印一些日志信息，当location manager发生错误的时候</p>
+
+<p>下一步，打开<code>AppDelegate.swif</code>，在这里你将要添加一些代理用来处理和响应当设备进入或者离开事件</p>
+
+<p>首先你需要导入<code>Corelocation</code>框架</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>import CoreLocation</span></code></pre></td></tr></table></div></figure>
+
+
+<p>确保在AppDelegate的顶端中有<code>CLLocationManager</code>的实例：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>class AppDelegate: UIResponder, UIApplicationDelegate {
+</span><span class='line'>  var window: UIWindow?
+</span><span class='line'> 
+</span><span class='line'>  let locationManager = CLLocationManager() // Add this statement
+</span><span class='line'>  ...
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>替换<code>application(_:didFinishLaunchingWithOptions:)</code>中的实现:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey : Any]? = nil) -&gt; Bool {
+</span><span class='line'>  locationManager.delegate = self
+</span><span class='line'>  locationManager.requestAlwaysAuthorization()
+</span><span class='line'>  return true
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>你设置你的AppDelegate去接收地理围栏的事件，你可能好奇，“为什么我要用AppDelegate去替换ViewController呢?”</p>
+
+<p>注册了一个地理围栏随时都在监听，包括当这个App停止运行的时候。假如这个设备是在App停止运行的时候去触发，ios将会自动进入后台运行模式，这使得AppDelegate是一个理想的地方去处理这个事件，这个时候ViewController可能不会被加载。</p>
+
+<p>现在你可能还会好奇，“新创建的<code>CLLocationManager</code>实例是如何知道去监听地理围栏的呢?”</p>
+
+<p>你的app注册的地理围栏是很容易去监听的，所以不会担心你的locaion Manager是什么地方初始化的。</p>
+
+<p>现在你只需要实现代理方法去响应地位围栏的事件信息，在你做这些之前，你将要创建一个方法去处理地理围栏的事件。</p>
+
+<p>添加下面的方法在AppDelegate.swift中</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>func handleEvent(forRegion region: CLRegion!) {
+</span><span class='line'>  print("Geofence triggered!")
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在这个方法中，传递一个CLRegion参数，并且打印一个日志声明，稍后你将会实现这个事件处理。</p>
+
+<p>下一步，在AppDelegate.swift的扩展中，添加下面的代理方法:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>extension AppDelegate: CLLocationManagerDelegate {
+</span><span class='line'> 
+</span><span class='line'>  func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
+</span><span class='line'>    if region is CLCircularRegion {
+</span><span class='line'>      handleEvent(forRegion: region)
+</span><span class='line'>    }
+</span><span class='line'>  }
+</span><span class='line'> 
+</span><span class='line'>  func locationManager(_ manager: CLLocationManager, didExitRegion region: CLRegion) {
+</span><span class='line'>    if region is CLCircularRegion {
+</span><span class='line'>      handleEvent(forRegion: region)
+</span><span class='line'>    }
+</span><span class='line'>  }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>当你的设备进入<code>CLRegion</code>区域时，<code>locationManager(_:didEnterRegion:)</code>方法将会被调用，当你离开该区域时，<code>locationManager(_:didExitRegion:)</code>方法将会被调用</p>
+
+<p>两个方法都会返回<code>CLRegion</code>，你需要去检查并且确保它是<code>CLCircularRegion</code>，因为返回有可能是<code>CLBeaconRegion</code>，假如你的App使用iBeacons来进行监听的。</p>
+
+<p>假如你的region属于<code>CLCircularRegion</code>返回之内，你将会调用<code>handleRegionEvent(_:)</code></p>
+
+<p>现在你的App是能收到地理围栏的事件了，你要准备去测试它的准备性，如果这个不足以让你兴奋，因为在这个教程的第一次测试，你想要看到一些结果;</p>
+
+<p>测试你的App最精确的方式是用真机，添加一些地理围栏并且进行走路或者驾驶汽车测试，然而，现在做这些有些不明智，因为你不能去验证打印的日志信息当用真机改变了地理位置之后，另外，在你提交一个大头针之前，它不能很好的保证App的工作。</p>
+
+<p>幸运的是，这里有一个更容易的方式去做这个，你不用离开你舒适的家。</p>
+
+<p>Xcode允许你包含一个WayPoint文件在你工程中，你能用Monique去测试地点位置。很幸运吧，你在你工程中导入这个文件即可。</p>
+
+<p>打开<code>TestLocations.gpx</code>这个文件，检查下这个内容：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;?xml version="1.0"?&gt;
+</span><span class='line'>&lt;gpx version="1.1" creator="Xcode"&gt;
+</span><span class='line'>  &lt;wpt lat="37.422" lon="-122.084058"&gt;
+</span><span class='line'>    &lt;name&gt;Google&lt;/name&gt;
+</span><span class='line'>  &lt;/wpt&gt;
+</span><span class='line'>  &lt;wpt lat="37.3270145" lon="-122.0310273"&gt;
+</span><span class='line'>    &lt;name&gt;Apple&lt;/name&gt;
+</span><span class='line'>  &lt;/wpt&gt;
+</span><span class='line'>&lt;/gpx&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这个GPX文件一个XML格式的，包含两个waypoints:<code>Google’s Googleplex in Mountain View and Apple’s Headquarters in Cupertino.</code></p>
+
+<p>用模拟器运行工程，当App加载这Main View Controller时，回到Xcode,在Debug bar中选中Locationt图标，选择<code>TestLocations</code></p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2015/03/Screen-Shot-2015-02-02-at-9.04.37-pm.png" alt="2" /></p>
+
+<p>回到App中，点击导航栏上的左上角的Zoom按钮，定位当前位置，一旦你放大这个区域，你将会看到定位点在Google 像素点和 Apple像素点 来回移动。</p>
+
+<p>添加两个地理围栏去测试这个App,Apple坐标和Google坐标，（如果之前你添加过其他的地理围栏，请先删除之前的，再开始）</p>
+
+<p>为了测试这些地点，添加具体细节如下:</p>
+
+<ul>
+<li>Google:Radius: 1000m, Message: “Say Bye to Google!”, Notify on Exit</li>
+<li>Apple:Radius: 1000m, Message: “Say Hi to Apple!”, Notify on Entry</li>
+</ul>
+
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2016/06/Geo2Fences-281x500.png" alt="1" /></p>
+
+<p>一旦你添加了地理围栏信息，你将会看到每次当坐标点进入或者离开地理围栏的时候，控制台都会打印日志信息，如果你按下home键或者锁屏让App进入到后台，你将会看到日志信息每次都会打印，现在你可以很显然的验证之前的判断</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2015/03/GeofenceTriggered.png" alt="1" /></p>
+
+<h2>用通知来响应地理围栏事件</h2>
+
+<p>你已经有了很大的进步，当你的设备通过这个地理围栏的时候，你可以发送一个通知提示用户。准备好做下这个操作</p>
+
+<p>为了获得通知消息，你可以通过触发<code>CLCircularRegion</code>来获得，你需要获取一个地理围栏信息从<code>NSUserDefaults</code>存储的数据中，在已经注册的地理围栏中，你可以用这个唯一的<code>identifier</code>去找到正确的<code>CLCircularRegion</code>。</p>
+
+<p>在AppDelegate.swift中，添加下面的帮助方法：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>func note(fromRegionIdentifier identifier: String) -&gt; String? {
+</span><span class='line'>  let savedItems = UserDefaults.standard.array(forKey: PreferencesKeys.savedItems) as? [NSData]
+</span><span class='line'>  let geotifications = savedItems?.map { NSKeyedUnarchiver.unarchiveObject(with: $0 as Data) as? Geotification }
+</span><span class='line'>  let index = geotifications?.index { $0?.identifier == identifier }
+</span><span class='line'>  return index != nil ? geotifications?[index!]?.note : nil
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这个方法会从持久化的内存中找到地理围栏的消息，仅仅靠<code>identifier</code>，就会返回地理围栏的消息</p>
+
+<p>在<code>application(_:didFinishLaunchingWithOptions:)</code>添加如下方法，去注册一个通知:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>application.registerUserNotificationSettings(UIUserNotificationSettings(types: [.sound, .alert, .badge], categories: nil))
+</span><span class='line'>UIApplication.shared.cancelAllLocalNotifications()</span></code></pre></td></tr></table></div></figure>
+
+
+<p>你添加的提示权限是为了确保这个App能否发送通知</p>
+
+<p>现在，替换<code>handleRegionEvent(_:)</code>的内容:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>func handleEvent(forRegion region: CLRegion!) {
+</span><span class='line'>  // Show an alert if application is active
+</span><span class='line'>  if UIApplication.shared.applicationState == .active {
+</span><span class='line'>    guard let message = note(fromRegionIdentifier: region.identifier) else { return }
+</span><span class='line'>    window?.rootViewController?.showAlert(withTitle: nil, message: message)
+</span><span class='line'>  } else {
+</span><span class='line'>    // Otherwise present a local notification
+</span><span class='line'>    let notification = UILocalNotification()
+</span><span class='line'>    notification.alertBody = note(fromRegionIdentifier: region.identifier)
+</span><span class='line'>    notification.soundName = "Default"
+</span><span class='line'>    UIApplication.shared.presentLocalNotificationNow(notification)
+</span><span class='line'>  }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>当这个App激活的时候，出现主界面的时候，将会弹出一个alert提示信息</p>
+
+<p>编译运行工程，当坐标点经过你添加的地理围栏的时候，你的地理围栏事件将会被触发，将会受到一个提示信息，并且展示出来:</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2016/06/GeoSayByeToGoogle-281x500.png" alt="1" /></p>
+
+<p>按一下home按钮，使得App进入后台模式，你依然能够通过地理围栏的事件信号定期收到通知信息</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2016/09/IMG_2239-281x500.png" alt="1" /></p>
+
+<p> 现在，你已经有完整的功能，定位提示功能在你的App中，你可以添加其他的大头针，然后去到你添加坐标的地方测试~</p>
+
+<h2>最终工程</h2>
+
+<p>最后的工程你可以在这里<a href="https://koenig-media.raywenderlich.com/uploads/2016/09/Geotify-Final-1.zip">下载</a></p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">安路</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2016-12-19T14:58:38+08:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>2:58 pm</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/swift/'>swift</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+
+<!-- JiaThis Button BEGIN -->
+<div class="jiathis_style_32x32">
+	<a class="jiathis_button_qzone"></a>
+	<a class="jiathis_button_tsina"></a>
+	<a class="jiathis_button_tqq"></a>
+	<a class="jiathis_button_weixin"></a>
+	<a class="jiathis_button_renren"></a>
+	<a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank"></a>
+	<a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+<br><br>
+<!-- UY BEGIN -->
+<div id="uyan_frame"></div>
+<script type="text/javascript" src="http://v2.uyan.cc/code/uyan.js?uid=2052593"></script>
+<!-- UY END -->
+
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2016/12/15/mapkitjiao-cheng-qi-bu/" title="Previous Post: MapKit教程:起步">&laquo; MapKit教程:起步</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2016/12/21/dao-che-ru-ku-ji-qiao/" title="Next Post: 倒车入库技巧">倒车入库技巧 &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+<h1>
+	QQ群
+</h1>
+   <br/>
+	<p>欢迎加入swift学习交流群:252710124</p>
+</section>
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/12/23/iosde-hou-tai-mo-shi/">iOS的后台模式</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/12/21/shi-yong-core-locationhe-mapviewjin-xing-lu-xian-gui-hua/">使用Core Location和MapView进行路线规划</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/12/21/dao-che-ru-ku-ji-qiao/">倒车入库技巧</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/12/19/yong-corelocationshi-xian-di-li-wei-lan/">用CoreLocation实现-地理围栏</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/12/15/mapkitjiao-cheng-qi-bu/">MapKit教程:起步</a>
+      </li>
+    
+  </ul>
+</section>
+<section>
+	<h1>文章分类</h1>
+	<ul id="categories">
+		<li class='category'><a href='/blog/categories/cocoapods/'>cocoapods (1)</a></li>
+<li class='category'><a href='/blog/categories/git/'>git (3)</a></li>
+<li class='category'><a href='/blog/categories/ios/'>ios (29)</a></li>
+<li class='category'><a href='/blog/categories/life/'>life (1)</a></li>
+<li class='category'><a href='/blog/categories/mac/'>mac (2)</a></li>
+<li class='category'><a href='/blog/categories/nodejs/'>nodejs (2)</a></li>
+<li class='category'><a href='/blog/categories/octopress/'>octopress (2)</a></li>
+<li class='category'><a href='/blog/categories/swift/'>swift (25)</a></li>
+<li class='category'><a href='/blog/categories/xcode/'>xcode (1)</a></li>
+<li class='category'><a href='/blog/categories/汽车/'>汽车 (4)</a></li>
+
+	</ul>
+</section>
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/andrew-anlu">@andrew-anlu</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'andrew-anlu',
+            count: 3,
+            skip_forks: false,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+<section>
+  <h1>On Delicious</h1>
+  <div id="delicious"></div>
+  <script type="text/javascript" src="http://feeds.delicious.com/v2/json/Andrewswift1987?count=3&amp;sort=date&amp;callback=renderDeliciousLinks"></script>
+  <p><a href="http://delicious.com/Andrewswift1987">My Delicious Bookmarks &raquo;</a></p>
+</section>
+
+ <section>
+      <h1>访客统计</h1>
+      <br/>
+    <a href="http://info.flagcounter.com/Bkif"><img src="http://s01.flagcounter.com/count2/Bkif/bg_ffffff/txt_000000/border_CCCCCC/columns_3/maxflags_10/viewers_0/labels_1/pageviews_1/flags_1/percent_0/" alt="Free counters!" border="0"></a>
+    </section>
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><!--返回顶部开始-->
+<div id="full" style="width:0px; height:0px; position:fixed; right:180px; bottom:150px; z-index:100; text-align:center; background-color:transparent; cursor:pointer;">
+  <a href="#" onclick="goTop();return false;"><img src="http://7xsn4e.com2.z0.glb.clouddn.com/top.png" border=0 alt="返回顶部" width="50" height="50"></a>
+</div>
+<script src="/javascripts/top.js" type="text/javascript"></script>
+<!--返回顶部结束-->
+
+
+<p>
+  Copyright &copy; 2016 - 安路 -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'Andrewswift1987';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://andrew-anlu.github.io/blog/2016/12/19/yong-corelocationshi-xian-di-li-wei-lan/';
+        var disqus_url = 'http://andrew-anlu.github.io/blog/2016/12/19/yong-corelocationshi-xian-di-li-wei-lan/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

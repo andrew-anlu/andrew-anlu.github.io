@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Swift | 安路的技术博客]]></title>
   <link href="http://andrew-anlu.github.io/blog/categories/swift/atom.xml" rel="self"/>
   <link href="http://andrew-anlu.github.io/"/>
-  <updated>2016-12-02T07:34:25+08:00</updated>
+  <updated>2016-12-24T21:40:23+08:00</updated>
   <id>http://andrew-anlu.github.io/</id>
   <author>
     <name><![CDATA[安路]]></name>
@@ -12,6 +12,1494 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[使用Core Location和MapView进行路线规划]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/12/21/shi-yong-core-locationhe-mapviewjin-xing-lu-xian-gui-hua/"/>
+    <updated>2016-12-21T16:04:20+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/12/21/shi-yong-core-locationhe-mapviewjin-xing-lu-xian-gui-hua</id>
+    <content type="html"><![CDATA[<h2>开始</h2>
+
+<p><a href="https://koenig-media.raywenderlich.com/uploads/2015/11/ProcrastinatorsRevenge-starter.zip">下载开始工程</a></p>
+
+<p>并且打开<code>ProcrastinatorsRevenge.xcodeproj</code>,编译运行，界面效果如下:</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2015/07/starter_screenshots1.png" alt="1" /></p>
+
+<p>第一个屏幕是输入文本框，设置开始和终止地点，点击<code>Route it</code>,App将会跳转到第二个页面，开始规划路线图。</p>
+
+<h2>使用MapKit和Coreloaction</h2>
+
+<p>官方文档中对Core Loaction的描述是这样的:&ldquo;Core location框架让你决定当前的坐标或者或者当前的方位通过使用设备"，你将要用Core Location的特性去填充用户的开始点，Core Location能翻译坐标的经纬度为用户能够看得懂的地址信息。在MapView中，使用MapItem类的<code>CLGeocoder</code>类将会完成这个教程的第一部分。</p>
+
+<p>在这个教程的第二部分，你将要从<code>CLGeocoder</code>返回的<code>CLPlacemark</code>中转为一个<code>MKPlacemark</code>，然后把<code>MKPlacemark</code>转换为一个<code>MKMapItem</code>。你将要使用<code>MKMapItems</code>去运行一个<code>MKDirectionsRequest</code>，这个最终将会返回一个<code>MKRoute</code>对象。</p>
+
+<p>关系如下-><code>CLGeocoder &gt; CLPlacemark &gt; MKPlacemark &gt; MKMapItem &gt; MKDirectionsRequest &gt; MKRoute.</code></p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2015/07/ef1905fa6eccb7e1cd85141d065d49f8.jpg-320x320.gif" alt="1" /></p>
+
+<h2>通过CoreLocation获取当前的坐标信息</h2>
+
+<p>在<code>ViewController.swift</code>中，添加如下代码，替换<code>viewDidLoad</code>已经存在的代码</p>
+
+<pre><code>// 1
+let locationManager = CLLocationManager()
+
+override func viewDidLoad() {
+  super.viewDidLoad()
+  originalTopMargin = topMarginConstraint.constant
+  // 2
+  locationManager.delegate = self
+  locationManager.requestWhenInUseAuthorization()
+  // 3
+  if CLLocationManager.locationServicesEnabled() {
+    locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters
+    locationManager.requestLocation()
+  }
+}
+</code></pre>
+
+<p>让我们说说每一步都做了什么:</p>
+
+<ol>
+<li>你定义了一个全局常量<code>locationManager</code></li>
+<li>在<code>ViewDidLoad</code>中，设置location manager的代理，当用户打开App的时候，询问用户是否允许访问用户地理位置的权限，这个弹出框第一次将会显示，当用户做出响应之后，这个框就不会再出现了。</li>
+<li>一旦用户定位服务开启，设置这个<code>CLLocationManager’s</code>的定位精度信息，请求当前坐标</li>
+</ol>
+
+
+<p>编译运行你的程序，你是否弹出了提示框让你授权地理定位信息呢？</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2015/07/reaction_faces___confused_by_awesomesauceuk-d4od42z.png" alt="1" /></p>
+
+<p>这是因为你还有一件事情需要完成，那就是权限问题，你需要提供原因为你的请求。
+打开<code>Supoorting Files&gt;info.plist</code>，按如下步骤进行设置:</p>
+
+<ol>
+<li>添加<code>NSLocationWhenInUseUsageDescription</code>作为<code>Key</code>在 Information Property List中</li>
+<li>让这个<code>Type</code>为<code>String</code>类型</li>
+<li>设置这个<code>Value</code>值去向用户展示，解释为什么你需要访问他们的地理信息：“请运行我们访问你的当前坐标信息，这样我们就能自动填充你的开始和结束地点了”</li>
+</ol>
+
+
+<blockquote><p><code>注意:</code>
+<em>.requestWhenInUseAuthorization()</em> 让这个app访问当前的用户地理信息，当这个App是在使用的时候</p>
+
+<p>*.requestAlwaysAuthorization() * 当这个app不管是在前台还是后台的时候.这个app都能访问用户的地理信息，</p></blockquote>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2015/07/plist.png" alt="1" /></p>
+
+<p>编译运行你的app,这次提示框将会显示:</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2015/07/LocationAuthorization.png" alt="1" /></p>
+
+<p>点击<code>Allow</code>,这个location Manager现在将会访问到你的地理坐标</p>
+
+<p>下一步，你将要创建<code>CLGeocoder</code>去解码当前的坐标信息。解码过程就是把获取到的地理坐标，比如经纬度，转换成我们能看的懂得地理位置信息，比如长江道第三大街33号</p>
+
+<p>在<code>ViewConroller.swift</code>的底部，添加如下代码，<code>locationManager(_:didUpdateLocations:locations:):</code></p>
+
+<pre><code>CLGeocoder().reverseGeocodeLocation(locations.last!,
+  completionHandler: {(placemarks:[CLPlacemark]?, error:NSError?) -&gt; Void in
+  if let placemarks = placemarks {
+    let placemark = placemarks[0]
+  }
+})
+</code></pre>
+
+<p><code>reverseGeocodeLocation(_:completionHandler:)</code>将会返回一组<code>placemarks</code>，对于多数的<code>geocoding</code>结果来说，这个数组仅仅是包含一个元素;很少的情况，一个单独的地点能返回多个地理位置附近的信息。在这个例子中，我们获取第一个placemark,即：placemarks[0],将会满足需求。</p>
+
+<p>你可以可以停止更新坐标信息，当你发现了一个适当的placemark的时候。</p>
+
+<p>现在你通过用户的地理位置已经找到对应地理坐标的<code>CLPlacemark</code>，你需要去联想其它跟他相关的地理数据信息，通过用户输入的文本框中的位置。为了实现这个，当用户输入一个单独的值的时候，通过swift的元组结构值去匹配多个值。</p>
+
+<p>在<code>ViewDidLoad</code>中，添加下面的全局变量去匹配每个<code>UITextField</code>响应的<code>MKMapItem</code>：</p>
+
+<pre><code>var locationTuples: [(textField: UITextField!, mapItem: MKMapItem?)]!
+</code></pre>
+
+<p>对用户的坐标信息，你将要存储<code>MKMapItems</code>而不是<code>CLPlacemarks</code>，这个类型你最终将会用在初始化<code>MKDirectionsRequest</code>上，用来计算路径规划。</p>
+
+<p>在<code>ViewDidLoad</code>中，添加如下:</p>
+
+<pre><code>locationTuples = [(sourceField, nil), (destinationField1, nil), (destinationField2, nil)]
+</code></pre>
+
+<p>这里，你定义了一个数组，里面包含了元组,每个元组都包含了一个文本框和一个为空的 MKMapItem的值，这个值最终会被和文本框绑定到一起。</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2015/07/happy-thumbs-up.png" alt="1" /></p>
+
+<p>在<code>locationManager(_:didUpdateLocations:location:)</code>方法中，添加如下代码片段，在<code>reverseGeocodeLocation(_:completionHandler:)</code>的完成回调方法中:</p>
+
+<pre><code>self.locationTuples[0].mapItem = MKMapItem(placemark:
+  MKPlacemark(coordinate: placemark.location!.coordinate,
+  addressDictionary: placemark.addressDictionary as! [String:AnyObject]?))
+</code></pre>
+
+<p>添加了一个<code>MKMapItem</code>代表用户当前的地理位置作为<code>locationTuples</code>的第一个元组对象。</p>
+
+<p>下一步，在ViewController中添加下面的函数 ，去把location data中的地理信息提取出来</p>
+
+<pre><code>func formatAddressFromPlacemark(placemark: CLPlacemark) -&gt; String {
+  return (placemark.addressDictionary!["FormattedAddressLines"] as! 
+    [String]).joinWithSeparator(", ")
+}
+</code></pre>
+
+<p><code>formatAddressFromPlacemark(_:)</code>从<code>CLPlacemark's</code>地址字典中通过<code>FormattedAddressLines</code>key提取一组地址信息，然后每两个元素之间用逗号连接起来组成一个新的字符串。</p>
+
+<p>滑动到<code>locationManager(_:didUpdateLocations:locations:)</code>方法，在self.locationTuples[0].mapItem初始化后添加如下代码:</p>
+
+<pre><code>self.sourceField.text = self.formatAddressFromPlacemark(placemark)
+</code></pre>
+
+<p>这将设置UItextField为一个新地址。</p>
+
+<pre><code>self.enterButtonArray.filter{$0.tag == 1}.first!.selected = true
+</code></pre>
+
+<p>在开始工程中，按钮的选择文本是提前设置好的，按钮的tag是按照顺序设置的，每个<code>Enter</code>按钮都和页面<code>enterButtonArray</code>建立了连接关系，上面的代码找到 tag=1的 <code>Enter</code>按钮，并且每个UItextField也是按照顺序设置的tag，和按钮是一一对应的。</p>
+
+<p>所以按钮的状态为选中时的文本会变为<code>✓</code>。</p>
+
+<p>编译运行你的APP，假如当前坐标是:Apple HQ,你的文本框中的文本将会是:<code>Apple Inc., 2 Infinite Loop, Cupertino, CA 95014-2083, United States</code></p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2015/07/Apple_source.png" alt="1" /></p>
+
+<p>在模拟器中，修改当前的坐标 <code>select Debug &gt; Location &gt; Custom location…:</code>
+<img src="https://koenig-media.raywenderlich.com/uploads/2015/07/Menu_bar-700x374.png" alt="1" /></p>
+
+<p>输入坐标信息:</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2015/07/CustomLocation-e1437159760381.png" alt="1" /></p>
+
+<p><code>Latitude: 29.049186, Longitude: -95.45384</code></p>
+
+<p>编译运行程序，这个文本框中将会显示:<code>05 Any Way St, Lake Jackson, TX, 77566-4198, United States
+</code></p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2015/07/Any_Way_source.png" alt="1" /></p>
+
+<p>下一步，你需要用户正确的输入地址，然后通过文本框中的值获取关联的地理位置信息，通过创建<code>MKMapItems</code>来获取。</p>
+
+<h2>用户调用CoreLoaction过程</h2>
+
+<p>在<code>ViewController.swift</code>中，更新<code>addressEntered(_:)</code>代码:</p>
+
+<pre><code>@IBAction func addressEntered(sender: UIButton) {
+  view.endEditing(true)
+  // 1
+  let currentTextField = locationTuples[sender.tag-1].textField
+  // 2
+  CLGeocoder().geocodeAddressString(currentTextField.text!,
+    completionHandler: {(placemarks: [CLPlacemark]?, error: NSError?) -&gt; Void in
+    if let placemarks = placemarks {
+
+    } else {
+
+    }
+  })
+}
+</code></pre>
+
+<p>你添加的代码做的工作如下:</p>
+
+<ol>
+<li>在interface builder中，每个<code>Enter</code>按钮都有一个tag,从上到下依次为1,2,3.你可以通过sender.tag来找到是那个text field.(UItextField的tag和Enter按钮的tag是一一对应的)</li>
+<li>通过<code>CLGeocoder's geocodeAddressString(_:completionHandler:).</code>去解码地理坐标</li>
+</ol>
+
+
+<p>不像<code>reverseGeocodeLocation(_:completionHandler:), geocodeAddressString(_:completionHandler:)</code>，经常会返回多个<code>CLPlacemark</code>信息，在文本中输入的值经常不是仅仅匹配一个值。幸运的是，我们创建一个Tableview来显示多个数据信息，当用户选择了一项之后我们就会返回一个<code>CLPlacemarks</code></p>
+
+<p>看一下<code>AddressTableView.swift.</code>这个类，你应该很清楚<code>tableView(_:numberOfRowsInSection:)</code>和<code>tableView(_:cellForRowAtIndexPath:),</code>代理方法的作用，你将要使用在顶部定义的全局变量<code>address</code>数组去填充这个tableview.</p>
+
+<p>在<code>ViewController</code>中添加如下的函数:</p>
+
+<pre><code>func showAddressTable(addresses: [String]) {
+  let addressTableView = AddressTableView(frame: UIScreen.mainScreen().bounds,
+    style: UITableViewStyle.Plain)
+  addressTableView.addresses = addresses
+  addressTableView.delegate = addressTableView
+  addressTableView.dataSource = addressTableView
+  view.addSubview(addressTableView)
+}
+</code></pre>
+
+<p>通过方法<code>geocodeAddressString(_:completionHandler:).</code>返回一组<code>CLPlacemarks</code>数据。这里你创建一个AddressTable，并且设置了数据源<code>addresses</code>数组，数组中包含的元素就是<code>CLPlacemarks</code></p>
+
+<p>回到<code>addressEntered(_:)</code>方法中，在<code>if let placemarks = placemarks</code>回调函数<code>geocodeAddressString(_:completionHandler:)‘s</code>中，添加如下代码:</p>
+
+<pre><code>var addresses = [String]()
+for placemark in placemarks {
+  addresses.append(self.formatAddressFromPlacemark(placemark))
+}
+self.showAddressTable(addresses)
+</code></pre>
+
+<p>你看到了属性<code>placemarks</code>，遍历访问并且把地址追加到Addresses数组中。最后把<code>addresses</code>作为参数传递给<code>self.showAddressTable</code></p>
+
+<p>当在第一屏幕的文本框中输入地址，并且点击<code>Enter</code>按钮，就会跳转到一个页面，让你选择具体是那个地址:</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2015/07/OysterCreekTable.png" alt="1" /></p>
+
+<p>当你选择了其中了一个地址之后，会发生什么呢？这个table将会消失。好了，让我去实现它</p>
+
+<p>当你选择另一个地址之后，你想要自动的设置选择的文本去填充第一屏幕中的文本框中的值，更新查询到的locations数组，并且设置相关的<code>MKMapItem</code>,并且设置<code>Enter</code>按钮的选中状态。</p>
+
+<p>更新<code>showAddressTable(_:)</code>方法在<code>ViewController.swift</code>中:</p>
+
+<pre><code>func showAddressTable(addresses: [String], textField: UITextField,
+  placemarks: [CLPlacemark], sender: UIButton) {
+
+  let addressTableView = AddressTableView(frame: UIScreen.mainScreen().bounds, style: UITableViewStyle.Plain)
+  addressTableView.addresses = addresses
+  addressTableView.currentTextField = textField
+  addressTableView.placemarkArray = placemarks
+  addressTableView.mainViewController = self
+  addressTableView.sender = sender
+  addressTableView.delegate = addressTableView
+  addressTableView.dataSource = addressTableView
+  view.addSubview(addressTableView)
+}
+</code></pre>
+
+<p>这里，你通过当前的文本框字段，数组placemarks,和当前的<code>ViewController.swift</code>的实例 创建一个AddressTableView。</p>
+
+<p>在<code>geocodeAddressString(_:completionHandler:)</code>方法中，更新<code>showAddressTable(_:)</code>的参数:</p>
+
+<pre><code>self.showAddressTable(addresses, textField: currentTextField,
+    placemarks: placemarks, sender: sender)
+</code></pre>
+
+<p>在查询不到地址的情况下，应该马上弹出提示框:</p>
+
+<pre><code>
+self.showAlert("Address not found.")
+</code></pre>
+
+<p>如果<code>geocodeAddressString(_:completionHandler:)</code>没有返回任何placemarks,你应该显示一个error:</p>
+
+<p>下一步，在表格的点击方法<code>tableView(_:didSelectRowAtIndexPath:)</code>中，加入代码:</p>
+
+<pre><code>// 1
+if addresses.count &gt; indexPath.row {
+  // 2
+  currentTextField.text = addresses[indexPath.row]
+  // 3
+  let mapItem = MKMapItem(placemark:
+    MKPlacemark(coordinate: placemarkArray[indexPath.row].location!.coordinate,
+    addressDictionary: placemarkArray[indexPath.row].addressDictionary
+    as! [String:AnyObject]?))
+  mainViewController.locationTuples[currentTextField.tag-1].mapItem = mapItem
+  // 4
+  sender.selected = true
+}
+</code></pre>
+
+<p>下面解释代码的意思:</p>
+
+<ol>
+<li>当addresses的数量是大于当前行的索引的时候,表格的最后一行将会显示:<code>None of the above</code></li>
+<li>更新当前的文本框中的值为选择的地址</li>
+<li>使用placemark去创建创建<code>MKMapItem</code>，placemark是通过获取当前行创建的。根据当前文本框的tag获取<code>mainViewController's locationTuples</code>中的mapitem,并且设置它</li>
+<li>设置当前<code>Enter</code>为选中状态</li>
+</ol>
+
+
+<p>编译运行，在<code>Stop#1</code>中输入地址，点击<code>Enter</code>，然后选择正确的地址，这个文本框中的值，地址元组(location tuple arra)，还有<code>Enter</code>按钮将会自动更新:
+<img src="https://koenig-media.raywenderlich.com/uploads/2015/07/Two_entries.png" alt="1" /></p>
+
+<p><em>Addresses updated. (Checkmarks et al.)</em></p>
+
+<p>在<code>ViewController.swift</code>中你还有一部分工作需要完成。</p>
+
+<p>更新代码在<code>textField(_:shouldChangeCharactersInRange:replacementString:):</code></p>
+
+<pre><code>func textField(textField: UITextField,
+  shouldChangeCharactersInRange range: NSRange,
+  replacementString string: String) -&gt; Bool {
+
+  enterButtonArray.filter{$0.tag == textField.tag}.first!.selected = false
+  locationTuples[textField.tag-1].mapItem = nil
+  return true
+}
+</code></pre>
+
+<p>当用户编辑了文本框，你将要设置MKMapItem失效，因为MKMapItem是不再需要，这样用户就可以重新选择正确的地址。</p>
+
+<p>下一步，更新<code>swapFields(_:)</code>方法:</p>
+
+<pre><code>
+swap(&amp;destinationField1.text, &amp;destinationField2.text)
+    swap(&amp;locationTuples[1].mapItem, &amp;locationTuples[2].mapItem)
+    swap(&amp;self.enterButtonArray.filter{$0.tag == 2}.first!.isSelected, &amp;self.enterButtonArray.filter{$0.tag == 3}.first!.isSelected)
+</code></pre>
+
+<p>当用户点击<code>↑↓</code>，你需要交换两个文本框的值，还有在数组<code>locationTuples</code>对应的MKMapItems</p>
+
+<p>在<code>ViewController</code>类中，找到<code>getDirections(_:)</code>方法，覆盖<code>shouldPerformSegueWithIdentifier(_:sender:)</code>：</p>
+
+<pre><code>override func shouldPerformSegueWithIdentifier(identifier: String, sender: AnyObject?) -&gt; Bool {
+  if locationTuples[0].mapItem == nil ||
+    (locationTuples[1].mapItem == nil &amp;&amp; locationTuples[2].mapItem == nil) {
+    showAlert("Please enter a valid starting point and at least one destination.")
+    return false
+  } else {
+    return true
+  }
+}
+</code></pre>
+
+<p>在<code>ViewDidload:</code>中对<code>locationsArray</code>进行设置，它是一个只读的属性，当你访问它的时候，它会从<code>locationTuples</code>中过滤<code>mapItem</code>不为nil的元素.</p>
+
+<pre><code>var locationsArray: [(textField: UITextField!, mapItem: MKMapItem?)] {
+  var filtered = locationTuples.filter({ $0.mapItem != nil })
+  filtered += [filtered.first!]
+  return filtered
+}
+</code></pre>
+
+<p><code>filtered += [filtered.first!]</code>拷贝元组中的第一个元素的值作为这个数组的最后一个元素。</p>
+
+<p>在<code>prepareForSegue(_:sender:):</code>中:</p>
+
+<pre><code>override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+  var directionsViewController = segue.destinationViewController as! DirectionsViewController
+  directionsViewController.locationArray = locationsArray
+}
+</code></pre>
+
+<p>这个传递的参数<code>locationsArray</code>将会在下一个View controller中用到</p>
+
+<p>现在切换到<code>DirectionsViewController.swift</code>，去开始路径规划吧.</p>
+
+<h2>在MapKit中进行路径规划</h2>
+
+<p>现在，你已经知道了addresses,你将要创建一个<code>MKDirections</code>对象，调用<code>calculateDirectionsWithCompletionHandler(_:)</code>设置开始坐标和结束坐标就可以开始路径规划了.</p>
+
+<p>在DirectionsViewController中添加如下代码:</p>
+
+<pre><code>func calculateSegmentDirections(index: Int) {
+  // 1
+  let request: MKDirectionsRequest = MKDirectionsRequest()
+  request.source = locationArray[index].mapItem
+  request.destination = locationArray[index+1].mapItem
+  // 2
+  request.requestsAlternateRoutes = true
+  // 3
+  request.transportType = .Automobile
+  // 4
+  let directions = MKDirections(request: request)
+  directions.calculateDirectionsWithCompletionHandler ({
+    (response: MKDirectionsResponse?, error: NSError?) in
+    if let routeResponse = response?.routes {
+
+    } else if let _ = error {
+
+    }
+  })
+}
+</code></pre>
+
+<p>上面的代码做的工作如下:</p>
+
+<ol>
+<li>创建一个<code>MKDirectionsRequest</code>，通过索引获取<code>locationArray</code>对应的mapItem,设置MKDirectionsRequest的开始坐标为这个mapitem,设置索引的下一个(index+1)为这个请求的目的地坐标</li>
+<li>设置<code>requestsAlternateRoutes</code>为true,请求从源目标到目的地所有可能的路径</li>
+<li>设置交通方式为 汽车驾驶,其它几个可能的方式为:步行，所有,公交车等</li>
+<li>通过<code>MKDirectionsRequest</code>初始化<code>MKDirections</code>，然后调用<code>calculateDirectionsWithCompletionHandler</code>获取到一个<code>MKDirectionsResponse</code>，这会包含一组<code>MKRoutes</code>数据</li>
+</ol>
+
+
+<p>如果<code>calculateDirectionsWithCompletionHandler(_:)</code>没有返回任何routes,而是返回一个错误，那么<code>else if let _ = error</code>代码将会执行，添加这个代码:</p>
+
+<pre><code>let alert = UIAlertController(title: nil,
+  message: "Directions not available.", preferredStyle: .Alert)
+let okButton = UIAlertAction(title: "OK",
+  style: .Cancel) { (alert) -&gt; Void in
+  self.navigationController?.popViewControllerAnimated(true)
+}
+alert.addAction(okButton)
+self.presentViewController(alert, animated: true,
+  completion: nil)
+</code></pre>
+
+<p>假设<code>MKRoutes</code>是找到了，在第一个<code>if let</code>声明中<code>calculateDirectionsWithCompletionHandler(_:)</code>将会执行，添加如下代码:</p>
+
+<pre><code>
+let quickestRouteForSegment: MKRoute =
+  routeResponse.sort({$0.expectedTravelTime &lt;
+  $1.expectedTravelTime})[0]
+</code></pre>
+
+<p>这里你按照 到达的时间 进行排序，用时最短的时间将会排在第一个，这对你的路线规划来说是有好处的。
+<img src="https://koenig-media.raywenderlich.com/uploads/2015/07/troll-troll-dad-dance-jump.png" alt="2" /></p>
+
+<p>但是，你仍然需要计算多个路径在每两个地点之间。</p>
+
+<p>首先，更新<code>calculateSegmentDirections(_:)</code>参数:</p>
+
+<pre><code>func calculateSegmentDirections(index: Int,
+  time: NSTimeInterval, routes: [MKRoute]) {
+</code></pre>
+
+<p><code>calculateSegmentDirections(_:time:routes:)</code>现在接受一个数组和一个 NSTimeInterval 参数</p>
+
+<pre><code>
+// 1
+var timeVar = time
+var routeVar = routes
+//2
+routesVar.append(quickestRouteForSegment)
+// 3
+timeVar += quickestRouteForSegment.expectedTravelTime
+// 4
+if index+2 &lt; self.locationArray.count {
+  self.calculateSegmentDirections(index+1, time: timeVar, routes: routesVar)
+} else {
+
+}
+</code></pre>
+
+<ol>
+<li>创建两个变量，一个是timeVar,一个是routeVar</li>
+<li>为当前的分段路线routesVar添加最快的路径规划</li>
+<li>在timeVar中添加路径规划的预计到达时间</li>
+<li>当你当前的索引加上最后两个值后没有超过<code>location array</code>数量值，递归调用自身方法<code>calculateSegmentDirections(_:time:routes:)</code>，传递索引+1,当前的time和路径values.</li>
+</ol>
+
+
+<p>现在回到<code>viewDidLoad</code>中，添加如下代码：</p>
+
+<pre><code>addActivityIndicator()
+calculateSegmentDirections(0, time: 0, routes: [])
+</code></pre>
+
+<p>这个代码添加一个转子activity indicator,当路径规划开始计算的时候，然后调用<code>calculateSegmentDirections(_:time:routes:)</code>去计算路径，从locationArray第一个索引开始，初始化时间为0,初始化一个空的路径数组</p>
+
+<p>然后回到<code>calculateDirectionsWithCompletionHandler(_:)</code>中，在<code>else</code>的回调函数判断中，在<code>if index+2 &lt; self.locationArray.count</code>的下面添加:</p>
+
+<pre><code>self.hideActivityIndicator()
+</code></pre>
+
+<p>当计算完所有的路径规划后，隐藏转子</p>
+
+<h2>在MKMapIVew中添加MKRoutes</h2>
+
+<p>为了去规划每一个<code>MKMapView</code>在MKMapView中，你需要在<code>DirectionsViewController</code>添加如下方法:</p>
+
+<pre><code>func plotPolyline(route: MKRoute) {
+  // 1
+  mapView.addOverlay(route.polyline)
+  // 2
+  if mapView.overlays.count == 1 {
+    mapView.setVisibleMapRect(route.polyline.boundingMapRect,
+      edgePadding: UIEdgeInsetsMake(10.0, 10.0, 10.0, 10.0),
+      animated: false)
+  }
+  // 3
+  else {
+    let polylineBoundingRect =  MKMapRectUnion(mapView.visibleMapRect,
+      route.polyline.boundingMapRect)
+    mapView.setVisibleMapRect(polylineBoundingRect,
+      edgePadding: UIEdgeInsetsMake(10.0, 10.0, 10.0, 10.0),
+      animated: false)
+  }
+}
+</code></pre>
+
+<p><code>plotPolyline(_:)</code>做的工作如下:</p>
+
+<ol>
+<li>添加<code>MKRoute</code>到地图上，作为一个覆盖层</li>
+<li>如果规划的路径仅仅是一个覆盖层，设置地图的可见区域足够大足以填充整个覆盖层，外边缘留出10个点的间距</li>
+<li>如果规划的路径不是一个，设置地图的可见区域为新的和旧的的区域的联合，外边缘留出10个点的间距</li>
+</ol>
+
+
+<p>下一步，更新<code>mapView(_:rendererForOverlay:)</code>方法</p>
+
+<pre><code>func mapView(mapView: MKMapView,
+  rendererForOverlay overlay: MKOverlay) -&gt; MKOverlayRenderer! {
+
+  let polylineRenderer = MKPolylineRenderer(overlay: overlay)
+  if (overlay is MKPolyline) {
+    if mapView.overlays.count == 1 {
+      polylineRenderer.strokeColor =
+        UIColor.blueColor().colorWithAlphaComponent(0.75)
+    } else if mapView.overlays.count == 2 {
+      polylineRenderer.strokeColor =
+        UIColor.greenColor().colorWithAlphaComponent(0.75)
+    } else if mapView.overlays.count == 3 {
+      polylineRenderer.strokeColor =
+        UIColor.redColor().colorWithAlphaComponent(0.75)
+    }
+    polylineRenderer.lineWidth = 5
+  }
+  return polylineRenderer
+}
+</code></pre>
+
+<p>给每一个路径路段设置不同的颜色</p>
+
+<p>在<code>calculateSegmentDirections(_:time:routes:)</code>添加:</p>
+
+<pre><code>func showRoute(routes: [MKRoute]) {
+  for i in 0..&lt;routes.count {
+    plotPolyline(routes[i])
+  }
+}
+</code></pre>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[用CoreLocation实现-地理围栏]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/12/19/yong-corelocationshi-xian-di-li-wei-lan/"/>
+    <updated>2016-12-19T14:58:38+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/12/19/yong-corelocationshi-xian-di-li-wei-lan</id>
+    <content type="html"><![CDATA[<p>地理围栏就是当你的手机设备进入或者离开某个区域的时候进行消息提醒,它会让你的程序变得更cool,设想一下，当你离开家，或者靠近一家你喜欢的商场附近时，能够及时给你发送最新的或者最优惠的信息。</p>
+
+<!--more-->
+
+
+<p>在这个教程中，你将会学会如何用region监听区域，这个工程是采用swift3语言实现的。</p>
+
+<p>为了练习，你将要创建一个位置点去提醒app调用地理围栏进行提醒，假想它们就是现实世界中的位置坐标。好了，让我们开始吧。</p>
+
+<h2>开始</h2>
+
+<p>下载这个<a href="https://koenig-media.raywenderlich.com/uploads/2016/09/Geotify-Starter-1.zip">开始工程</a>,这个工程提供了简单的在地图上添加/删除 地图注解(Annotation)的方法</p>
+
+<p>编译运行程序，你将会看到一个空白的地图:</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2016/06/GeoInitial-281x500.png" alt="1" /></p>
+
+<p>点击<code>+</code>按钮，去添加一个新的地理围栏，首先会打开一个新的页面，你可以设置你想要的位置坐标，点击<code>Add</code>就添加到了地图上，并且大头针显示</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2016/06/GeoLooking-Around-281x500.png" alt="2" /></p>
+
+<p>这个<code>radius</code>代表指定地点的半径范围，单位是米
+<code>note</code>在导航过程中，能够展示你想要展示的任何内容。</p>
+
+<p>这个App也能够设置触发提醒方式，当用户进入或者离开某个区域的时候，进行提醒。</p>
+
+<p>对radius设置1000，并且设置note为<code>Say Hi to Tim!</code>,选择触发类型为<code>Upon Entry</code>,然后点击<code>Add</code></p>
+
+<p>然后你将要看到的地理围栏已经出来了一个新的大头针在地图上，下面还有一个圆形的渲染图层</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2016/06/Geo-Say-Hi-281x500.png" alt="2" /></p>
+
+<p>点击这个大头针，将会显示详细信息，比如提示信息和半径大小，不要点击左边的删除按钮，因为点击之后这个地理围栏信息将会被删除掉从地图上和内存中</p>
+
+<blockquote><p><em>注意:</em>
+所有的地理围栏的信息都存储到了NSUserDefaults中</p></blockquote>
+
+<h2>设置 Location Manager和权限</h2>
+
+<p>你添加到地图上的地理围栏仅仅是能看的，但是不能进行消息提醒。</p>
+
+<p>你将要修复这个通过core location来进行监听</p>
+
+<p>打开<code>GeotificationsViewController.swift</code>，然后在类的顶部定义一个常量实例<code>CLLocationManager</code>:</p>
+
+<pre><code>class GeotificationsViewController: UIViewController {
+
+  @IBOutlet weak var mapView: MKMapView!
+
+  var geotifications = [Geotification]()
+  let locationManager = CLLocationManager() // Add this statement
+
+  ...
+}
+</code></pre>
+
+<p>下一步，替换<code>viewDidLoad()</code>中为下面的代码:</p>
+
+<pre><code>override func viewDidLoad() {
+  super.viewDidLoad()
+  // 1
+  locationManager.delegate = self
+  // 2
+  locationManager.requestAlwaysAuthorization()
+  // 3
+  loadAllGeotifications()
+}
+</code></pre>
+
+<p>我们解析下代码:</p>
+
+<ol>
+<li>设置locationManager的代理，只有设置了代理，相关的代理方法才会被调用</li>
+<li>你调用了<code>requestAlwaysAuthorization()</code>方法，它会调用一个提示，"Always"总是允许使用定位服务，因为App一直需要拥有<code>Always</code>权限去进行地理围栏的监听，直到这个app不在运行的时候，就不再需要这个权限了。在info.plist中已经设置了消息去告诉用户当请求定位信息时必须设置key:<code>NSLocationAlwaysUsageDescription</code></li>
+<li>调用<code>loadAllGeotifications()</code>，转换存储在<code>NSUserDefaults</code>中的地理围栏的信息，然后加载它们，这个方法加载地图上所有的地理围栏和大头针的数据</li>
+</ol>
+
+
+<p>当app设置了用户权限之后，界面上将会显示<code>NSLocationAlwaysUsageDescription</code>提示，一个友好的提示为什么app需要请求用户的地理坐标。这个key是强制性假如你使用定位服务的话，如果这个key没有的话，系统将会忽略程序请求并且终止定位服务</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2016/06/GeoLocationWhenNotUsing-281x500.png" alt="2" /></p>
+
+<p>OK，你已经设置好了app的请求权限，点击<code>Allow</code>去允许<code>location manager</code>在合适的时机调用代理方法</p>
+
+<p>在你实现地理围栏的提醒之前，这里有个小的问题你必须解决：用户的当前坐标没有展示在地图上，这个特性是不能实现的，你必须手动的点击左上角的那个定位按钮，才能定位到当前用户的地理坐标。</p>
+
+<p>幸运的是，修复这个是很容易的-在你允许了app获取权限之后，仅仅需要点下那个定位按钮</p>
+
+<p>在<code>GeotificationsViewController.swift</code>，添加<code>CLLocationManagerDelegate</code>的扩展如下:</p>
+
+<pre><code>extension GeotificationsViewController: CLLocationManagerDelegate {
+  func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
+    mapView.showsUserLocation = (status == .authorizedAlways)
+  }
+}
+</code></pre>
+
+<p>不管什么时候用户的权限状态改变的时候，location manager都会调用<code>locationManager(_:didChangeAuthorizationStatus:)</code>代理方法。假如用户授权app去使用当前定位服务，在你初始化好后locationManager,并且设置了代理之后，这个方法将会被调用</p>
+
+<p>这个方法是个理想的地方去检查这个app是否被授权，如果是，你将能确保mapView展示当前用户的坐标</p>
+
+<p>编译运行这个app,如果你用真机测试，你将会在mapView中看到当前的坐标；如果你运行在模拟器上，点击 <code>Debug\Location\Apple</code> 来查看地图上的标记</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2016/06/GeoLocationFar-281x500.png" alt="1" /></p>
+
+<p>放大地方，你看到的将会是这样:</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2016/06/GeoLocationZoomed-281x500.png" alt="1" /></p>
+
+<h2>注册你自己的地理围栏</h2>
+
+<p>当你的location manager配置好了之后，下一步就是允许你的app去注册一个地理围栏用来被监听</p>
+
+<p>在你的app中，你的地理围栏的信息是被存储为<code>Geotification</code>模型，在你注册为被监听之前，core Location 请求每一个地理围栏去返回一个<code>CLCircularRegion</code>实例。为了去处理这个请求，你将要创建一个helper方法，然后从指定的<code>Geotification</code>对象中返回一个  <code>CLCircularRegion</code></p>
+
+<p>打开<code>GeotificationsViewController.swift</code>，然后在主体代码中添加如下方法:</p>
+
+<pre><code>func region(withGeotification geotification: Geotification) -&gt; CLCircularRegion {
+  // 1
+  let region = CLCircularRegion(center: geotification.coordinate, radius: geotification.radius, identifier: geotification.identifier)
+  // 2
+  region.notifyOnEntry = (geotification.eventType == .onEntry)
+  region.notifyOnExit = !region.notifyOnEntry
+  return region
+}
+</code></pre>
+
+<p>上面的方法做的工作如下：</p>
+
+<ol>
+<li>你用地理围栏的坐标进行<code>CLCircularRegion</code>的初始化，这个地理围栏的半径和identifier允许ios去判断注册的地理围栏的距离，这个初始化是很简单的，<code>Geotification</code>模型已经包含了要请求的属性。</li>
+<li><code>CLCircularRegion</code>实例也需要设置两个BOOL值得属性，<code>notifyOnEntry</code>和<code>notifyOnExit</code>,这是两个标识，当设备进入或者离开指定的地理围栏的时候，定义的地理围栏的回调事件将会被触发，你也可以为你的每个地理围栏设计去响应一个消息通知，你可以设置一个是true,另外一个是false,前提是你需要使用<code>Geotification</code>实体的枚举值</li>
+</ol>
+
+
+<p>下一步，当用户添加坐标的时候，你需要一个方法去开始监听这个地理围栏</p>
+
+<p>添加下面的方法在<code>GeotificationsViewController</code>：</p>
+
+<pre><code>func startMonitoring(geotification: Geotification) {
+  // 1
+  if !CLLocationManager.isMonitoringAvailable(for: CLCircularRegion.self) {
+    showAlert(withTitle:"Error", message: "Geofencing is not supported on this device!")
+    return
+  }
+  // 2
+  if CLLocationManager.authorizationStatus() != .authorizedAlways {
+    showAlert(withTitle:"Warning", message: "Your geotification is saved but will only be activated once you grant Geotify permission to access the device location.")
+  }
+  // 3
+  let region = self.region(withGeotification: geotification)
+  // 4
+  locationManager.startMonitoring(for: region)
+}
+</code></pre>
+
+<p>让我们一步一步讲解上面的方法:</p>
+
+<ol>
+<li><code>isMonitoringAvailableForClass(_:)</code>方法决定我们的设备是否支持监听地理围栏，假如不能够监听，程序将会返回并且弹出一个提示框进行提醒。</li>
+<li>下一步，你检查当前权限的状态，确保这个app已经被授权去请求用户的定位服务，加入这个app没有被授权，这个设备将不会接受到地理围栏的任何提示信息。然而，在这个案例中，你将要始终允许用户去保存地理围栏信息，因为当你的app没有权限的时候，core loaction会让你注册地理围栏。当用户权限给这个app的时候，监听这些地理围栏将会自动开启</li>
+<li>在之前定义的方法中，你创建一个<code>CLCircularRegion</code>实例从指定的(geotification)中。</li>
+<li>最后，你用Core Location注册监听<code>CLCircularRegion</code>实例</li>
+</ol>
+
+
+<p>当用户删除地理围栏的时候，你同样需要停止监听</p>
+
+<p>在<code>GeotificationsViewController.swift</code>中，添加如下方法:</p>
+
+<pre><code>func stopMonitoring(geotification: Geotification) {
+  for region in locationManager.monitoredRegions {
+    guard let circularRegion = region as? CLCircularRegion, circularRegion.identifier == geotification.identifier else { continue }
+    locationManager.stopMonitoring(for: circularRegion)
+  }
+}
+</code></pre>
+
+<p>这个方法执行调用<code>locationManager</code>去停止监听<code>CLCircularRegion</code>通过<code>geotification</code>对象去判断</p>
+
+<p>现在你已经完成了开始和停止的方法，当你不管什么时候添加和删除geotification,你将会调用到这两个方法</p>
+
+<p>首先，在<code>GeotificationsViewController.swift</code>中找到<code>addGeotificationViewController(_:didAddCoordinate)</code>方法，这个方法是一个代理方法，在创建geotification的时候调用；</p>
+
+<p>当创建一个新的新的<code>Geotification</code>通过 AddGeotificationsViewController，同时更新mapView和<code>geotifications</code>的集合，然后调用<code>saveAllGeotifications()</code>进行数据保存，最新的数据是被保存到<code>NSUserDefaults</code>中。</p>
+
+<p>现在，替换为下面的代码:</p>
+
+<pre><code>func addGeotificationViewController(controller: AddGeotificationViewController, didAddCoordinate coordinate: CLLocationCoordinate2D, radius: Double, identifier: String, note: String, eventType: EventType) {
+  controller.dismiss(animated: true, completion: nil)
+  // 1
+  let clampedRadius = min(radius, locationManager.maximumRegionMonitoringDistance)
+  let geotification = Geotification(coordinate: coordinate, radius: clampedRadius, identifier: identifier, note: note, eventType: eventType)
+  add(geotification: geotification)
+  // 2
+  startMonitoring(geotification: geotification)
+  saveAllGeotifications()
+}
+</code></pre>
+
+<ol>
+<li>你调用了location manager的<code>maximumRegionMonitoringDistance</code>属性和半径值进行比较，如果半径值超过了这个属性值，则获取该属性值，反之则取半径值，这是重要的一点，因为任何大于最大值的半径将会引发监听程序失败</li>
+<li>用core location对新创建的geotification进行监听，通过调用<code>startMonitoringGeotification(_:)</code>方法，参数为<code>geofence</code></li>
+</ol>
+
+
+<p>通过这些代码，这个注册的App是有能力去进行监听，然而，有一个限制，作为地理围栏是和系统资源共享的，Core loaction要求每个设备最多只能注册20个地理围栏。</p>
+
+<p>添加如下代码在<code>updateGeotificationsCount()</code>方法中:</p>
+
+<pre><code>func updateGeotificationsCount() {
+  title = "Geotifications (\(geotifications.count))"
+  navigationItem.rightBarButtonItem?.isEnabled = (geotifications.count &lt; 20)  // Add this line
+}
+</code></pre>
+
+<p>这行代码意义就是当数量达到限制数量值得时候，导航栏的<code>Add</code>按钮将会变成<code>不可用</code>状态</p>
+
+<p>最后，让我们处理删除地理围栏的操作，这个函数是在<code>mapView(_:annotationView:calloutAccessoryControlTapped:)</code>这个代理方法中进行处理的，当用户点击每一个annotationView的左边的<code>delete</code>按钮的时候，将调用删除地理围栏的处理函数</p>
+
+<p>添加停止监听的方法在<code>mapView(_:annotationView:calloutAccessoryControlTapped:)</code>代理方法调用的时候：</p>
+
+<pre><code>func mapView(_ mapView: MKMapView, annotationView view: MKAnnotationView, calloutAccessoryControlTapped control: UIControl) {
+  // Delete geotification
+  let geotification = view.annotation as! Geotification
+  stopMonitoring(geotification: geotification)   // Add this statement
+  removeGeotification(geotification)
+  saveAllGeotifications()
+}
+</code></pre>
+
+<p>添加声明去停止监听地理围栏通过传递<code>geotification</code>参数，在删除之前，请先改变<code>NSUserDefaults</code>中存储的值</p>
+
+<p>通过这个方法，你的App可以停止监听地理围栏。</p>
+
+<p>编译运行，你不会看到任何改变，但是这个App已经注册成了地理围栏的监听并且可以监听该区域，然而，它还不能响应任何的地理围栏的监听事件，不要着急-那就是你下一步需要做的事情.</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2015/03/These_eyes.png" alt="1" /></p>
+
+<h2>响应地理围栏的事件</h2>
+
+<p>你将要实现一些当发生错误时的代理方法，当发生错误的时候这些代理将会被调用.</p>
+
+<p>在<code>GeotificationsViewController.swift</code>中，添加CLLocationManagerDelegate的代理方法：</p>
+
+<pre><code>func locationManager(_ manager: CLLocationManager, monitoringDidFailFor region: CLRegion?, withError error: Error) {
+  print("Monitoring failed for region with identifier: \(region!.identifier)")
+}
+
+func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+  print("Location Manager failed with the following error: \(error)")
+}
+</code></pre>
+
+<p>这些代理方法仅仅是打印一些日志信息，当location manager发生错误的时候</p>
+
+<p>下一步，打开<code>AppDelegate.swif</code>，在这里你将要添加一些代理用来处理和响应当设备进入或者离开事件</p>
+
+<p>首先你需要导入<code>Corelocation</code>框架</p>
+
+<pre><code>import CoreLocation
+</code></pre>
+
+<p>确保在AppDelegate的顶端中有<code>CLLocationManager</code>的实例：</p>
+
+<pre><code>class AppDelegate: UIResponder, UIApplicationDelegate {
+  var window: UIWindow?
+
+  let locationManager = CLLocationManager() // Add this statement
+  ...
+}
+</code></pre>
+
+<p>替换<code>application(_:didFinishLaunchingWithOptions:)</code>中的实现:
+<code>
+func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey : Any]? = nil) -&gt; Bool {
+  locationManager.delegate = self
+  locationManager.requestAlwaysAuthorization()
+  return true
+}
+</code></p>
+
+<p>你设置你的AppDelegate去接收地理围栏的事件，你可能好奇，“为什么我要用AppDelegate去替换ViewController呢?”</p>
+
+<p>注册了一个地理围栏随时都在监听，包括当这个App停止运行的时候。假如这个设备是在App停止运行的时候去触发，ios将会自动进入后台运行模式，这使得AppDelegate是一个理想的地方去处理这个事件，这个时候ViewController可能不会被加载。</p>
+
+<p>现在你可能还会好奇，“新创建的<code>CLLocationManager</code>实例是如何知道去监听地理围栏的呢?”</p>
+
+<p>你的app注册的地理围栏是很容易去监听的，所以不会担心你的locaion Manager是什么地方初始化的。</p>
+
+<p>现在你只需要实现代理方法去响应地位围栏的事件信息，在你做这些之前，你将要创建一个方法去处理地理围栏的事件。</p>
+
+<p>添加下面的方法在AppDelegate.swift中</p>
+
+<pre><code>func handleEvent(forRegion region: CLRegion!) {
+  print("Geofence triggered!")
+}
+</code></pre>
+
+<p>在这个方法中，传递一个CLRegion参数，并且打印一个日志声明，稍后你将会实现这个事件处理。</p>
+
+<p>下一步，在AppDelegate.swift的扩展中，添加下面的代理方法:</p>
+
+<pre><code>extension AppDelegate: CLLocationManagerDelegate {
+
+  func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
+    if region is CLCircularRegion {
+      handleEvent(forRegion: region)
+    }
+  }
+
+  func locationManager(_ manager: CLLocationManager, didExitRegion region: CLRegion) {
+    if region is CLCircularRegion {
+      handleEvent(forRegion: region)
+    }
+  }
+}
+</code></pre>
+
+<p>当你的设备进入<code>CLRegion</code>区域时，<code>locationManager(_:didEnterRegion:)</code>方法将会被调用，当你离开该区域时，<code>locationManager(_:didExitRegion:)</code>方法将会被调用</p>
+
+<p>两个方法都会返回<code>CLRegion</code>，你需要去检查并且确保它是<code>CLCircularRegion</code>，因为返回有可能是<code>CLBeaconRegion</code>，假如你的App使用iBeacons来进行监听的。</p>
+
+<p>假如你的region属于<code>CLCircularRegion</code>返回之内，你将会调用<code>handleRegionEvent(_:)</code></p>
+
+<p>现在你的App是能收到地理围栏的事件了，你要准备去测试它的准备性，如果这个不足以让你兴奋，因为在这个教程的第一次测试，你想要看到一些结果;</p>
+
+<p>测试你的App最精确的方式是用真机，添加一些地理围栏并且进行走路或者驾驶汽车测试，然而，现在做这些有些不明智，因为你不能去验证打印的日志信息当用真机改变了地理位置之后，另外，在你提交一个大头针之前，它不能很好的保证App的工作。</p>
+
+<p>幸运的是，这里有一个更容易的方式去做这个，你不用离开你舒适的家。</p>
+
+<p>Xcode允许你包含一个WayPoint文件在你工程中，你能用Monique去测试地点位置。很幸运吧，你在你工程中导入这个文件即可。</p>
+
+<p>打开<code>TestLocations.gpx</code>这个文件，检查下这个内容：</p>
+
+<pre><code>&lt;?xml version="1.0"?&gt;
+&lt;gpx version="1.1" creator="Xcode"&gt;
+  &lt;wpt lat="37.422" lon="-122.084058"&gt;
+    &lt;name&gt;Google&lt;/name&gt;
+  &lt;/wpt&gt;
+  &lt;wpt lat="37.3270145" lon="-122.0310273"&gt;
+    &lt;name&gt;Apple&lt;/name&gt;
+  &lt;/wpt&gt;
+&lt;/gpx&gt;
+</code></pre>
+
+<p>这个GPX文件一个XML格式的，包含两个waypoints:<code>Google’s Googleplex in Mountain View and Apple’s Headquarters in Cupertino.</code></p>
+
+<p>用模拟器运行工程，当App加载这Main View Controller时，回到Xcode,在Debug bar中选中Locationt图标，选择<code>TestLocations</code></p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2015/03/Screen-Shot-2015-02-02-at-9.04.37-pm.png" alt="2" /></p>
+
+<p>回到App中，点击导航栏上的左上角的Zoom按钮，定位当前位置，一旦你放大这个区域，你将会看到定位点在Google 像素点和 Apple像素点 来回移动。</p>
+
+<p>添加两个地理围栏去测试这个App,Apple坐标和Google坐标，（如果之前你添加过其他的地理围栏，请先删除之前的，再开始）</p>
+
+<p>为了测试这些地点，添加具体细节如下:</p>
+
+<ul>
+<li>Google:Radius: 1000m, Message: “Say Bye to Google!”, Notify on Exit</li>
+<li>Apple:Radius: 1000m, Message: “Say Hi to Apple!”, Notify on Entry</li>
+</ul>
+
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2016/06/Geo2Fences-281x500.png" alt="1" /></p>
+
+<p>一旦你添加了地理围栏信息，你将会看到每次当坐标点进入或者离开地理围栏的时候，控制台都会打印日志信息，如果你按下home键或者锁屏让App进入到后台，你将会看到日志信息每次都会打印，现在你可以很显然的验证之前的判断</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2015/03/GeofenceTriggered.png" alt="1" /></p>
+
+<h2>用通知来响应地理围栏事件</h2>
+
+<p>你已经有了很大的进步，当你的设备通过这个地理围栏的时候，你可以发送一个通知提示用户。准备好做下这个操作</p>
+
+<p>为了获得通知消息，你可以通过触发<code>CLCircularRegion</code>来获得，你需要获取一个地理围栏信息从<code>NSUserDefaults</code>存储的数据中，在已经注册的地理围栏中，你可以用这个唯一的<code>identifier</code>去找到正确的<code>CLCircularRegion</code>。</p>
+
+<p>在AppDelegate.swift中，添加下面的帮助方法：</p>
+
+<pre><code>func note(fromRegionIdentifier identifier: String) -&gt; String? {
+  let savedItems = UserDefaults.standard.array(forKey: PreferencesKeys.savedItems) as? [NSData]
+  let geotifications = savedItems?.map { NSKeyedUnarchiver.unarchiveObject(with: $0 as Data) as? Geotification }
+  let index = geotifications?.index { $0?.identifier == identifier }
+  return index != nil ? geotifications?[index!]?.note : nil
+}
+</code></pre>
+
+<p>这个方法会从持久化的内存中找到地理围栏的消息，仅仅靠<code>identifier</code>，就会返回地理围栏的消息</p>
+
+<p>在<code>application(_:didFinishLaunchingWithOptions:)</code>添加如下方法，去注册一个通知:</p>
+
+<pre><code>application.registerUserNotificationSettings(UIUserNotificationSettings(types: [.sound, .alert, .badge], categories: nil))
+UIApplication.shared.cancelAllLocalNotifications()
+</code></pre>
+
+<p>你添加的提示权限是为了确保这个App能否发送通知</p>
+
+<p>现在，替换<code>handleRegionEvent(_:)</code>的内容:</p>
+
+<pre><code>func handleEvent(forRegion region: CLRegion!) {
+  // Show an alert if application is active
+  if UIApplication.shared.applicationState == .active {
+    guard let message = note(fromRegionIdentifier: region.identifier) else { return }
+    window?.rootViewController?.showAlert(withTitle: nil, message: message)
+  } else {
+    // Otherwise present a local notification
+    let notification = UILocalNotification()
+    notification.alertBody = note(fromRegionIdentifier: region.identifier)
+    notification.soundName = "Default"
+    UIApplication.shared.presentLocalNotificationNow(notification)
+  }
+}
+</code></pre>
+
+<p>当这个App激活的时候，出现主界面的时候，将会弹出一个alert提示信息</p>
+
+<p>编译运行工程，当坐标点经过你添加的地理围栏的时候，你的地理围栏事件将会被触发，将会受到一个提示信息，并且展示出来:</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2016/06/GeoSayByeToGoogle-281x500.png" alt="1" /></p>
+
+<p>按一下home按钮，使得App进入后台模式，你依然能够通过地理围栏的事件信号定期收到通知信息</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2016/09/IMG_2239-281x500.png" alt="1" /></p>
+
+<p> 现在，你已经有完整的功能，定位提示功能在你的App中，你可以添加其他的大头针，然后去到你添加坐标的地方测试~</p>
+
+<h2>最终工程</h2>
+
+<p>最后的工程你可以在这里<a href="https://koenig-media.raywenderlich.com/uploads/2016/09/Geotify-Final-1.zip">下载</a></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[MapKit教程:起步]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/12/15/mapkitjiao-cheng-qi-bu/"/>
+    <updated>2016-12-15T15:02:58+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/12/15/mapkitjiao-cheng-qi-bu</id>
+    <content type="html"><![CDATA[<p><a href="https://developer.apple.com/maps/">MapKit</a>在ios开发中真的是很棒的API,它能很容易的展示地图和位置坐标，定位当前位置，可以路线规划甚至可以自定义覆盖物在地图上面</p>
+
+<!--more-->
+
+
+<p>在这个教程中，你将要创建一个app，在指定的地点能够放大缩小，并且可以设置大头针，支持点击操作，显示详情信息。</p>
+
+<p>根据路线规划可以选择驾驶，步行等方式去往目的地。你的App将会解析json数据从服务器。</p>
+
+<p>在这个过程中，你将会学会如何去添加一个MapKit在你的app中，放大或者缩小</p>
+
+<h2>Getting Started</h2>
+
+<p>在Xcode中新建一个工程，命名为: HonoluluArtMapDemo;</p>
+
+<p>然后打开ViewController中，在顶部引入 地图框架
+<code>import MapKit</code></p>
+
+<p>然后手动创建一个mapView,代码如下:</p>
+
+<pre><code> func initMap() -&gt; Void {
+        mapView = MKMapView(frame: CGRect(x: 0, y: 0, width: screenWidth, height: screenHeight))
+        self.view.addSubview(mapView)
+    }
+</code></pre>
+
+<h2>设置可见区域</h2>
+
+<p>在顶部设置一个可见区域
+<code>
+// set initial location in Honolulu
+let initialLocation = CLLocation(latitude: 21.282778, longitude: -157.829444)
+</code></p>
+
+<p>你将要使用这个坐标去设置地图在地点Honolulu的位置。</p>
+
+<p>当你尝试去告诉地图去显示什么的时候，你不能仅仅提供一个经度和纬度，对于定位中心点这个已经足够了，但是你还需要制定一个范围 region 去显示半径。</p>
+
+<p>增加一个辅助方法:</p>
+
+<pre><code>let regionRadius: CLLocationDistance = 1000
+func centerMapOnLocation(location: CLLocation) {
+  let coordinateRegion = MKCoordinateRegionMakeWithDistance(location.coordinate, 
+    regionRadius * 2.0, regionRadius * 2.0)
+  mapView.setRegion(coordinateRegion, animated: true)
+}
+</code></pre>
+
+<p>在<code>ViewDidload</code>中，添加如下代码：</p>
+
+<pre><code>initMap()
+centerMapOnLocation(initialLocation)
+</code></pre>
+
+<h3>运行测试</h3>
+
+<p>现在运行你的app,应该能看到一个地图，并且坐标是在 <code>Honolulu</code></p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2015/03/run2.png" alt="1" /></p>
+
+<h2>获取Artworks Data</h2>
+
+<p><a href="https://koenig-media.raywenderlich.com/uploads/2015/03/HonoluluArtResources.zip">HonoluluArtResources.zip</a>是服务器上的json文件，下载解压后有两个文件：Public.json和JSON.swift.你将会用JSON.swift去解析Public.json</p>
+
+<p>把这两个文件拖拽到你的工程中，确保<code>Destination: Copy items if needed</code>并且<code>Add to targets: HonoluluArt</code>是选择状态。</p>
+
+<h2>新建一个Artwork.swift 模型类</h2>
+
+<pre><code>import UIKit
+import MapKit
+
+class Artwork: NSObject ,MKAnnotation {
+    public var title: String?
+
+    let locationName: String
+    let discipline: String
+    let coordinate: CLLocationCoordinate2D
+
+    init(title: String, locationName: String, discipline: String, coordinate: CLLocationCoordinate2D) {
+        self.title = title
+        self.locationName = locationName
+        self.discipline = discipline
+        self.coordinate = coordinate
+
+        super.init()
+    }
+
+    public var subtitle: String? {
+        return locationName
+    }
+}
+</code></pre>
+
+<p>在这个模型类中，定义了标题和子标题，坐标和详细描述，并且实现了MKAnnotation协议。该协议中有两个属性必须实现:title 和 subtitle。</p>
+
+<p>OK，这些属性title,locationName和coordinate属性将要被用于MKAnnotation上，但是<code>discipline</code>这个属性是做什么的呢？在这个教程中，你将会找到答案</p>
+
+<p>接下来，在<code>ViewController</code>的 <code>ViewDiDload</code>方法中，加入如下代码:</p>
+
+<pre><code>// show artwork on map
+let artwork = Artwork(title: "King David Kalakaua",
+  locationName: "Waikiki Gateway Park", 
+  discipline: "Sculpture",
+  coordinate: CLLocationCoordinate2D(latitude: 21.283921, longitude: -157.831661))
+
+mapView.addAnnotation(artwork)
+</code></pre>
+
+<p>创建了一个Artwork的对象，作为一个annotation加入到mapView 中。这个mapView有 addAnnotaion方法。</p>
+
+<p>OK，接下来你需要展示这个annotaion在map view中，为了实现这个，你必须实现MKMapViewDelegate协议 <code>MKPinAnnotationView</code>该协议负责显示大头针annotation的</p>
+
+<p>代码如下：</p>
+
+<pre><code>
+import MapKit
+
+extension ViewController: MKMapViewDelegate {
+
+  // 1
+  func mapView(mapView: MKMapView!, viewForAnnotation annotation: MKAnnotation!) -&gt; MKAnnotationView! {
+    if let annotation = annotation as? Artwork {
+      let identifier = "pin"
+      var view: MKPinAnnotationView
+      if let dequeuedView = mapView.dequeueReusableAnnotationViewWithIdentifier(identifier)
+        as? MKPinAnnotationView { // 2
+        dequeuedView.annotation = annotation
+        view = dequeuedView
+      } else {
+        // 3
+        view = MKPinAnnotationView(annotation: annotation, reuseIdentifier: identifier)
+        view.canShowCallout = true
+        view.calloutOffset = CGPoint(x: -5, y: 5)
+        view.rightCalloutAccessoryView = UIButton.buttonWithType(.DetailDisclosure) as! UIView
+      }
+      return view
+    }
+    return nil
+  }
+}
+</code></pre>
+
+<p>这些代码并不复杂</p>
+
+<ol>
+<li><code>mapView(_:viewForAnnotation:)</code>是一个方法，每一个annotation都会调用去添加到mapView中，就像tableview中的<code>(_:cellForRowAtIndexPath:)</code>，每次都会返回一个View为每一个annotation</li>
+<li>和<code>tableview</code>的'tableView(_:cellForRowAtIndexPath:)&lsquo;方法类似，当一些区域滑出屏幕外面的时候，map View也会返回一些重用的annotation View 的视图，所以这个代码第一次检查reusable annotation 是否存在，如果不存在，创建一个新的</li>
+<li>如果<code>MKAnnotationView</code>可以从缓存池子中获取到，则用Artwork的title和subtitle属性去设置它，并且决定显示callout，可以支持点击的功能-当点击这个pin大头针的时候会出现一个气泡效果</li>
+</ol>
+
+
+<p>当然，你同样要设置</p>
+
+<pre><code>mapView.delegate = self
+</code></pre>
+
+<p>这样代理方法才会被调用到。</p>
+
+<p>好了，运行程序：</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2015/03/run32-174x320.png" alt="2" /></p>
+
+<p><code>mapView(_:viewForAnnotation:)</code>方法中，在弹出的气泡中，右边有一个详情按钮，可以设置点击它的处理事件，你可以弹出一个alert框，或者调到一个详情页面，
+在这个教程中：当用户点击了这个按钮之后，我们弹出Maps的app,完成驾车/步行 等导航路线的功能，这很酷的!</p>
+
+<h2>加载Maps App</h2>
+
+<p>为了提高用户体验，打开<code>Artwork.swift</code>，并且添加如下代码，导入 AddressBook(地址薄)框架</p>
+
+<pre><code>import AddressBook
+</code></pre>
+
+<p>这里添加了一个<code>AddressBook</code>框架，你可能会问，这个地址簿框架是做什么的，和Map有什么关系呢？well,它包含了一些字典的键，比如<code>kABPersonAddressStreetKey</code>,当你设置一些地址或者城市或者州 的地址坐标时会用到它。</p>
+
+<p>下一步，添加下面的帮助方法:</p>
+
+<pre><code>// annotation callout info button opens this mapItem in Maps app
+func mapItem() -&gt; MKMapItem {
+  let addressDictionary = [String(kABPersonAddressStreetKey): subtitle]
+  let placemark = MKPlacemark(coordinate: coordinate, addressDictionary: addressDictionary)
+
+  let mapItem = MKMapItem(placemark: placemark)
+  mapItem.name = title
+
+  return mapItem
+}
+</code></pre>
+
+<p>这里你从一个<code>MKPlacemark</code>中创建了一个<code>MKMapItem</code>，这个Maps app是可以从<code>MKMapItem</code>中获取到并且展示出来</p>
+
+<p>下一步，你必须告诉MapKit当你点击 callout button 的时候，你要做什么</p>
+
+<p>打开ViewController,添加<code>MKMapViewDelegate</code>的另外一个协议方法:<code>func mapView(mapView: MKMapView!, annotationView view: MKAnnotationView!,
+    calloutAccessoryControlTapped control: UIControl!)</code></p>
+
+<pre><code> func mapView(mapView: MKMapView!, annotationView view: MKAnnotationView!, 
+    calloutAccessoryControlTapped control: UIControl!) {
+  let location = view.annotation as! Artwork
+  let launchOptions = [MKLaunchOptionsDirectionsModeKey: MKLaunchOptionsDirectionsModeDriving]
+  location.mapItem().openInMapsWithLaunchOptions(launchOptions)
+}
+</code></pre>
+
+<p>当用户点击地图上的大头针，弹出一个气泡视图，然后点击气泡视图上的info button,当用户点击这个info button的时候，<code>mapView(_:annotationView:calloutAccessoryControlTapped:)</code>该代理方法被调用</p>
+
+<p>在这个方法中，你获取到Artwork对象，然后通过创建一个关联的<code>MKMapItem</code>，然后调用mapItem的<code>openInMapsWithLaunchOptions</code>方法去加载一个 <code>Maps app</code></p>
+
+<p>注意，你传递了一个字典给这个方法，这里允许你去指定几个不同的选项，这里的<code>DirectionModeKeys</code>设置成了<code>Driving</code>，这个就是显示的自驾模式，从你的当前定位地点到这个大头针的位置，当然，你可以设置其他的选项，比如walking,bus等模式。</p>
+
+<p>我建议你通过传递在字典参数中传递其他几个不同的选项，看看展现的效果，你可以去查看<code>MKMapItem</code>类，这个类同事允许你传递多了可选项参数</p>
+
+<p>在你运行程序之后，最后在xcode中设置一下你的坐标，打开<code>Product\Scheme\Edit Scheme</code>,然后选择<code>Run</code>,打开<code>Options</code>标签，选择<code>Core Location: Allow Location Simulation</code>,选择<code>Honolulu</code></p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2014/12/defaultUserLocation-480x232.png" alt="1" /></p>
+
+<p>好了，运行程序，你将会看到一个地图，点击地图上的大头针，然后点击info button,将会加载一个 Maps App</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2015/03/run4b-174x320.png" alt="1" /></p>
+
+<p>如果你也像我一样打开了地图，恭喜你！</p>
+
+<h2>解析JSon数据并且转化成Artwork对象</h2>
+
+<p>现在你知道如何在地图上展示artwork,怎嘛一股脑加载一个Maps app通过点击大头针的 callout info button,接下来我们介绍如何解析数据集。之后你可以从本地的地图区域中搜索数据。</p>
+
+<p>首先，找到<code>JSON.swift</code>和文件：<code>PublicArt.json.</code>。<code>JSON.swift</code>包含了很好的解析json数据的API,提提供了对每个JSON value数据的转化。</p>
+
+<p>把这两个文件拖入到工程中，在<code>Artwork.swift</code>添加如下方法:</p>
+
+<pre><code>class func fromJSON(json: [JSONValue]) -&gt; Artwork? {
+  // 1
+  var title: String
+  if let titleOrNil = json[16].string {
+    title = titleOrNil
+  } else {
+    title = ""
+  }
+  let locationName = json[12].string
+  let discipline = json[15].string
+
+  // 2
+  let latitude = (json[18].string! as NSString).doubleValue
+  let longitude = (json[19].string! as NSString).doubleValue
+  let coordinate = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+
+  // 3
+  return Artwork(title: title, locationName: locationName!, discipline: discipline!, coordinate: coordinate)
+}
+</code></pre>
+
+<p>代码解析:</p>
+
+<ol>
+<li><code>fromJSON‘s</code>方法将会从一个数组中返回一个Artwork对象，如果你传递一个数组的元素，你将会看到title, locationName等字段，在这个方法中都有指定的索引来获取数据，这<code>title</code>对某些artwork来说又能是空的(nil).</li>
+<li>转换经纬度为double</li>
+<li>返回artwork对象</li>
+</ol>
+
+
+<p>返回的json数据大概是这样:</p>
+
+<pre><code>[ 55, "8492E480-43E9-4683-927F-0E82F3E1A024", 55, 1340413921, "436621", 1340413921, "436621", "{\n}", "Sean Browne",
+"Gift of the Oahu Kanyaku Imin Centennial Committee", "1989", "Large than life-size bronze figure of King David Kalakaua
+mounted on a granite pedestal. Located at Waikiki Gateway Park.", "Waikiki Gateway Park", 
+"http://hiculturearts.pastperfect-online.com/34250images/002/199103-3.JPG", "1991.03", "Sculpture", "King David 
+Kalakaua", "Full", "21.283921", "-157.831661", [ null, "21.283921", "-157.831661", null, false ], null ]
+</code></pre>
+
+<p>在<code>ViewController.swift</code>中调用<code>fromJSON(_:)</code>方法，然后添加一个数组去存储从数据集中读到的json数据</p>
+
+<pre><code>var artworks = [Artwork]()
+</code></pre>
+
+<p>然后，添加下面的help方法:</p>
+
+<pre><code>func loadInitialData() {
+  // 1
+  let fileName = NSBundle.mainBundle().pathForResource("PublicArt", ofType: "json");
+  var readError : NSError?
+  var data: NSData = NSData(contentsOfFile: fileName!, options: NSDataReadingOptions(0),
+    error: &amp;readError)!
+
+  // 2
+  var error: NSError?
+  let jsonObject: AnyObject! = NSJSONSerialization.JSONObjectWithData(data, 
+    options: NSJSONReadingOptions(0), error: &amp;error)
+
+  // 3
+  if let jsonObject = jsonObject as? [String: AnyObject] where error == nil,
+  // 4
+  let jsonData = JSONValue.fromObject(jsonObject)?["data"]?.array {
+    for artworkJSON in jsonData {
+      if let artworkJSON = artworkJSON.array,
+      // 5
+      artwork = Artwork.fromJSON(artworkJSON) {
+        artworks.append(artwork)
+      }
+    }
+  }
+}
+</code></pre>
+
+<h2>标注Artworks</h2>
+
+<p>现在你已经有了一组artwork的数据集，现在你需要把它们加入到地图上。</p>
+
+<p>在<code>ViewDidLoad</code>方法中，创建<code>initialLocation</code>,然后设置map的中心点，调用<code>loadInitialData()</code>和<code>mapView.addAnnotations(artworks):</code></p>
+
+<pre><code>loadInitialData()
+mapView.addAnnotations(artworks)
+</code></pre>
+
+<p>删除之前创建的<code>King David Kalakaua</code>地图注解 数据的代码，你现在不需要它们了</p>
+
+<pre><code>//    let artwork = Artwork(title: "King David Kalakaua", locationName: "Waikiki Gateway Park",
+//      discipline: "Sculpture", coordinate: CLLocationCoordinate2D(latitude: 21.283921, longitude: -157.831661))
+//    mapView.addAnnotation(artwork)
+</code></pre>
+
+<p>编译运行程序，你的app可以看到很多的大头针</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2015/03/run5a1-174x320.png" alt="2" /></p>
+
+<h2>为大头针设置不同的颜色</h2>
+
+<p>还记的在artwork中的<code>discipline</code>属性吗？
+它的值像<code>Sculpture, Plaque, Mural, Monument, other</code></p>
+
+<p>在<code>Artwork.swift</code>中添加如下方法:</p>
+
+<pre><code>// pinColor for disciplines: Sculpture, Plaque, Mural, Monument, other
+func pinColor() -&gt; UIColor  {
+        switch discipline {
+        case "Sculpture", "Plaque":
+            return UIColor.red
+        case "Mural", "Monument":
+            return UIColor.purple
+        default:
+            return UIColor.green
+        }
+    }
+</code></pre>
+
+<p>然后在ViewController中找到<code>mapView(_:viewForAnnotation:)</code>代码方法，设置pinColor属性:</p>
+
+<pre><code>view.pinTintColor = annotation.pinColor()
+</code></pre>
+
+<h2>使用定位权限</h2>
+
+<p>想要获取定位服务，首先要导入 <code>Corelocation</code>框架</p>
+
+<p>在ViewController中加入下面代码:</p>
+
+<pre><code>// MARK: - location manager to authorize user location for Maps app
+var locationManager = CLLocationManager()
+func checkLocationAuthorizationStatus() {
+  if CLLocationManager.authorizationStatus() == .AuthorizedWhenInUse {
+    mapView.showsUserLocation = true
+  } else {
+    locationManager.requestWhenInUseAuthorization()
+  }
+}
+
+override func viewDidAppear(animated: Bool) {
+  super.viewDidAppear(animated)
+  checkLocationAuthorizationStatus()
+}
+</code></pre>
+
+<h2>在info.plist中需要加入权限设置</h2>
+
+<p>这里有几个权限设置你需要添加，你不加入的话，你的程序不会崩溃，但是你的locationManager’s的请求将会无效。为了让其工作良好，你必须添加<code>NSLocationWhenInUseUsageDescription</code>在你的app's的<code>Information Property Lis</code>,设置它的类型是string,值为一个消息，这个消息解释了为什么用户需要允许app访问他们的位置信息。</p>
+
+<p>打开 <code>Info.plist</code>，点开左边的小三角
+<img src="https://koenig-media.raywenderlich.com/uploads/2015/01/Infoplist-480x190.png" alt="1" /></p>
+
+<p>最好再添加两个选线 Privacy 开头的和定位信息有关：
+三个权限设置如下:</p>
+
+<ol>
+<li>Privacy - Location When In Use Usage Description</li>
+<li>Privacy - Location Usage Description</li>
+<li>Privacy - Location Always Usage Description</li>
+</ol>
+
+
+<h2>Final project</h2>
+
+<p><a href="https://koenig-media.raywenderlich.com/uploads/2015/03/HonoluluArt-Swift3.zip">swift3版本的工程</a>下载</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[swift3-GCD]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2016/12/14/swift3-gcd/"/>
+    <updated>2016-12-14T16:05:13+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2016/12/14/swift3-gcd</id>
+    <content type="html"><![CDATA[<p>在swift3中，<a href="https://developer.apple.com/reference/dispatch">GCD</a>的语法已经全面修改，变得更加swift化了。</p>
+
+<!--more-->
+
+
+<h2>DispatchQueue</h2>
+
+<p>首先，dispatch的全局函数不再为下划线风格的名称了，它变成了更符合Swift风格的DispatchQueue的样子</p>
+
+<h3>main thread</h3>
+
+<p>同样的，你不在需要去用<code>dispatch_get_main_queue()</code>来获取主线程，而是<code>DispatchQueue.main</code>，那么要放到主线程的代码怎么执行呢？只需要在后面使用<code>.async{}</code>即可：</p>
+
+<pre><code>DispatchQueue.main.async { [weak self] in
+      your code runs in main thread
+}
+</code></pre>
+
+<h2>优先级</h2>
+
+<p>我们知道，GCD的默认队列的优先级有四个:</p>
+
+<ul>
+<li>DISPATCH_QUEUE_PRIORITY_HIGH</li>
+<li>DISPATCH_QUEUE_PRIORITY_DEFAULT</li>
+<li>DISPATCH_QUEUE_PRIORITY_LOW</li>
+<li>DISPATCH_QUEUE_PRIORITY_BACKGROUND</li>
+</ul>
+
+
+<p>现在swift3中正式更名为：</p>
+
+<ul>
+<li>.userInitialted</li>
+<li>.default</li>
+<li>.utility</li>
+<li>.background</li>
+</ul>
+
+
+<p>当然，它们的对应关系也就是与顺序相同的:</p>
+
+<pre><code> DISPATCH_QUEUE_PRIORITY_HIGH:         .userInitiated
+ DISPATCH_QUEUE_PRIORITY_DEFAULT:      .default
+ DISPATCH_QUEUE_PRIORITY_LOW:          .utility
+ DISPATCH_QUEUE_PRIORITY_BACKGROUND:   .background
+</code></pre>
+
+<h2>获取一个队列</h2>
+
+<p>我们使用<code>DispatchQueue.global()</code>获取一个系统的队列，这样的话获取的就是默认<code>.default</code>优先级的队列了，如果要获取其它优先级的队列，就使用<code>DispatchQueue.global(qos: .userInitiated)</code>,最后，我们使用<code>.async{}</code>来执行代码:</p>
+
+<pre><code>DispatchQueue.global(qos: .userInitiated).async {
+            //your code here
+        }
+</code></pre>
+
+<h2>创建一个队列</h2>
+
+<p>直接用<code>DispatchQueue</code>的初始化来创建一个队列，最简单的方法就是:</p>
+
+<pre><code>let queue = DispatchQueue(label: "myBackgroundQueue")
+</code></pre>
+
+<p>复杂一点，你可以指定优先级以及队列类别:</p>
+
+<pre><code>let queue = DispatchQueue(label: "myBackgroundQueue", qos: .userInitiated, attributes: .concurrent)
+</code></pre>
+
+<p>然后把代码放进去:</p>
+
+<pre><code>queue.async {
+    print("aaa")
+}
+</code></pre>
+
+<h2>队列组</h2>
+
+<p>对于组，现在你可以使用这样的语法直接创建一个组</p>
+
+<pre><code>let group = DispatchGroup()
+</code></pre>
+
+<p>使用如下:</p>
+
+<pre><code>let group = DispatchGroup()
+
+let queue = DispatchQueue(label: "myBackgroundQueue")
+
+queue.async(group:group) {
+    print("background working")
+}
+</code></pre>
+
+<p>那么，如果有多个并发队列在同一个组中，我们徐亚它们完成了再继续:</p>
+
+<pre><code>group.wait()
+</code></pre>
+
+<h2>延迟执行</h2>
+
+<pre><code>DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 3.0) {
+    print("after!")
+}
+</code></pre>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[使用Carthage管理ios依赖]]></title>
@@ -111,2586 +1599,6 @@ import SwiftyJSON
 </code></pre>
 
 <p>Please enjoy it!</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[ReactiveSwift入门]]></title>
-    <link href="http://andrew-anlu.github.io/blog/2016/11/16/reactiveswiftru-men/"/>
-    <updated>2016-11-16T10:29:29+08:00</updated>
-    <id>http://andrew-anlu.github.io/blog/2016/11/16/reactiveswiftru-men</id>
-    <content type="html"><![CDATA[<h2>Signal</h2>
-
-<p>一个signal类型的实例，代表了一个有时序的并且可以被观察(类似订阅)的事件流。</p>
-
-<p>信号通常被用来表示正在进行中的事件流，比如通知，用户输入等。用户（或者只要能造成事件的东西）产生的事件发送或者被接受，事件就被传递到信号上，并且被推送(push-Driven)到任何观察者哪里，并且所有观察者都是同时收到这些事件。</p>
-
-<p>如果你想访问一系列的事件，就必须观察一个信号，观察一个信号并不会触发任何副作用，可以这样理解。信号是由生产者生产和推动的，消费者（观察者）是不会对事件的生命周期有任何影响。在观察一个信号时，发送了什么事件，只能对这个事件操作，因为信号是由时序的，不能随机的访问其他事件。</p>
-
-<p>信号可以通过原函数去操作，比如filter,map,reduce,也可以同时操作多个信号如zip,这些原函数只在nextEvents生效（也就是对complete,failure等不生效）</p>
-
-<p>在一个信号的生命周期里，可以发送无数次的NextEvents事件，直到他们被终结，类似compleye,Failed,InterRupper.终止事件没有数据值，所以他们必须被单独处理。</p>
-
-<h2>Subscription</h2>
-
-<p>一个信号通常被用来表示正在进行中的事件流，有时候他们被叫做热信号，这意味着订阅者可以错过一些在它订阅前发送的事件。订阅一个信号不会触发任何副作用。</p>
-
-<pre><code>
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-scopedExample("Subscription") {
-    // Signal.pipe is a way to manually control a signal. the returned observer can be used to send values to the signal
-    let (signal, observer) = Signal&lt;int, nonerror&gt;.pipe()
-    let subscriber1 = Observer&lt;int, nonerror&gt;(next: { print("Subscriber 1 received \($0)") })
-    let subscriber2 = Observer&lt;int, nonerror&gt;(next: { print("Subscriber 2 received \($0)") })
-    print("Subscriber 1 subscribes to the signal")
-    print("\(observer)")
-    signal.observe(subscriber1)
-    print("Send value `10` on the signal")
-    // subscriber1 will receive the value
-    observer.sendNext(10)
-    print("Subscriber 2 subscribes to the signal")
-    // Notice how nothing happens at this moment, i.e. subscriber2 does not receive the previously sent value
-    signal.observe(subscriber2)
-    print("Send value `20` on the signal")
-    // Notice that now, subscriber1 and subscriber2 will receive the value
-    observer.sendNext(20)
-}
---- Subscription ---
-Subscriber 1 subscribes to the signal
-Observer&lt;int, nonerror&gt;(action: (Function))
-Send value `10` on the signal
-Subscriber 1 received 10
-Subscriber 2 subscribes to the signal
-Send value `20` on the signal
-Subscriber 1 received 20
-Subscriber 2 received 20&lt;/int, nonerror&gt;&lt;/int, nonerror&gt;&lt;/int, nonerror&gt;&lt;/int, nonerror&gt;
-</code></pre>
-
-<p>因为Swift有泛型的存在，这样的话我们可以把Signal当做任何数据类型的容器，而不是像OC中利用上帝类型Id，更加方便传递数据</p>
-
-<p>首先我们通过Signal.pipe()创建了一个信号和一个观察者。</p>
-
-<p>奇怪的是，在RACOC部分中，我们很少主动创建观察者，我们通常直接订阅信号就可以。</p>
-
-<p>在Swift中，通过pipe创建的信号是个热信号，类似于OC中的RACSubject系列，在RACSubject继承自RACSiganl又继承RACStream，RACStream是一个Monad,它可以代表数据和数据的一系列的操作如map,flatterMap,bind</p>
-
-<p>RACSubject又遵守了RACSubscriber协议，这个协议定义了可以发送数据的操作。</p>
-
-<p>所以RACSubject即是一个信号，又是一个观察者。</p>
-
-<p>在Swift部分的实现中，Signal并没有实现发送数据的方法。所以它需要一个内部的Observer去发送数据。所以它被pipe直接返回。</p>
-
-<p>在外部我们需要自己实例化一个Observer观察者。去订阅事件。</p>
-
-<p>可能在你查看Pipe的实现的时候并不好理解。把尾随闭包补全相对好理解点。</p>
-
-<p>做个总结：</p>
-
-<ul>
-<li>RACOC中：RACSubject = RACSignal + RACSubscriper，在订阅的时候，订阅者被放在了RACSubject内部存放，我们只需要去关注订阅的block实现即可。</li>
-<li>RACSwift中:Signal 仅仅就是一个信号，所以需要一个内部观察者去充当发送数据的工具。外部的订阅需要自己手动实例观察者</li>
-<li>热信号：由于pipe方法返回的是热信号，所以一个订阅者会错过在订阅之前发送的事件
-*</li>
-</ul>
-
-
-<h3>empty</h3>
-
-<p>空信号直接发送一个interrupted事件</p>
-
-<pre><code>scopedExample("`empty`") {
-    let emptySignal = Signal&lt;int, nonerror&gt;.empty
-    let observer = Observer&lt;int, nonerror&gt;(
-    failed: { _ in print("error not called") },
-    completed: { print("completed not called") },
-    interrupted: { print("interrupted called") },
-    next: { _ in print("next not called") }
-    )
-    emptySignal.observe(observer)
-}
---- `empty` ---
-interrupted called&lt;/int, nonerror&gt;&lt;/int, nonerror&gt;
-</code></pre>
-
-<h3>Never</h3>
-
-<p>一个Never信号不会发送任何事件</p>
-
-<pre><code>scopedExample("`never`") {
-    let neverSignal = Signal&lt;int, noerror&gt;.never
-    let observer = Observer&lt;int, noerror&gt;(
-        failed: { _ in print("error not called") },
-        completed: { print("completed not called") },
-        interrupted: { print("interrupted not called") },
-        next: { _ in print("next not called") }
-    )
-    neverSignal.observe(observer)
-}
---- `never` ---&lt;/int, noerror&gt;&lt;/int, noerror&gt;
-</code></pre>
-
-<h3>uniqueValues唯一值</h3>
-
-<p>仅从集合中发送一次相同事件&ndash;类似与arrayQueue变成了Setqueue</p>
-
-<p>注意：这会造成被发送的值被保留下来，用于以后发送的时候来检查是否重复，你可以编写一个函数来过滤重复值，这样可以减少内存消耗。</p>
-
-<pre><code>
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-scopedExample("`uniqueValues`") {
-    let (signal, observer) = Signal&lt;int, noerror&gt;.pipe()
-    let subscriber = Observer&lt;int, noerror&gt;(next: { print("Subscriber received \($0)") } )
-    let uniqueSignal = signal.uniqueValues()
-    uniqueSignal.observe(subscriber)
-    observer.sendNext(1)
-    observer.sendNext(2)
-    observer.sendNext(3)
-    observer.sendNext(4)
-    observer.sendNext(3)
-    observer.sendNext(3)
-    observer.sendNext(5)
-}
---- `uniqueValues` ---
-Subscriber received 1
-Subscriber received 2
-Subscriber received 3
-Subscriber received 4
-Subscriber received 5&lt;/int, noerror&gt;&lt;/int, noerror&gt;
-</code></pre>
-
-<h3>map</h3>
-
-<p>把每一个发送的值转换成新的值</p>
-
-<pre><code>scopedExample("`map`") {
-    let (signal, observer) = Signal&lt;int, noerror&gt;.pipe()
-    let subscriber = Observer&lt;int, noerror&gt;(next: { print("Subscriber received \($0)") } )
-    let mappedSignal = signal.map { $0 * 2 }
-    mappedSignal.observe(subscriber)
-    print("Send value `10` on the signal")
-    observer.sendNext(10)
-}
---- `map` ---
-Send value `10` on the signal
-Subscriber received 20&lt;/int, noerror&gt;&lt;/int, noerror&gt;
-</code></pre>
-
-<h3>mapError</h3>
-
-<p>把收到的error值变成新的error值</p>
-
-<pre><code>1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-scopedExample("`mapError`") {
-        let userInfo = [NSLocalizedDescriptionKey: "??"]
-        let code = error.code + 10000
-        let mappedError = NSError(domain: "com.reactivecocoa.errordomain", code: code, userInfo: userInfo)
-    let (signal, observer) = Signal&lt;int, nserror&gt;.pipe()
-    let subscriber = Observer&lt;int, nserror&gt;(failed: { print("Subscriber received error: \($0)") } )
-    let mappedErrorSignal = signal.mapError { (error:NSError) -&gt; NSError in
-        return mappedError
-    }
-    mappedErrorSignal.observe(subscriber)
-    print("Send error `NSError(domain: \"com.reactivecocoa.errordomain\", code: 4815, userInfo: nil)` on the signal")
-    observer.sendFailed(NSError(domain: "com.reactivecocoa.errordomain", code: 4815, userInfo: nil))
-}
---- `mapError` ---
-Send error `NSError(domain: "com.reactivecocoa.errordomain", code: 4815, userInfo: nil)` on the signal
-Subscriber received error: Error Domain=com.reactivecocoa.errordomain Code=14815 "??" UserInfo={NSLocalizedDescription=??}&lt;/int, nserror&gt;&lt;/int, nserror&gt;
-</code></pre>
-
-<h3>filter</h3>
-
-<p>用于过滤一些值</p>
-
-<pre><code>scopedExample("`filter`") {
-    let (signal, observer) = Signal&lt;int, noerror&gt;.pipe()
-    let subscriber = Observer&lt;int, noerror&gt;(next: { print("Subscriber received \($0)") } )
-    // subscriber will only receive events with values greater than 12
-    let filteredSignal = signal.filter { $0 &gt; 12 ? true : false }
-    filteredSignal.observe(subscriber)
-    observer.sendNext(10)
-    observer.sendNext(11)
-    observer.sendNext(12)
-    observer.sendNext(13)
-    observer.sendNext(14)
-}
---- `filter` ---
-Subscriber received 13
-Subscriber received 14&lt;/int, noerror&gt;&lt;/int, noerror&gt;
-</code></pre>
-
-<h3>ignoreNil</h3>
-
-<p>在发送的值为可选类型中：如果有值，把值解包，如果是nil丢弃掉</p>
-
-<pre><code>scopedExample("`ignoreNil`") {
-    let (signal, observer) = Signal&lt;int?, noerror&gt;.pipe()
-    // note that the signal is of type `Int?` and observer is of type `Int`, given we're unwrapping
-    // non-`nil` values
-    let subscriber = Observer&lt;int, noerror&gt;(next: { print("Subscriber received \($0)") } )
-    let ignoreNilSignal = signal.ignoreNil()
-    ignoreNilSignal.observe(subscriber)
-    observer.sendNext(1)
-    observer.sendNext(nil)
-    observer.sendNext(3)
-}
---- `ignoreNil` ---
-Subscriber received 1
-Subscriber received 3&lt;/int, noerror&gt;&lt;/int?, noerror&gt;
-</code></pre>
-
-<h3>take</h3>
-
-<p>take(num)只取前num此值得信号</p>
-
-<pre><code>scopedExample("`take`") {
-    let (signal, observer) = Signal&lt;int, noerror&gt;.pipe()
-    let subscriber = Observer&lt;int, noerror&gt;(next: { print("Subscriber received \($0)") } )
-    let takeSignal = signal.take(2)
-    takeSignal.observe(subscriber)
-    observer.sendNext(1)
-    observer.sendNext(2)
-    observer.sendNext(3)
-    observer.sendNext(4)
-}
---- `take` ---
-Subscriber received 1
-Subscriber received 2&lt;/int, noerror&gt;&lt;/int, noerror&gt;
-</code></pre>
-
-<h3>collect</h3>
-
-<p>在发送complete事件之后，观察者会收到一个由之前事件组成的数组</p>
-
-<p>注意：如果在发送complete事件的时候，没有任何事件发送，观察者会收到一个空的数据</p>
-
-<pre><code>scopedExample("`collect`") {
-    let (signal, observer) = Signal&lt;int, noerror&gt;.pipe()
-    // note that the signal is of type `Int` and observer is of type `[Int]` given we're "collecting"
-    // `Int` values for the lifetime of the signal
-    let subscriber = Observer&lt;[Int], NoError&gt;(next: { print("Subscriber received \($0)") } )
-    let collectSignal = signal.collect()
-    collectSignal.observe(subscriber)
-    observer.sendNext(1)
-    observer.sendNext(2)
-    observer.sendNext(3)
-    observer.sendNext(4)
-    observer.sendCompleted()
-}
---- `collect` ---
-Subscriber received [1, 2, 3, 4]&lt;/int, noerror&gt;
-</code></pre>
-
-<h2>SignalProducer</h2>
-
-<p>一个信号发生器，是SignalProducer类型的实例，它可以创建信号(signals)并施加副作用（side effects）</p>
-
-<p>信号发生器用来表示操作或者任务，比如网络请求，每一次对它的调用start()将会生成一个新的潜在操作，并允许调用者观察它的结果，还有一个startWithSignal()方法，会给出产生的信号，允许在必要的情况下监听多次。</p>
-
-<p>根据start()方法的动作方式，被同一个信号发生器生成的信号可能会有不同的事件顺序或版本，甚至事件流完全不一样！和普通的信号不同，在观察者连接上之前，信号发生器不会开始工作（也就没有事件会生成），并且在每一个新的监听器连接上时其工作都会重新开始一个单独的工作流。</p>
-
-<p>启动一个信号发生器会返回一个销毁器(disposable)，它可用来打断或取消被生成信号的工作</p>
-
-<p>和信号一样，信号生成器可以通过map,filter等原函数操作，使用lift方法，所有信号的原函数可以被提升成为以信号生成器为对象的操作，除此以外，还有一些用来控制何时与如何启动信号生成器的原函数，比如times.</p>
-
-<p>通过lift函数可以让热信号转变为冷信号。</p>
-
-<h3>Subscription</h3>
-
-<p>一个信号生成器代表了一种可以在需要的时候才被启动的操作（不像signal是自启动的），这种信号是冷信号，在刚开始这个信号的状态也为冷（未激活），既然是冷信号，那么就意味着这一个观察者不会错过任何被信号生成器发出的值。</p>
-
-<p>补充：像signal是创建的时候状态为cold(理解为未激活)，被订阅时状态为hot(理解为激活)</p>
-
-<p>但是冷信号和热信号与状态为冷热是两个不同的概念，冷信号会带来副作用，热信号不会</p>
-
-<pre><code>scopedExample("Subscription") {
-    let producer = SignalProducer&lt;int, noerror&gt; { observer, _ in
-        print("New subscription, starting operation")
-        observer.sendNext(1)
-        observer.sendNext(2)
-    }
-    let subscriber1 = Observer&lt;int, noerror&gt;(next: { print("Subscriber 1 received \($0)") })
-    let subscriber2 = Observer&lt;int, noerror&gt;(next: { print("Subscriber 2 received \($0)") })
-    print("Subscriber 1 subscribes to producer")
-    producer.start(subscriber1)
-    print("Subscriber 2 subscribes to producer")
-    // Notice, how the producer will start the work again
-    producer.start(subscriber2)
-}
---- Subscription ---
-Subscriber 1 subscribes to producer
-New subscription, starting operation
-Subscriber 1 received 1
-Subscriber 1 received 2
-Subscriber 2 subscribes to producer
-New subscription, starting operation
-Subscriber 2 received 1
-Subscriber 2 received 2&lt;/int, noerror&gt;&lt;/int, noerror&gt;&lt;/int, noerror&gt;
-</code></pre>
-
-<p>像不像是RACDynamicSignal的创建方式，这不过不同与Sinal的是，这里的发送信号的观察者是在内部通过Signal.pipe()生成的，不需要外部创建。</p>
-
-<p>SignalProduce是冷信号，任何一个订阅者/观察者都不会错过任何事件</p>
-
-<p>start方类似Signal的 signal.observe()方法，只不过Signal的方法只有一个作用，就是关联一个观察者，而SignalProduce的start方法还多了一个激活信号的功能</p>
-
-<h3>Empty</h3>
-
-<p>一个会立即调用complete事件的信号生成器</p>
-
-<pre><code>/*:
- ### `empty`
- A producer for a Signal that will immediately complete without sending
- any values.
- */
-scopedExample("`empty`") {
-    let emptyProducer = SignalProducer&lt;int, noerror&gt;.empty
-    let observer = Observer&lt;int, noerror&gt;(
-        failed: { _ in print("error not called") },
-        completed: { print("completed called") },
-        interrupted: { print("interrupted called") },
-        next: { _ in print("next not called") }
-    )
-    emptyProducer.start(observer)
-}
---- `empty` ---
-completed called&lt;/int, noerror&gt;&lt;/int, noerror&gt;
-</code></pre>
-
-<p>Signal调用的是interrup方法，暂时不知道为什么，可能是为了区分语义吧，Signal是有时序的，SignalProduce是没有时序的。</p>
-
-<h3>Never</h3>
-
-<p>一个什么都不会发送的信号器</p>
-
-<pre><code>/*:
- ### `never`
- A producer for a Signal that never sends any events to its observers.
- */
-scopedExample("`never`") {
-    let neverProducer = SignalProducer&lt;int, noerror&gt;.never
-    let observer = Observer&lt;int, noerror&gt;(
-        failed: { _ in print("error not called") },
-        completed: { print("completed not called") },
-        next: { _ in print("next not called") }
-    )
-    neverProducer.start(observer)
-}
---- `never` ---&lt;/int, noerror&gt;&lt;/int, noerror&gt;
-</code></pre>
-
-<h3>buffer</h3>
-
-<p>创建一个事件队列可以回放已经发送的事件</p>
-
-<p>当一个值被发送的时候，它会被放进缓冲区内，如果缓冲区已经溢出，就会丢弃旧的值</p>
-
-<p>这些被缓存的值将会被保留，直到这个信号被终结，当一个信号启动的时候，如果队列里没有任何值，所有被发送的新值都会被自动转发到观察者那里，直到管着着收到一个终止事件。</p>
-
-<p>当一个终止事件被发送到队列中，观察者不会再收到任何值，并且这个事件不会被计算buffer的缓冲区大小，所以没有缓存的值都会被丢弃。</p>
-
-<pre><code>scopedExample("`buffer`") {
-    let (producer, observer) = SignalProducer&lt;int, noerror&gt;.buffer(2)
-    observer.sendNext(1)
-    observer.sendNext(2)
-    observer.sendNext(3)
-    var values: [Int] = []
-    producer.start { event in
-        switch event {
-        case let .Next(value):
-            values.append(value)
-        default:
-            break
-        }
-    }
-    print(values)
-    observer.sendNext(4)
-    print(values)
-    let subscriber = Observer&lt;int,noerror&gt;(next:{ bufferdValue in
-        print("\(bufferdValue)")
-    })
-    producer.start(subscriber)
-}
---- `buffer` ---
-[2, 3]
-[2, 3, 4]
-3
-4&lt;/int,noerror&gt;&lt;/int, noerror&gt;
-</code></pre>
-
-<h3>startWithSignal</h3>
-
-<p>通过Producer返回一个Signal,当闭包调用时返回signal开始发送事件</p>
-
-<p>闭包返回一个Disponsable，可以用来中断Signal或者完成</p>
-
-<pre><code>scopedExample("`startWithSignal`") {
-    var started = false
-    var value: Int?
-    SignalProducer&lt;int, noerror&gt;(value: 42)
-        .on(next: {
-            value = $0
-        })
-        .startWithSignal { signal, disposable in
-            print(signal)
-            print(value) // nil
-        }
-    print(value)
-}
---- `startWithSignal` ---
-ReactiveCocoa.Signal&lt;swift.int, result.noerror&gt;
-nil
-Optional(42)&lt;/swift.int, result.noerror&gt;&lt;/int, noerror&gt;
-</code></pre>
-
-<h3>startWithNext</h3>
-
-<p>通过信号生成器创建一个信号，并且给这个信号内部直接构建一个观察者，在指定的闭包中会直接订阅next事件。</p>
-
-<p>返回一个Disposable,可以中断这个信号，中断之后这个闭包不会再被调用</p>
-
-<pre><code>scopedExample("`startWithNext`") {
-    SignalProducer&lt;int, noerror&gt;(value: 42)
-        .startWithNext { value in
-            print(value)
-        }
-}
---- `startWithNext` ---
-42&lt;/int, noerror&gt;
-</code></pre>
-
-<p>这个订阅只能接受next事件</p>
-
-<h3>startWithCompleted</h3>
-
-<p>同startWithNext，只不过只能接受complete事件</p>
-
-<pre><code>scopedExample("`startWithCompleted`") {
-    SignalProducer&lt;int, noerror&gt;(value: 42)
-        .startWithCompleted {
-            print("completed called")
-        }
-}
---- `startWithCompleted` ---
-completed called&lt;/int, noerror&gt;
-</code></pre>
-
-<h3>startWithFailed</h3>
-
-<p>同startWithNext， 只不过只能接受Failer事件事件</p>
-
-<pre><code>scopedExample("`startWithFailed`") {
-    SignalProducer&lt;int, nserror&gt;(error: NSError(domain: "example", code: 42, userInfo: nil))
-        .startWithFailed { error in
-            print(error)
-        }
-}
---- `startWithFailed` ---
-Error Domain=example Code=42 "(null)"&lt;/int, nserror&gt;
-</code></pre>
-
-<h3>startWithInterrupted</h3>
-
-<p>同startWithNext,只不过只能接受interrupted事件</p>
-
-<pre><code>scopedExample("`startWithInterrupted`") {
-    let disposable = SignalProducer&lt;int, noerror&gt;.never
-        .startWithInterrupted {
-            print("interrupted called")
-        }
-    disposable.dispose()
-}
---- `startWithInterrupted` ---
-interrupted called&lt;/int, noerror&gt;
-</code></pre>
-
-<h3>lift</h3>
-
-<p>这个相对难理解点，大致类似于RAC_OC部分中的bind函数，monad中bind函数</p>
-
-<p>可以理解为所有的原函数都是通过lift去实现的，借用中间信号来实现一系列的信号变换</p>
-
-<pre><code>scopedExample("`lift`") {
-    var counter = 0
-    let transform: Signal&lt;int, noerror&gt; -&gt; Signal&lt;int, noerror&gt; = { signal in
-        counter = 42
-        return signal
-    }
-    SignalProducer&lt;int, noerror&gt;(value: 0)
-        .lift(transform)
-        .startWithNext { _ in
-            print(counter)
-        }
-}
---- `lift` ---
-42&lt;/int, noerror&gt;&lt;/int, noerror&gt;&lt;/int, noerror&gt;
-</code></pre>
-
-<h3>map</h3>
-
-<p>把每个值都转换为新的值</p>
-
-<pre><code>scopedExample("`map`") {
-    SignalProducer&lt;int, noerror&gt;(value: 1)
-        .map { $0 + 41 }
-        .startWithNext { value in
-            print(value)
-        }
-}
---- `map` ---
-42&lt;/int, noerror&gt;
-</code></pre>
-
-<h3>mapError</h3>
-
-<p>把收到的error转换为新的error</p>
-
-<pre><code>scopedExample("`mapError`") {
-    SignalProducer&lt;int, nserror&gt;(error: NSError(domain: "mapError", code: 42, userInfo: nil))
-        .mapError { Error.Example($0.description) }
-        .startWithFailed { error in
-            print(error)
-        }
-}
---- `mapError` ---
-Example("Error Domain=mapError Code=42 \"(null)\"")&lt;/int, nserror&gt;
-</code></pre>
-
-<h3>filter</h3>
-
-<p>过滤不符合条件的值</p>
-
-<pre><code>scopedExample("`filter`") {
-    SignalProducer&lt;int, noerror&gt;(values: [ 1, 2, 3, 4 ])
-        .filter { $0 &gt; 3}
-        .startWithNext { value in
-            print(value)
-        }
-}
---- `filter` ---
-4&lt;/int, noerror&gt;
-</code></pre>
-
-<h3>take</h3>
-
-<p>take(num) 只取前几次的值</p>
-
-<pre><code>scopedExample("`take`") {
-    SignalProducer&lt;int, noerror&gt;(values: [ 1, 2, 3, 4 ])
-        .take(2)
-        .startWithNext { value in
-            print(value)
-        }
-}
---- `take` ---
-1
-2&lt;/int, noerror&gt;
-</code></pre>
-
-<h3>observeOn</h3>
-
-<p>在指定调度器上分发事件</p>
-
-<pre><code>/*:
- ### `observeOn`
- Forwards all events onto the given scheduler, instead of whichever
- scheduler they originally arrived upon.
- */
-scopedExample("`observeOn`") {
-    let baseProducer = SignalProducer&lt;int, noerror&gt;(values: [ 1, 2, 3, 4 ])
-    let completion = { print("is main thread? \(NSThread.currentThread().isMainThread)") }
-    if #available(OSX 10.10, *) {
-    baseProducer
-        .observeOn(QueueScheduler(qos: QOS_CLASS_DEFAULT, name: "test"))
-        .startWithCompleted(completion)
-    }
-    baseProducer
-        .startWithCompleted(completion)
-}
---- `observeOn` ---
-is main thread? true&lt;/int, noerror&gt;
-</code></pre>
-
-<h2>collect</h2>
-
-<p>在发送完成的时候将一系列的值聚合为一个数组</p>
-
-<pre><code>scopedExample("`collect()`") {
-    SignalProducer&lt;int, noerror&gt; { observer, disposable in
-            observer.sendNext(1)
-            observer.sendNext(2)
-            observer.sendNext(3)
-            observer.sendNext(4)
-            observer.sendCompleted()
-        }
-        .collect()
-        .startWithNext { value in
-            print(value)
-        }
-}
---- `collect()` ---
-[1, 2, 3, 4]&lt;/int, noerror&gt;
-</code></pre>
-
-<h3>collect(count:)</h3>
-
-<p>在发送数据的时候（不需要发送complete）的时候将一系列的值聚合为数组，数组的长度为count,如果有很多数据，将会返回多个数组</p>
-
-<pre><code>scopedExample("`collect(count:)`") {
-    SignalProducer&lt;int, noerror&gt; { observer, disposable in
-            observer.sendNext(1)
-            observer.sendNext(2)
-            observer.sendNext(3)
-            observer.sendNext(4)
-        observer.sendNext(5)
-//            observer.sendCompleted()
-        }
-        .collect(count: 2)
-        .startWithNext { value in
-            print(value)
-        }
-}
---- `collect(count:)` ---
-[1, 2]
-[3, 4]&lt;/int, noerror&gt;
-</code></pre>
-
-<h3>collect(predicate:) matching values inclusively</h3>
-
-<p>通过谓词将一系列的值聚合为一个数组，注意在发送complete时候，如果前面只剩下一个值，就不需要聚合（因为没有其它元素和最后一个元素聚合），直接返回一个只有一个元素的数组。如果没有数据则返回一个空数组</p>
-
-<pre><code>scopedExample("`collect(predicate:)` matching values inclusively") {
-    SignalProducer&lt;int, noerror&gt; { observer, disposable in
-//            observer.sendNext(1)
-//            observer.sendNext(2)
-//            observer.sendNext(3)
-//            observer.sendNext(4)
-            observer.sendCompleted()
-        }
-        .collect { values in values.reduce(0, combine: +) == 3 }
-        .startWithNext { value in
-            print(value)
-        }
-}
---- `collect(predicate:)` matching values inclusively ---
-[]&lt;/int, noerror&gt;
-</code></pre>
-
-<p>尝试打开注释看看会有什么结果</p>
-
-<h3>collect(predicate:) matching values exclusively</h3>
-
-<p>和上一个不同的是，如果谓词成功就把之前的聚合在一起，可以理解为把成功的界限当做分隔符</p>
-
-<pre><code>scopedExample("`collect(predicate:)` matching values exclusively") {
-    SignalProducer&lt;int, noerror&gt; { observer, disposable in
-            observer.sendNext(1)
-            observer.sendNext(2)
-            observer.sendNext(3)
-            observer.sendNext(4)
-            observer.sendNext(5)
-            observer.sendCompleted()
-        }
-        .collect { values, next in next == 3 || next == 5  }
-        .startWithNext { value in
-            print(value)
-        }
-}
---- `collect(predicate:)` matching values exclusively ---
-[1, 2]
-[3, 4] // 3满足了条件所以被分开
-[5] // 5也是&lt;/int, noerror&gt;
-</code></pre>
-
-<h3>combineLatestWith</h3>
-
-<p>将第一个信号生成器的values和被聚合信号生成器的最后一个值聚合为一个元组</p>
-
-<p>新产生的信号生成器不会发送任何值，只是转发，任何一个原来的信号被中断，这个新的信号生成器也会中断</p>
-
-<pre><code>scopedExample("`combineLatestWith`") {
-    let producer1 = SignalProducer&lt;int, noerror&gt;(values: [ 1, 2, 3, 4 ])
-    let producer2 = SignalProducer&lt;int, noerror&gt;(values: [ 1, 2 ])
-    producer1
-        .combineLatestWith(producer2)
-        .startWithNext { value in
-            print("\(value)")
-        }
-}
---- `combineLatestWith` ---
-(1, 2)
-(2, 2)
-(3, 2)
-(4, 2)&lt;/int, noerror&gt;&lt;/int, noerror&gt;
-</code></pre>
-
-<h3>skip</h3>
-
-<p>skip（num），跳过num此发送的事件</p>
-
-<pre><code>scopedExample("`skip`") {
-    let producer1 = SignalProducer&lt;int, noerror&gt;(values: [ 1, 2, 3, 4 ])
-    producer1
-        .skip(2)
-        .startWithNext { value in
-            print(value)
-        }
-}
---- `skip` ---
-3
-4&lt;/int, noerror&gt;
-</code></pre>
-
-<h3>materialize</h3>
-
-<p>将被发送的值(value)编程Event,允许他们被修改。还句话说，允许他们被修改，把一个值变成一个Monad</p>
-
-<p>当收到一个complete或者Failure事件，这个新的信号生成器，会发送事件并且结束。当收到一个interrupted事件，这个新的信号生成器也会中断</p>
-
-<pre><code>scopedExample("`materialize`") {
-    SignalProducer&lt;int, noerror&gt;(values: [ 1, 2, 3, 4 ])
-        .materialize()
-        .startWithNext { value in
-            print(value)
-        }
-}
---- `materialize` ---
-NEXT 1
-NEXT 2
-NEXT 3
-NEXT 4
-COMPLETED
-// 注意 value  如果不做materialize就是Int类型
-</code></pre>
-
-<h3>sampleOn</h3>
-
-<p>当sampler（被操作的信号生成器）发送任何事件的时候，都转发原来信号生成器的最后一个值</p>
-
-<p>如果当一个sampler启动时，当前的值没有被观察者，没有任何事情发生</p>
-
-<p>新产生的信号生成器从源信号生成器哪里发送数据，如果两个信号生成器任何一个complete或者interrupt,新产生的都会中断</p>
-
-<pre><code>/*:
- ### `sampleOn`
- Forwards the latest value from `self` whenever `sampler` sends a Next
- event.
- If `sampler` fires before a value has been observed on `self`, nothing
- happens.
- Returns a producer that will send values from `self`, sampled (possibly
- multiple times) by `sampler`, then complete once both input producers have
- completed, or interrupt if either input producer is interrupted.
- */
-scopedExample("`sampleOn`") {
-    let baseProducer = SignalProducer&lt;int, noerror&gt;(values: [ 1, 2, 3, 4 ])
-    let sampledOnProducer = SignalProducer&lt;int, noerror&gt;(values: [ 1, 2 ])
-        .map { _ in () }
-    let newProduce = baseProducer
-        .sampleOn(sampledOnProducer)
-      newProduce  .startWithNext { value in
-            print(value)
-        }
-}
---- `sampleOn` ---
-4
-4&lt;/int, noerror&gt;&lt;/int, noerror&gt;
-sampler发送的2次值都被变换成baseProduce 的comlete前的最后一个值
-</code></pre>
-
-<h3>combinePrevious</h3>
-
-<p>向前合并，没法送一个值就结合历史发送数据的最后一个构造成一个新的元组返回。在第一个发送时由于没有历史数据，所以combinePrevious传递了一个默认值。当做第一次的合并。</p>
-
-<pre><code>scopedExample("`combinePrevious`") {
-    SignalProducer&lt;int, noerror&gt;(values: [ 1, 2, 3, 4 ])
-        .combinePrevious(42)
-        .startWithNext { value in
-            print("\(value)")
-        }
-}
---- `combinePrevious` ---
-(42, 1) // 第一次没有历史记录默认值是42
-(1, 2) // 第二次默认记录是1
-(2, 3)
-(3, 4)&lt;/int, noerror&gt;
-</code></pre>
-
-<h3>scan</h3>
-
-<p>类似reduce,将值聚合为一个新的值，每次聚合都保留结果作为下次的默认值，首次需给出默认值</p>
-
-<p>每次聚合都会发送这个值</p>
-
-<pre><code>scopedExample("`scan`") {
-    SignalProducer&lt;int, noerror&gt;(values: [ 1, 2, 3, 4 ])
-        .scan(0, +)
-        .startWithNext { value in
-            print(value)
-        }
-}
---- `scan` ---
-1
-3
-6
-10&lt;/int, noerror&gt;
-</code></pre>
-
-<h3>reduce</h3>
-
-<p>和scan类似，区别为reduce只发送聚合后的值并且立即结束</p>
-
-<pre><code>scopedExample("`reduce`") {
-    SignalProducer&lt;int, noerror&gt;(values: [ 1, 2, 3, 4 ])
-        .reduce(0, +)
-        .startWithNext { value in
-            print(value)
-    }
-}
---- `reduce` ---
-10&lt;/int, noerror&gt;
-</code></pre>
-
-<h3>skipRepeats</h3>
-
-<p>跳过表达式里返回true的值，第一个值不会被跳过</p>
-
-<pre><code>scopedExample("`skipWhile`") {
-    SignalProducer&lt;int, noerror&gt;(values: [ 3, 3, 3, 3, 1, 2, 3, 4 ])
-        .skipWhile { $0 &gt; 2 }
-        .startWithNext { value in
-            print(value)
-        }
-}
---- `skipRepeats` ---
-1
-2
-3
-1
-2
-4
-1
-</code></pre>
-
-<h3>skipWhile</h3>
-
-<p>对每个值都去做判断，知道返回false,之前的值会被跳过</p>
-
-<pre><code>scopedExample("`skipWhile`") {
-    SignalProducer&lt;int, noerror&gt;(values: [ 3, 3, 3, 3, 1, 2, 3, 4 ])
-        .skipWhile { $0 &gt; 2 }
-        .startWithNext { value in
-            print(value)
-        }
-}
---- `skipWhile` ---
-1  // 到1 返回false  之前的值被忽略掉
-2
-3
-4&lt;/int, noerror&gt;
-</code></pre>
-
-<h3>takeUntilReplacement</h3>
-
-<p>在被替换的信号发生器发送信号之后，发送被替换的信号</p>
-
-<pre><code>scopedExample("`takeUntilReplacement`") {
-    let (replacementSignal, incomingReplacementObserver) = Signal&lt;int, noerror&gt;.pipe()
-    let baseProducer = SignalProducer&lt;int, noerror&gt; { incomingObserver, _ in
-        incomingObserver.sendNext(1)
-        incomingObserver.sendNext(2)
-        incomingObserver.sendNext(3)
-// 下面被替换的信号生成器发送了事件，之后就不再发送baseProducer的事件了
-// 相当于被替换了
-        incomingReplacementObserver.sendNext(42)
-        incomingObserver.sendNext(4)
-        incomingReplacementObserver.sendNext(42)
-    }
-    let producer = baseProducer.takeUntilReplacement(replacementSignal)
-    producer.startWithNext { value in
-        print(value)
-    }
-}
---- `takeUntilReplacement` ---
-1
-2
-3
-42
-42&lt;/int, noerror&gt;&lt;/int, noerror&gt;
-</code></pre>
-
-<h3>takeLast</h3>
-
-<p>在发送complete事件后只取count此数据</p>
-
-<pre><code>scopedExample("`takeLast`") {
-    SignalProducer&lt;int, noerror&gt;(values: [ 1, 2, 3, 4 ])
-        .takeLast(2)
-        .startWithNext { value in
-            print(value)
-        }
-}
-只取了2次数据
---- `takeLast` ---
-3
-4&lt;/int, noerror&gt;
-</code></pre>
-
-<h3>ignoreNil</h3>
-
-<p>如果发送的事件是可选类型，解包这些可选类型，并且丢弃nil值</p>
-
-<pre><code>scopedExample("`ignoreNil`") {
-    SignalProducer&lt;int?, noerror&gt;(values: [ nil, 1, 2, nil, 3, 4, nil ])
-        .ignoreNil()
-        .startWithNext { value in
-            print(value)
-        }
-}
---- `ignoreNil` ---
-1
-2
-3
-4&lt;/int?, noerror&gt;
-</code></pre>
-
-<h3>zipWith</h3>
-
-<p>压缩信号生成器，只有再两个信号都有数据发送之后，新的信号生成器才会发送数据</p>
-
-<p>新的数据被组合为元组</p>
-
-<pre><code>scopedExample("`zipWith`") {
-    let baseProducer = SignalProducer(values: [ 1, 2, 3, 4 ])
-    let zippedProducer = SignalProducer(values: [ 42, 43 ])
-    baseProducer
-        .zipWith(zippedProducer)
-        .startWithNext { value in
-            print("\(value)")
-        }
-}
---- `zipWith` ---
-(1, 42)
-(2, 43)
-</code></pre>
-
-<p>后面应为第二个没有数据了，所以不会再聚合了</p>
-
-<h3>times</h3>
-
-<p>time(count)重复发送count数据，每次重复必须上次发送完成事件</p>
-
-<pre><code>scopedExample("`times`") {
-    var counter = 0
-    SignalProducer&lt;(), NoError&gt; { observer, disposable in
-            counter += 1
-            observer.sendCompleted()
-        }
-        .times(42)
-        .start()
-    print(counter)
-}
---- `times` ---
-42
-</code></pre>
-
-<h3>retry</h3>
-
-<p>如果收到失败事件重试retry(count)次</p>
-
-<pre><code>scopedExample("`retry`") {
-    var tries = 0
-    SignalProducer&lt;int, nserror&gt; { observer, disposable in
-            if tries == 0 {
-                tries += 1
-                observer.sendFailed(NSError(domain: "retry", code: 0, userInfo: nil))
-            } else {
-                observer.sendNext(42)
-                observer.sendCompleted()
-            }
-        }
-        .retry(1)
-        .startWithResult { result in
-            print(result)
-        }
-}
---- `retry` ---
-.Success(42)&lt;/int, nserror&gt;
-</code></pre>
-
-<p>当第一个信号发送complete时，第二个信号被替换成信号发送线路上，如果有任何失败事件，后面的就替换失败。</p>
-
-<p>第一个信号发送的所有事件都会被忽略</p>
-
-<p><img src="http://cc.cocimg.com/api/uploads/20160726/1469505056118233.png" alt="1" /></p>
-
-<h3>flatMap</h3>
-
-<p>将收到的每个事件都映射为新的Product,然后摊平，如果原来的producer发送失败，新产生也得立即失败</p>
-
-<pre><code>scopedExample("`flatMap(.Latest)`") {
-    SignalProducer&lt;int, noerror&gt;(values: [ 1, 2, 3, 4 ])
-        .flatMap(.Latest) { SignalProducer(value: $0 + 3) }
-        .startWithNext { value in
-            print(value)
-        }
-}
---- `flatMap(.Latest)` ---
-4
-5
-6
-7&lt;/int, noerror&gt;
-</code></pre>
-
-<h3>flatMapError</h3>
-
-<p>把收到的failer事件映射为新的Producer,并且摊平它</p>
-
-<pre><code>scopedExample("`flatMapError`") {
-    SignalProducer&lt;int, nserror&gt;(error: NSError(domain: "flatMapError", code: 42, userInfo: nil))
-        .flatMapError { SignalProducer&lt;int, noerror&gt;(value: $0.code) }
-        .startWithNext { value in
-            print(value)
-        }
-}
---- `flatMapError` ---
-</code></pre>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Swift Package Manager入门]]></title>
-    <link href="http://andrew-anlu.github.io/blog/2016/11/11/swift-package-managerru-men/"/>
-    <updated>2016-11-11T14:09:18+08:00</updated>
-    <id>http://andrew-anlu.github.io/blog/2016/11/11/swift-package-managerru-men</id>
-    <content type="html"><![CDATA[<p>大部分语言都有官方的代码分配解决方案，幸好苹果也在开发替代<a href="https://cocoapods.org/">Cocoapods</a>和<a href="https://github.com/Carthage/Carthage">Carthage</a>的管理工具，<a href="https://swift.org/package-manager/#conceptual-overview">Swift Package Manager</a>(Swift包管理器，下面我们简称SPM)就是一个用来管理Swift代码的分配的官方工具，它为Swift编译系统集成了自动进行下载，编译和连接依赖的过程</p>
-
-<p>目前，SPM还处于早起阶段，现在仅仅支持OS X和linux系统，尚不支持Ios,watchOS以及tvOS平台，但未来很大希望会支持上述平台。</p>
-
-<h2>概念概述</h2>
-
-<p>在swift中我们使用模块来管理代码，每个模块指定一个命名空间并强制指定模块外那些部分是代码是可以被访问控制的。</p>
-
-<p>一个程序可以将它所有代码聚合到一个模块中，也可以将它作为依赖关系导入到其他模块，除了少量系统提供的模块，像OS X中的Darwin或者 Linux中的Glibc等大多数依赖需要代码被下载或者内置才能被使用。</p>
-
-<p>当你将编写额解决待定问题的代码独立成一个模块时，这段代码可以在其他情况下呗重新利用。例如，一个模块提供了发起网络请求的功能，在一个照片分享的app或者一个天气的app里它都是可以使用的。使用模块可以让你的代码建立在其他开发者的代码之上，而不是你自己去重复实现相同的功能。</p>
-
-<p>一个包由Swift源文件和一个清单文件组成，这个清单文件称为<code>Package.swift</code>,定义包或者它的内容使用<code>PackageDescription</code>模块。</p>
-
-<p>一个包邮一个或者多个目标，每个目标制定一个铲平并且可能声明一个后者多个依赖。</p>
-
-<p>一个目标可能构建一个库或者一个可执行文件作为其产品。库是包含可以被其它Swift代码导入的模块。可执行文件是一段可以被操作系统运行的程序</p>
-
-<p>目标依赖是指保重代码必须添加的模块。依赖由包资源的绝对或者相对URL和一些可以被使用的包的版本要求所组成。包管理器的作用是通过自动为工程下载和编译所有依赖的过程中，减少协调的成本。这是一个递归的过程：依赖能有自己的依赖，其中每一个也可以具有依赖，形成一个依赖的相关图。包管理器下载和编译所需要满足整个依赖相关图的一切。</p>
-
-<h2>开源Swift入门</h2>
-
-<ul>
-<li><a href="#%E4%B8%8B%E8%BD%BD%E5%92%8C%E5%AE%89%E8%A3%85Swift">下载和安装Swift</a></li>
-<li><a href="#%E4%BD%BF%E7%94%A8REPL">使用REPL</a></li>
-<li><a href="#%E4%BD%BF%E7%94%A8%E7%BC%96%E8%AF%91%E7%B3%BB%E7%BB%9F">使用编译系统</a></li>
-<li><a href="#%E4%BD%BF%E7%94%A8LLDB%E8%B0%83%E8%AF%95%E5%99%A8">使用LLDB调试器</a></li>
-</ul>
-
-
-<p>关于使用REPL和LLDB调试器的内容具体可以参阅官方文档<a href="https://swift.org/getting-started/#using-the-repl">使用REPL</a>和<a href="https://swift.org/getting-started/#using-the-lldb-debugger">使用LLDB调试器</a></p>
-
-<h2><a name = "下载和安装Swift"></a>下载和安装Swift</h2>
-
-<p>刚开始下载和安装swift需要下载并安装编译器和其它必备组件，进入到 <a href="https://swift.org/download/#releases">https://swift.org/download/#releases</a>按目标平台的说明进行。</p>
-
-<p>下载完成后，点击按步骤安装就可以</p>
-
-<p>在OS X上下载工具链的默认地址是:<code>/Library/Developer/Toolchains</code>.接着，我们可以输入以下命令导出编译路径:</p>
-
-<pre><code>$ export PATH=/Library/Developer/Toolchains/swift-latest.xctoolchain/usr/bin:"${PATH}"
-</code></pre>
-
-<p>首先需要安装clang:</p>
-
-<pre><code>$ sudo apt-get install clang
-</code></pre>
-
-<p>如果你在Linux上安装的Swift工具链在系统根目录以外的目录，你需要使用你安装Swift的实际路径来运行下面的命令：</p>
-
-<pre><code>$ export PATH=/path/to/Swift/usr/bin:"${PATH}"
-</code></pre>
-
-<p>导出路径之后，你可以通过输入 swift 命令并传入 &ndash;version 标志来校验你是否运行了 Swift 的预期版本</p>
-
-<pre><code>$ swift --version
-Apple Swift version 3.0-dev (LLVM ..., Clang ..., Swift ...)
-</code></pre>
-
-<p>在版本号的后缀 -dev 用来表明它是一个开发的编译，而不是一个发布的版本</p>
-
-<h2><a name = "使用REPL"></a>使用REPL</h2>
-
-<h2><a name = "使用编译系统"></a>使用编译系统</h2>
-
-<p>Swift编译系统为编译库，可执行文件和不同工程之间共享代码提供了基本的约定。</p>
-
-<p>创建一个新的Swift包，首先创建并进入到一个新的目录命令为Hello:</p>
-
-<pre><code>$ mkdir Hello
-$ cd Hello
-</code></pre>
-
-<p>每个包在其根目录下都必须拥有一个命名为<code>Package.swift</code>清单文件，如果清单文件为空，那包管理器将会使用常规默认的方式来编译包，创建一个空的清空文件使用命令:</p>
-
-<pre><code>$ touch Package.swift
-</code></pre>
-
-<p>当使用默认方式时，包管理器预计将包含在Source/子目录下的所有源代码。创建方式：</p>
-
-<pre><code>$ mkdir Sources
-</code></pre>
-
-<h3>编译可执行文件</h3>
-
-<p>默认方式下，目录中包含一个文件称为<code>main.swift</code>将会将文件编译成与包名称相同的二进制可执行文件。</p>
-
-<p>在这个例子中，包将生成一个可以输出<code>hello world</code>的可执行文件为 <em>hello</em></p>
-
-<p>在<em>Source/</em>目录下创建一个命名为<code>main.swift</code>的文件，并使用你喜欢的任意一种编译器输入如下代码:</p>
-
-<pre><code>print("Hello, world!")
-</code></pre>
-
-<p>返回到 Hello 目录中，通过运行 swift build 命令来编译包：</p>
-
-<pre><code>$ swift build
-</code></pre>
-
-<p>当命令完成之后，编译产品将会出现在 .build 目录中。通过如下命令运行 Hello 程序:</p>
-
-<pre><code>$ .build/debug/Hello
-Hello, world!
-</code></pre>
-
-<p>下一步，让我们在新的资源文件里定义一个新的方法 <code>sayHello(_:)</code>然后直接用<code>print(_:)</code>替换执行调用的内容。</p>
-
-<h3>多了源文件协作</h3>
-
-<p>在<code>Sources/</code>目录下创建一个新文件命名为<code>Greeter.swift</code>然后输入如下代码:</p>
-
-<pre><code>func sayHello(name: String) {
-    print("Hello, \(name)!")
-}
-</code></pre>
-
-<p><code>sayHello(_:)</code>方法带一个单一的字符串参数，然后在前面打印一个"hello",后面跟着函数参数单词"World".</p>
-
-<p>现在打开<code>main.swift</code>，然后替换原来的内容为下面代码:</p>
-
-<pre><code>if Process.arguments.count != 2 {
-    print("Usage: hello NAME")
-} else {
-    let name = Process.arguments[1]
-    sayHello(name)
-}
-</code></pre>
-
-<p>跟之前的硬编码不同，<code>main.swift</code>现在从命令行参数中读取。替代之前直接调用<code>print(_:)</code>，<code>main.swift</code>现在调用<code>sayHello(_:)</code>方法，因为这个方法是<code>Hello</code>模块的一部分，所以不需要使用到<code>import</code>语句。</p>
-
-<p>运行<code>swift build</code>并尝试<code>Hello</code>的新版本：</p>
-
-<pre><code>$ swift build
-$ .build/debug/Hello 'whoami'
-</code></pre>
-
-<p>目前为止，你已经能够运用开源Swift来运行一些你想要的程序了。接下来我们就可以进入正题开始入手SPM.</p>
-
-<h3>快速入门实例</h3>
-
-<p>在本章节中，我们简单地学会了编译一个"`Hello world"程序。</p>
-
-<p>为了了解SPM究竟能做什么，我们来看一下下面这个由4个独立的包组成的例子:</p>
-
-<ul>
-<li><a href="https://github.com/marklin2012/O2PlayingCard.git">O2PlayingCard</a>-定义了O2PlayingCard ， O2Suit ， O2Rank ， 3个类型</li>
-<li><a href="https://github.com/marklin2012/O2FisherYates.git">O2FisherYates</a>-定义了 shuffle() 和 shuffleInPlace() 方法实现的扩展</li>
-<li><a href="https://github.com/marklin2012/O2DeckOfPlayingCards.git">O2DeckOfPlayingCards</a>-定义了一个 O2Deck 类型对 O2PlayingCard 值得数据进行洗牌和抽牌。</li>
-<li><a href="https://github.com/marklin2012/O2Dealer.git">O2Dealer</a>-定义了一个用来创建 O2DeckOfPlayingCards 进行洗牌和抽出前10个卡片的可执行文件。</li>
-</ul>
-
-
-<p>你可以从<a href="https://github.com/marklin2012/O2Dealer.git">O2Dealer from GitHub </a>编译并运行完整例子，然后运行如下命令:</p>
-
-<pre><code>$ cd O2Dealer
-$ swift build
-$ .build/debug/O2Dealer
-</code></pre>
-
-<h3>创建一个库包</h3>
-
-<p>我们将从创建一个代表一副标准的52张扑克牌的模块开始。 O2PlayingCard 模块定义了 由 O2Suit 枚举值（Clubs, Diamonds, Hearts, spades）和 O2Rank 枚举值（Ace, Two, Three, …, Jack, Queen, King）组成的 O2PlayingCard 类。各个类的核心代码如下：</p>
-
-<pre><code>public enum O2Rank : Int {
-    case Ace = 1
-    case Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten
-    case Jack, Queen, King
-}
-
-public enum O2Suit: String {
-    case Spades, Hearts, Diamonds, Clubs
-}
-
-public struct O2PlayingCard {
-    let rank: O2Rank
-    let suit: O2Suit
-}
-</code></pre>
-
-<p>一般来说，一个包包括位于Source/的源文件</p>
-
-<pre><code>O2PlayingCard
-├── Sources
-│   ├── O2PlayingCard.swift
-│   ├── O2Rank.swift
-│   └── O2Suit.swift
-└── Package.swift
-</code></pre>
-
-<p>由于<code>O2PlayingCard</code>模块并不会生成可执行文件，这里应该成为库。库表示被编译成一个可以被其它包导入的模块的包，默认情况下，库模块公开所有位于<code>Sources/</code>目录下的源代码中声明的公共类型的方法。</p>
-
-<p>运行 swift build 开始启动 Swift 编译的过程。如果一切进行顺利，将会在 .build/debug 目录下生成 O2PlayingCard.build 目录。</p>
-
-<p>接下来，我们在<code>Package.swift</code>文件中定义包名，代码如下：</p>
-
-<pre><code>import PackageDescription
-
-let package = Package(
-  name: "O2PlayingCard"
-)
-</code></pre>
-
-<p>然后我们只要将<code>O2PlayingCard</code>提交到Github上，并且给他发布一个Release版本即可完成该库包，这里可以自己手动添加一个<code>.gitignore</code>文件，忽略掉<code>/.build</code>，因为我们的包是不需要包括生成的编译结果的内容的。</p>
-
-<h2>使用编译配置语句</h2>
-
-<p>下一个即将编译的模块是<code>O2FisherYates</code>.跟之前<code>O2PlayingCard</code>有所不同，该模块没有定义新的类，取而代之的是该模块拓展了一个已经存在的特殊的<code>CollectionType</code>和<code>MutableCollectionType</code>接口协议，用来添加<code>shuffle()</code>方法和对应的<code>shuffleInPlace()</code>方法。</p>
-
-<p>在 OS X 中，系统模块是 Darwin , 提供的函数是 arc4random_uniform(_:) 。在 Linux 中， 系统模块是 Glibc ， 提供的函数是 random() ：</p>
-
-<pre><code>#if os(Linux)
-  import Glibc
-#else
-  import Darwin.C
-#endif
-
-public extension Collection {
-  func shuffle() -&gt; [Generator.Element] {
-    var array = Array(self)
-    array.shuffleInPlace()
-
-    return array
-  }
-}
-
-public extension MutableCollection where Index == Int {
-  mutating func shuffleInPlace() {
-    guard count &gt; 1 else { return }
-    v 
-    for i in 0..&lt;count - 1 {
-      #if os(Linux)
-        let j = Int(random() % (count - i)) + i
-      #else
-        let j = Int(arc4random_uniform(UInt32(count - i))) + i
-      #endif
-      guard i != j else { continue }
-      swap(&amp;self[i], &amp;self[j])
-    }
-  }
-}
-</code></pre>
-
-<p>剩下的步骤和前面的类似，编译通过后上传到GitHub,发布Release版本。</p>
-
-<h3>导入依赖</h3>
-
-<p><code>O2DeckOfPlayingCards</code>包把前两个包聚合到一起：它定义了一个<code>O2PlayingCard</code>数组中使用<code>O2FisherYates</code>的<code>shuffle()</code>方法的Deck类型。</p>
-
-<p>为了使用 O2FisherYates 和 O2PlayingCards 模块， O2DeckOfPlayingCards 包必须在 Package.Swift 清单中将上述模块声明为依赖。</p>
-
-<pre><code>import PackageDescription
-
-let package = Package(
-    name: "O2DeckOfPlayingCards",
-    dependencies: [
-        .Package(url: "https://github.com/marklin2012/O2PlayingCard.git",
-                 majorVersion: 1),
-        .Package(url: "https://github.com/marklin2012/O2FisherYates.git",
-                 majorVersion: 1),
-    ]
-)
-</code></pre>
-
-<p>每个依赖都需要指定一个源URL和版本号，源URL是指允许当前用户解析到对应的Git仓库。版本号遵循 <a href="http://semver.org/lang/zh-CN/">语义化版本号 2.0.0</a> 的约定,用来决定检出或者使用哪个Git标签版本来建立依赖。对于<code>FisherYates</code>和<code>PlayingCard</code>这两个依赖来说， 最新的将要被使用的主版本号为1.</p>
-
-<p>当你运行<code>swift build</code>命令时，包管理器将会下载所有的依赖，并将它们编译成静态库，再把它们链接到包模块中。这样将会使<code>O2DeckOfPlayingCards</code>可以访问依赖import语句的模块的公共成员</p>
-
-<p>你可以看到这些资源被下载到你工程根目录的 Packages 目录下，并且会生成编译产品在你工程根目录的 .build 目录下。</p>
-
-<pre><code>O2DeckOfPlayingcards
-├── .build
-│   └── debug
-│       ├── O2DeckOfPlayingCards.build
-│       ├── O2DeckOfPlayingCards.swiftdoc
-│       ├── O2DeckOfPlayingCards.swiftmodule
-│       ├── O2FisherYates.build
-│       ├── O2FisherYates.swiftdoc
-│       ├── O2FisherYates.swiftmodule
-│       ├── O2PlayingCard.build
-│       ├── O2PlayingCard.swiftdoc
-│       └── O2PlayingCard.swiftmodule
-└── Packages
-    └── O2FisherYates-1.0.0
-    │   ├── Package.swift
-    │   ├── README.md
-    │   └── Sources
-    └── O2Playingcard-1.0.1
-        ├── Package.swift
-        ├── README.md
-        └── Sources
-</code></pre>
-
-<p><code>Package</code>目录包含了被复制的包依赖的所有仓库，这样将使你能修改源代码并直接推送这些修改到它们的源，而不需要再对每个包在单独进行复制。</p>
-
-<p>Swift是一门先进的语言，SPM的社区也在不断地完善中。在swift开源之后，我们很容可以看到它的潜力，看来掌握这门语言必将是一个大趋势。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[iOS中常见的面试题二]]></title>
-    <link href="http://andrew-anlu.github.io/blog/2016/11/04/ioszhong-chang-jian-de-mian-shi-ti-er/"/>
-    <updated>2016-11-04T20:22:42+08:00</updated>
-    <id>http://andrew-anlu.github.io/blog/2016/11/04/ioszhong-chang-jian-de-mian-shi-ti-er</id>
-    <content type="html"><![CDATA[<h2>如何进行真机调试</h2>
-
-<ol>
-<li>首先需要钥匙串创建一个钥匙(key)</li>
-<li>将钥匙串上传到官网，获取ios Development证书</li>
-<li>创建APP Id即我们应用程序中的BundleId</li>
-<li>添加Device ID 即 UDID;</li>
-<li>通过勾选前面所创建的证书：App ID, Deveice id</li>
-<li>生成mobileProvision文件</li>
-<li>先决条件：申请开发者账号 99美刀</li>
-</ol>
-
-
-<!--more-->
-
-
-<h2>APP发布上架流程</h2>
-
-<ol>
-<li>登录苹果开发者网站</li>
-<li>下载安装发布证书</li>
-<li>选择发布证书，使用Archive编译发布包，用Xcode将代码上传到服务器</li>
-<li>等待审核</li>
-<li>生成ipa->菜单栏->Product->Archive</li>
-</ol>
-
-
-<h2>如何发送通知</h2>
-
-<ul>
-<li>一种是Apple自己提供的通知服务（APNS服务器），一种是用第三方推送机制</li>
-<li>首先应用发送通知，系统弹出提示框询问用户是否允许，当用户允许后向苹果服务器请求deviceToken,并由苹果服务器发送给自己的应用，自己的应用将DeviceToken发送自己的服务器，自己服务器想要发送网络推送时将deviceToken以及想要推送的信息发送给苹果服务器，苹果服务器将信息发送给应用</li>
-<li>推送信息内容，总容量不超过256个字节</li>
-<li>iOSSDK本身提供的APNS服务器推送，它可以直接推送给目标用户并根据您的方式弹出提示</li>
-</ul>
-
-
-<p>优点：不论应用是否开启，都会发送到手机端</p>
-
-<p>缺点：消息推送机制是苹果服务器端控制，个别时候可能会有延迟，因为苹果服务器也有队列来处理所有的消息请求；</p>
-
-<ul>
-<li>第三方推送机制,普遍使用Socket机制来实现，几乎可以达到即时发送到目标用户手机端，适用于即时通讯类应用。</li>
-</ul>
-
-
-<p>优点：实时的，取决于心跳包的节凑</p>
-
-<p>缺点：IOS系统的限制，应用不能长时间的后台运行，所以应用关闭的情况下这种推送机制不可用</p>
-
-<h2>网络七层协议</h2>
-
-<ul>
-<li>应用层：
-
-<ol>
-<li>用户接口，应用程序</li>
-<li>Application典型设备:网关；</li>
-<li>典型协议，标准和应用：TELNET,FTP,HTTP</li>
-</ol>
-</li>
-<li>表示层：
-
-<ol>
-<li>数据表示，压缩和加密presentation</li>
-<li>典型设备:网关</li>
-<li>典型协议，标准和应用：ASCLL、PICT、TIFF、JPEG|MPEG</li>
-<li>表示层相当于一个东西的表示，表示的一些协议，比如图片，声音和视频MPEG</li>
-</ol>
-</li>
-<li>会话层：
-
-<ol>
-<li>会话的建立和结束；</li>
-<li>典型设备：网关；</li>
-<li>典型协议，标准和应用：RPC、SQL、NFS、X WINDOWS、ASP</li>
-</ol>
-</li>
-<li>传输层：
-
-<ol>
-<li>主要功能：端到端控制Transport;</li>
-<li>典型设备：网关；</li>
-<li>典型协议，标准和应用：TCP，UDP，spx</li>
-</ol>
-</li>
-<li>网络层：
-
-<ol>
-<li>主要功能：路由，寻址Network</li>
-<li>典型设备:路由器</li>
-<li>典型协议，标准和应用：IP,IPX,APPLETALK,ICMP</li>
-</ol>
-</li>
-<li><p>数据链路层：</p>
-
-<ol>
-<li>主要功能：保证无差错的疏忽链路 data link;</li>
-<li>典型设备：交换机，网桥，网卡</li>
-<li>典型协议，标准和应用：802.2、802.3ATM、HDLC、FRAME RELAY；</li>
-</ol>
-</li>
-<li>物理层：
-
-<ol>
-<li>主要功能：传输比特流Physical</li>
-<li>典型设备：集线器，中继器</li>
-<li>典型协议，标准和应用：V.35、EIA/TIA-232.</li>
-</ol>
-</li>
-</ul>
-
-
-<h2>对NSUserDefualts的理解</h2>
-
-<ul>
-<li>NSUserDefaults：系统提供的一种存储数据的方式，主要用户保存少量的数据，默认存储到library下的Preferences文件夹</li>
-</ul>
-
-
-<h2>LayoutSubViews在什么时候被调用</h2>
-
-<p>当View本身的frame改变时，会调用这个方法</p>
-
-<h2>单例模式理解与使用</h2>
-
-<ul>
-<li>单例模式是一种常用的设计模式，单利模式是一个类在系统中只有一个实例对象。通过全局的一个入口点对这个实例对象进行访问</li>
-<li>iOS中单例模式的实现方式一般分为两种：非ARC和ARC+GCD</li>
-</ul>
-
-
-<h2>对沙盒的理解</h2>
-
-<ul>
-<li><p>每个ios应用都被限制在“沙盒”中，沙盒相当于一个加了仅主人可见权限的文件夹，及时在应用程序安装过程中，系统为每个单独的应用程序生成它的主目录和一些关键的子目录，苹果对沙盒有几条限制：</p></li>
-<li><p>应用程序在自己的沙盒中运作，但是不能访问任何其他应用程序沙盒</p></li>
-<li>应用程序的文件夹中，也不能把其他应用文件夹复制到沙盒中</li>
-<li>苹果禁止任何读写沙盒以外的文件，禁止应用程序将内容写到沙盒以外的文件夹中；</li>
-<li>沙盒目录里有三个文件夹：Documents——存储应用程序的数据文件，存储用户数据或其他定期备份的信息；Library下有两个文件夹，Caches存储应用程序再次启动所需的信息，
-Preferences包含应用程序的偏好设置文件，不可在这更改偏好设置；
-temp存放临时文件即应用程序再次启动不需要的文件</li>
-</ul>
-
-
-<h2>对瀑布流的理解</h2>
-
-<ul>
-<li>首先图片的宽度都是一样的
-
-<ol>
-<li>将图片等比例压缩，让图片不变形</li>
-<li>计算图片最低应该摆放的位置，那一列低就放在哪</li>
-<li>进行最优排列，在ScrollView的基础上添加两个tableView,然后将之前所计算的scrollView的高度通过tableView展示出来</li>
-</ol>
-</li>
-<li>如何使用两个TableView产生联动：将两个TableView的滚动事件禁止掉，最外层的ScrollView滚动时将两个TableView跟着滚动，并且更改contentOffset，这样产生效果滚动的两个tableview.</li>
-</ul>
-
-
-<h2>ViewController 的loadView,viewDidLoad,viewDidUnload 分别是在什么时候调用的？</h2>
-
-<ul>
-<li>viewDidLoad在View从nib文件初始化时调用，loadView在controller的View为nil时调用</li>
-<li>此方法在编程实现view时调用，View控制器默认会注册memory warning notification,当view controller的任何View没有用的时候，viewDidUnload会被调用，在这里实现将retain的view release，如果是retain的IBOutlet view 属性则不要在这里release,IBOutlet会负责release 。</li>
-</ul>
-
-
-<h2>@synthesize、@dynamic的理解</h2>
-
-<ul>
-<li>@synthesize 是系统自动生成getter和setter属性声明；@synthesize的意思是，除非开发人员已经做了，否则由编译器生成相应的代码，以满足属性声明</li>
-<li>@dynamic是开发者自己提供相应的属性声明，@dynamic意思是由开发人员提供相应的代码：对于只读属性需要提供setter,对于读写属性需要提供setter和getter,查阅了一些资料确定@dynamic的意思是告诉编译器,属性的获取与赋值方法由用户自己实现, 不自动生成。</li>
-</ul>
-
-
-<p>主要使用在CoreData的实现NSManagedObject子类时使用，由Core Data框架在程序运行动态生成子类属性</p>
-
-<h2>Frame和bounds有什么不同？</h2>
-
-<ul>
-<li>frame指的是：该View在父view坐标系统中的位置和大小（参照点是父亲的坐标系统）</li>
-<li>bounds指的是：该View在本身坐标系统中的位置和大小（参照点是本身坐标系统）</li>
-</ul>
-
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20161104-3.png" alt="1" /></p>
-
-<h2>iOS中的响应者链的工作原理</h2>
-
-<ul>
-<li>每一个应用有一个响应者链，我们的视图结构是一个N叉树（一个视图可以有多个子视图，一个子视图同一时刻只有一个父亲视图），而每一个继承UIResponder的对象都可以在这个N叉树中扮演一个节点</li>
-<li>当叶节点成为最高响应者的时候，从这个叶节点开始往其父节点开始追溯出一条链，那么对于这个叶节点来讲，这一条链就是当前的响应者链。响应者链将系统捕获到的UIEvent与UITouch从叶子节点开始层层向下分发，期间可以选择停止分发，也可以选择继续向下分发</li>
-</ul>
-
-
-<h2>Property属性的修饰符的作用</h2>
-
-<ul>
-<li>getter=getName、setter=setName：设置setter与getter的方法名；</li>
-<li>readwrite,readonly:设置可供访问的级别</li>
-<li>assign:方法直接赋值，不进行任何retain操作，为了解决原类型与循环引用问题</li>
-<li>retain：其setter方法对参数进行release旧值再retain新值，所有实现都是这个顺序</li>
-<li>copy:其setter方法进行copy操作，与retain 处理流程一样，先对旧值release,再copy出新的对象，retaincount为1,这是为了减少对上下文的依赖而引入的机制</li>
-<li>nonatomic:非原子性访问，不加同步，多线程并发访问会提供性能。注意，如果不加此属性，则默认是两个访问方法都是原子型事务访问</li>
-</ul>
-
-
-<h2>对Run Loop的理解</h2>
-
-<ul>
-<li>RUNLOOP，是多线程的法宝，即一个线程一次只能执行一个任务，执行完任务后就会退出线程，主线程执行完即时任务时会继续等待接收事件而不退出，非主线程同城来说就是为了执行某一任务的，执行完毕就需要归还资源，因此默认是不运行RunLoop的；</li>
-<li>每一个线程都有其对应的RunLoop,只是默认只有主线程的RunLoop是启动的，其它子线程的RunLoop默认是不启动的，若要启动则需要手动启动</li>
-<li>在一个单独的线程中，如果需要在处理完某个人物后不退出，继续等待接收事件，则需要启用RunLoop</li>
-<li>NSRunLoop提供了一个添加NStimer的方法，可以指定Mode,如果要让任何情况下都回调，则需要设置Mode为Common模式</li>
-<li>实质上，对于子线程的runloop默认是不存在的，因为苹果采用了懒加载方式，如果我们没有东东调用[NSRunLoop currentRunLoop]的话，就不会去查询是否存在当前线程的RunLoop,也就不会去加载，更不会创建</li>
-</ul>
-
-
-<h2>XIB与Storyboards的优缺点</h2>
-
-<p>优点:</p>
-
-<ul>
-<li><p>XIB：在编译前就提供了可视化界面，可以直接拖控件，也可以直接给控件添加约束，更直观一些，而且类文件中就少了创建控件的代码，确实简化不少，通常每个XIB对应一个类</p></li>
-<li><p>Storyboard：在编译前提供了可视化界面，可拖控件，可加约束，在开发时比较直观，而且一个storyboard可以有很多的界面，每个界面对应一个类文件，通过storybard，可以直观地看出整个App的结构。</p></li>
-</ul>
-
-
-<p><em>缺点:</em></p>
-
-<ul>
-<li>XIB:需求变动时，需要修改XIB很大，有时候甚至需要重新添加约束，导致开发周期变长。XIB载入相比纯代码自然要慢一些。对于比较复杂逻辑控制不同状态下显示不同内容时，使用XIB是比较困难的。当多人团队或者多团队开发时，如果XIB文件被发动，极易导致冲突，而且解决冲突相对要困难很多。</li>
-<li>Storyboard：需求变动时，需要修改storyboard上对应的界面的约束，与XIB一样可能要重新添加约束，或者添加约束会造成大量的冲突，尤其是多团队开发。对于复杂逻辑控制不同显示内容时，比较困难。当多人团队或者多团队开发时，大家会同时修改一个storyboard，导致大量冲突，解决起来相当困难。</li>
-</ul>
-
-
-<h2>队列和多线程的使用原理</h2>
-
-<p>在iOS中队列分为以下几种：</p>
-
-<ul>
-<li>串行队列：队列中的任务只会顺序执行</li>
-</ul>
-
-
-<pre><code>dispatch_queue_t q = dispatch_queue_create("...", DISPATCH_QUEUE_SERIAL);
-</code></pre>
-
-<ul>
-<li>并行队列：对垒中的任务通常会并发执行：</li>
-</ul>
-
-
-<pre><code>dispatch_queue_t q = dispatch_queue_create("......",DISPATCH_QUEUE_CONCURRENT);
-</code></pre>
-
-<ul>
-<li>全局队列：是系统的，直接拿过来(get)用就可以，与并行队列类似：</li>
-</ul>
-
-
-<pre><code>dispatch_queue_t q = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-</code></pre>
-
-<ul>
-<li>主队列：每一个应用程序对应唯一主队列，直接GET就行，在多线程开发中，使用祝队列更新UI：</li>
-</ul>
-
-
-<pre><code>dispatch_queue_t q = dispatch_get_main_queue();
-</code></pre>
-
-<p>如图：
- <img src="http://7xkxhx.com1.z0.glb.clouddn.com/1771779-da221054beb5cbb4.png" alt="1" />
- </p>
-
-<h2>内存的使用和优化的注意事项</h2>
-
-<ul>
-<li>重用问题：如UITableViewCells,UICollectionViewCells, UITableViewHeaderFooterViews设置正确的reuseIdentifier,充分重用；</li>
-<li>尽量把views设置为不透明，当opque为NO的时候，图层的半透明取决于图片和其本身合成的图层为结果，可提高性能</li>
-<li>不要使用太复杂的XIB/StroyBoard;载入时就会将XIB/storyboard需要的所有资源，包括图片全部载入内存，即使未来很久才会使用，那些相比纯代码写的延迟加载，性能及内存就差了很多</li>
-<li>选择正确的数据结构：学会选择对业务场景最合适的数组结构是写出搞笑代码的基础，比如，数组：有序的一组值。使用索引来查询很快，使用值查询很慢，插入/删除很慢。存储键值对，用键来查找比较快。集合：无需的一组值，用值来查找很快，插入/删除很快；</li>
-<li>gzip/zip压缩：当从服务端下载相关附件时，可以通过gzip/zip压缩后再下载，使得内存更小，下载速度也更快。</li>
-<li>延迟加载：对于不应该使用的数据，使用延迟加载方式。对于不需要马上显示的视图，使用延迟加载方式。比如，网络请求失败时显示的提示界面，可能一直都不会使用到，因此应该使用延迟加载</li>
-<li>数据缓存：对于cell的行高要缓存起来，使得reload数据时，效率也极高。而对于那些网络数据，不需要每次都请求的，应该缓存起来，可以写入数据库，也可以通过plist文件存储</li>
-<li>处理内存警告：一般在基类统一处理内存警告，将相关不用资源立即释放掉。重用大开销对象：一些objects的初始化很慢，比如NSDateFormatter和NSCalendar，但又不可避免地需要使用它们。通常是作为属性存储起来，防止反复创建</li>
-<li>避免反复处理数据：许多应用需要从服务器加载功能所需的常为JSON或者XML格式的数据。在服务器端和客户端使用相同的数据结构很重要;</li>
-<li>使用Autorelease Pool：在某些循环创建临时变量处理数据时，自动释放池以保证能及时释放内存;</li>
-</ul>
-
-
-<h2>UIViewController的完整生命周期</h2>
-
-<pre><code>-[ViewController initWithNibName:bundle:]；
--[ViewController init]；
--[ViewController loadView]；
--[ViewController viewDidLoad]；
--[ViewController viewWillDisappear:]；
--[ViewController viewWillAppear:]；
--[ViewController viewDidAppear:]；
--[ViewController viewDidDisappear:]；
-</code></pre>
-
-<h2>UIImageView添加圆角</h2>
-
-<pre><code>imgView.layer.cornerRadius = 10;// 这一行代码是很消耗性能的imgView.clipsToBounds = YES;
-</code></pre>
-
-<ul>
-<li><em>这是离屏渲染（off-screen-rendering），消耗性能的</em></li>
-<li>扩展:</li>
-</ul>
-
-
-<pre><code>- (UIImage *)imageWithCornerRadius:(CGFloat)radius {
-CGRect rect = (CGRect){0.f, 0.f, self.size};
-
-UIGraphicsBeginImageContextWithOptions(self.size, NO, UIScreen.mainScreen.scale);CGContextAddPath(UIGraphicsGetCurrentContext(),
- [UIBezierPath bezierPathWithRoundedRect:rect cornerRadius:radius].CGPath);CGContextClip(UIGraphicsGetCurrentContext());
-
-[self drawInRect:rect];
-UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
-UIGraphicsEndImageContext();
-
-return image;
-}
-</code></pre>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Ios中常见的面试题及答案]]></title>
-    <link href="http://andrew-anlu.github.io/blog/2016/11/03/ioszhong-chang-jian-de-mian-shi-ti-ji-da-an/"/>
-    <updated>2016-11-03T17:50:01+08:00</updated>
-    <id>http://andrew-anlu.github.io/blog/2016/11/03/ioszhong-chang-jian-de-mian-shi-ti-ji-da-an</id>
-    <content type="html"><![CDATA[<h2>ios中深拷贝和浅拷贝</h2>
-
-<p>在ios开发中，经常涉及到深拷贝和浅拷贝的问题，针对深拷贝和浅拷贝，为了方便大家的理解，专门总结如下:</p>
-
-<!--more-->
-
-
-<ul>
-<li>理解1</li>
-</ul>
-
-
-<p>浅拷贝是拷贝操作后，并没有进行真正的复制，而是另一个指针也指向了同一个地址。深拷贝，拷贝操作后，是真正的复制了一份，另一个指针指向了拷贝后的地址。如下图：A代表原有的指针，B代表拷贝的指针。（图一为浅拷贝，图二为深拷贝）</p>
-
-<p><img src="http://img.blog.csdn.net/20141218004439540?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvY3NkbkFhcm9u/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center" alt="1" /></p>
-
-<p><img src="http://img.blog.csdn.net/20141218004554327?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvY3NkbkFhcm9u/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center" alt="2" /></p>
-
-<p>从上图中可以看到，浅拷贝（浅复制）中如果其中A指针改变了所指向的地址的内容，那么B指针也指向了被修改的内容，如果有些地方用到B指针，即便A指向的内容发生变化，也不希望B收到影响，则需要用深拷贝，真正复制一份A指向的内容，B指向复制后的值，这样即使A指向的内容变化了，B也不会产生影响。好比：浅复制好比你的影子，你完蛋，你的影子也完蛋。深复制好比你和你的克隆人，你完蛋，你的克隆人依然活着。</p>
-
-<ul>
-<li>理解2</li>
-</ul>
-
-
-<p>深拷贝和浅拷贝的本质是地址相同，就是浅拷贝，地址不同就是深拷贝。</p>
-
-<p>iOS开发过程中，大体上会区分为对象和容器两个概念，对象的copy是浅拷贝，mutableCopy是深拷贝。容器也参照如上方法，但是需要记住，容器的包含对象的拷贝,无论使用copy,还是mutableCopy都将是浅拷贝，想要实现对象的深拷贝，必须自己提供拷贝的方法。</p>
-
-<ul>
-<li>理解3</li>
-</ul>
-
-
-<pre><code> NSArray *array=[NSArray arrayWithObjects:@"one",@"two", nil];       
- NSMutableArray *array1=[array copy];        
-[array1 addObject:@"three"];  
-</code></pre>
-
-<p>//这段代码是错误的，array1通过copy进行的是浅拷贝，即并没有真正复制array，而是也指向了array,此时array是不可变数组，无法进行新数据的添加</p>
-
-<pre><code>NSArray *array=[NSArray arrayWithObjects:@"one",@"two", nil];       
-NSMutableArray *array2=[array mutableCopy];        
-[array2 addObject:@"three"];  
-</code></pre>
-
-<p>这段代码是正确的，array2通过mutableCopy进行的是深拷贝，即把array真正复制了一份，并且复制后，变味了NSMutableArray,此时array2是可变数组，可以添加数据</p>
-
-<blockquote><p>注意点:<em>(1)</em> 当使用mutableCopy时，不管源对象是否可变，副本是可变的，并且实现真正意义上的拷贝。当我们使用copy一个可变对象时，副本对象是不可变的。</p>
-
-<p><em>(2)</em>要想实现对象的自定义拷贝，必须实现NSCopying,NSMutableCopying协议，实现该协议的copyWithZone方法和mutableCopyWithZone方法。深拷贝和浅拷贝的区别就在于copyWithZone方法的实现。</p></blockquote>
-
-<h2>NSString属性什么时候用copy,什么时候用Strong?</h2>
-
-<p>我们定义一个类，并且为其声明两个字符串属性，如下所示：</p>
-
-<pre><code>@interface TestStringClass ()
-@property (nonatomic, strong) NSString *strongString;
-@property (nonatomic, copy) NSString *copyedString;
-@end
-</code></pre>
-
-<p>上面的代码声明了两个字符串属性，其中一个内存特性是strong,一个是copy.下面我们来看看它们的区别。</p>
-
-<p>首先，我们用一个不可变字符串来为这两个属性赋值,</p>
-
-<pre><code>- (void)test {
-    NSString *string = [NSString stringWithFormat:@"abc"];
-    self.strongString = string;
-    self.copyedString = string;
-    NSLog(@"origin string: %p, %p", string, &amp;string);
-    NSLog(@"strong string: %p, %p", _strongString, &amp;_strongString);
-    NSLog(@"copy string: %p, %p", _copyedString, &amp;_copyedString);
-}
-</code></pre>
-
-<p>输出结果为:</p>
-
-<pre><code>origin string: 0x7fe441592e20, 0x7fff57519a48
-strong string: 0x7fe441592e20, 0x7fe44159e1f8
-copy string: 0x7fe441592e20, 0x7fe44159e200
-</code></pre>
-
-<p>我们可以看到，这种情况下，不管是strong还是copy属性的对象，其指向的地址都是同一个，即为string执行的地址，如果我们换做MRC环境，打印string的引用计数的话，会看到其引用计数是3,即String操作和copy做做都使原字符串对象的引用计数值+1.</p>
-
-<p>接下来，我们把string由不可变改为可变对象，看看会是什么结果，即将下面这一句</p>
-
-<pre><code>NSString *string = [NSString stringWithFormat:@"abc"];
-</code></pre>
-
-<p>改成:</p>
-
-<pre><code>NSMutableString *string = [NSMutableString stringWithFormat:@"abc"];
-</code></pre>
-
-<p>其输出结果为:</p>
-
-<pre><code>origin string: 0x7ff5f2e33c90, 0x7fff59937a48
-strong string: 0x7ff5f2e33c90, 0x7ff5f2e2aec8
-copy string: 0x7ff5f2e2aee0, 0x7ff5f2e2aed0
-</code></pre>
-
-<p>可以发现，此时copy属性字符串已不再指向string字符串对象，而是深拷贝了string字符串，并让<em>copyedString对象指向这个字符串，在MRC环境下，打印两者的引用计数，可以看到string对象的引用计数是2，而</em>copyedString的引用计数是1</p>
-
-<p>此时，我们如果去修改string字符串的话，可以看到：因为<em>strongString和string都是指向同一个对象，所以</em>strongString的值会跟随者改变（需要注意的是，此时 <em>strongString 的类型实际上是NSmutableString,而不是NSString）而</em>copyedString指向的是另一个对象，所以并不会改变。</p>
-
-<h3>结论</h3>
-
-<p>由于NSMutableString是NSString的子类，所以一个NSString指针可以指向NSMutableString对象，让我们的StrongString指针指向一个可变字符串是OK的。</p>
-
-<p>而上面的例子可以看得出，当源字符串是NSString时，由于字符串是不可变的，所以，不管是Strong还是copy属性的对象，都是指向源对象，copy操作只是做了次浅拷贝。</p>
-
-<p>当源字符串是NSMUtableSring时，strong属性只是增加了源字符串的引用计数，而copy属性则是对源字符串做了次深拷贝，产生了一个新的对象，且copy属性对象指向这个新的对象。另外需要注意的是，这个copy属性对象的类型始终是NSString,而不是NSMutableString,因此其实不可变的。</p>
-
-<p>这里还有一个性能问题，即在源字符串是NSMutableString,strong是单纯的增加对象的引用计数，而copy操作是智行了一次深拷贝，所以性能上会有所差异，而如果源字符串是NSString时，则没有这个问题。</p>
-
-<h2>OC的理解和特性</h2>
-
-<ul>
-<li>OC 作为一门面向对象的语言，自然具有面向对象的语言特性：封装，继承，多台，它既有静态语言的特性（如C++），又有动态语言的效率（动态绑定，动态加载）。总体来讲，OC确实是一门不错的编程语言</li>
-<li><p>OC具有相当多的动态特性，表现为三个方面：动态类型（Dynamic typing）,动态绑定(Dynamic binding)和动态加载(Dynamic loading).动态-必须运行时（run time）才会做的事情</p></li>
-<li><p>动态类型：即运行时再决定对象的类型，这种动态特性在日常的应用中非常常见，简单说就是id类型，事实上，由于静态类型的固定性和可预知性，从而使用的更加广泛，静态类型是强类型，而动态类型属于弱类型，运行时决定接受者</p></li>
-<li>动态绑定：基于动态类型，在某个实例对象被确定后，其类型便被确定了，该对象对对那个的属性和响应消息也被完全确定。</li>
-<li>动态加载：根据需求加载所需要的资源，最基本就是不同机型的适配，例如，在Retain设备上加载@2x的图片，而在老一些的普通苹果设备上加载原图，让程序在运行时添加代码模块以及其他资源，用户可根据需要加载一些可执行代码和资源，而不是在启动时就加载所有组件，可执行代码可以含有和程序运行时整合的新类</li>
-</ul>
-
-
-<h2>简述内存管理的基本原则</h2>
-
-<ul>
-<li>之前：OC内存管理遵循“谁创建，谁释放，谁引用，谁管理”的机制，当创建活引用一个对象的时候，需要向它发送alloc,copy,retain消息，当释放该对象时需要发送release消息，当对象引用计数为0时，系统将释放该对象，这是OC的手动管理机制(MRC)</li>
-<li>目前：ios5之后引用自动管理机制-自动引用计数（ARC），管理机制和手动机制一样，只是不再需要调用retain,release,autorelease,它编译时的特性，当你使用arc时，在适当位置插入release和 autorelease;它引用strong和weak关键字，strong修饰的指针变量指向对象时，当指针指向新值或者指针不复存在，相关联的对象就会自动释放，而weak修饰的指针比那两指向对象，当对象的拥有者指向新值或者不存在时weak修饰的指针会自动设置为nil</li>
-<li>如果使用alloc,copy(mutableCopy)或者retain一个对象时，你就有义务向它发送一条release或者autorelease消息，其它方法创建的对象，不需要由你来管理内存。</li>
-<li>向一个对象发送一条autorelease消息，这个对象并不会立即销毁，而是将这个对象放入了自动释放池，待池子释放时，它会向池子中每个对象发送一条release消息，以此来释放对象</li>
-<li>向一个对象发送release消息，并不意味着这个对象被销毁了，而是当这个对象的引用计数为0时，系统才会调用dealloc方法，释放该对象和对象本身所拥有的实例。</li>
-</ul>
-
-
-<h2>其它注意事项</h2>
-
-<ul>
-<li>如果一个对象有一个<em>Strong类型的指针指向着，找个对象就不会被释放。如果一个指针指向超出了它的作用域，就会被指向nil.如果一个指针被指向nil,那么它原来指向的对象就被释放了，当一个视图控制器被释放时，它内部的全部指针会被指向nil.&ldquo;不管是全局变量还是局部变量用</em>Strong描述就行&rdquo;</li>
-<li>局部变量：出了作用域，指针会被设置为nil</li>
-<li>方法内部创建对象，外部使用需要添加_autorelease</li>
-<li>连线的时候，用_weak描述</li>
-<li>代理使用unsafe_unretained就相当于assign</li>
-<li>block中为了避免循环引用问题，使用_weak描述</li>
-<li>声明属性时，不要以new开头，如果非要以new开头命名属性的名字，需要自己定制get方法名，如</li>
-</ul>
-
-
-<pre><code>@property(getter=theString) NSString * newString;
-</code></pre>
-
-<ul>
-<li>如果要使用自动释放池，用@autoreleasepool{}</li>
-<li>ARC只能管理Foundation框架的变量，如果程序中把Foundation中的变量强制换成Core Foundation中的变量需要交换管理权</li>
-<li>在非ARC工程中采用ARC去编译某些类:<code>-fobjc-arc</code></li>
-<li>在ARC工程下采用非ARC去比哪一某些类:<code>-fno-fobjc-arc</code></li>
-</ul>
-
-
-<h2>如何理解MVC设计模式</h2>
-
-<p>mvc是一种架构模式，M表示Model，V表示视图View,C表示控制器Controller:
-* Model负责存储，定义，操作数据
-* View用来展示数据，和用户进行交互
-* Controller是Model和View的协调者，Controller把MOdel中的数据拿过来给View用，Controller可以直接与Model和View进行通信，而View不能和Controller直接通信。View与Controller通信需要利用代理协议的方式，当有数据更新时，Model也要与Controller进行通信，这个时候要用Notification和KVO,这个方式就像一个广播一样，Model刚发送信号，Contrller设置坚挺接受信号，当有数据更新时就发信号给Controller,Model和View不能直接进行通信，这样会违背MVC设计模式</p>
-
-<h2>如何理解MVVM设计模式</h2>
-
-<ul>
-<li>ViewModel层，就是View和Model层的粘合剂，他是一个放置用户输入验证逻辑，视图显示逻辑，发起网络请求和其它业务逻辑处理极好的地方，说白了，就是把原来ViewCOntroller层的业务逻辑和页面逻辑等剥离出来放到ViewModel层</li>
-<li>View层，就是ViewController层，它的任务就是从ViewModel层获取数据，然后显示</li>
-</ul>
-
-
-<h2>Objective-C 中是否支持垃圾回收机制？</h2>
-
-<ul>
-<li>OC是支持垃圾回收机制的,但是Apple的移动终端中，是不支持GC的，Mac桌面系统开发中是支持的。</li>
-<li>移动端开发是支持ARC的，ARC是在ios5之后推出的新技术，它与GC机制是不同的，我们在编写代码时，不需要想对象发送release或者autorelease方法，也不可以调用dealloc方法，编译器会在合适的位置自动给用户生成release消息，ARC的特点是自动引用计数简化了内存管理的难度</li>
-</ul>
-
-
-<h2>ARC下Assign和weak的区别</h2>
-
-<p>weak比assign对了一个功能就是当属性所指向的对象消失的时候（也就是内存引用计数为0）会自动赋值nil,这个再向weak修饰的属性发送消息就不会导致野指针操作crash.</p>
-
-<p>在arc模式下编程时，指针变量一定要用weak修饰，只有基本数据类型和结构体需要用assign，例如delegate,一定要用weak修饰。</p>
-
-<ul>
-<li>区别：如果用weak声明的变量在栈中就会自动清空，赋值为nil，如果用assign声明的变量在栈中可能不会自动赋值为nil,就会造成野指针错误</li>
-</ul>
-
-
-<h2>协议的基本概念和协议中方法默认什么类型</h2>
-
-<p>OC中的协议是一个方法列表。它的特点是可以被任何类使用（实现），但它并不是类，自身不会实现这样方法，而是有其它人来实现协议，经常用来实现委托对象，如果一个类采用了一个协议，那么它必须实现协议中必须需要实现的方法，在协议中的方法默认是必须实现的（@required）,添加关键字@optional,表明一旦采用该协议，这些可选的方法是可以不实现的</p>
-
-<h2>简述类目Category的有点和缺点</h2>
-
-<h3>优点</h3>
-
-<ul>
-<li>不需要通过增加子类而增加现有类的行为或方法，且类目中的方法与原始类方法基本没有区别：</li>
-<li>通过类目可以将庞大的一个类的方法进行划分，从而便于代码的日后的维护，更新及提高代码的阅读性</li>
-</ul>
-
-
-<h3>缺点</h3>
-
-<ul>
-<li>无法向类目中添加实例变量，如果需要添加实例变量，只能通过定义子类的方式</li>
-<li>类目中的方法与原始类以及父类方法相比具有更高优先级，如果覆盖弗雷的方法，可能导致super消息的断裂，因此，最好不要覆盖原始类中的方法。</li>
-</ul>
-
-
-<h2>循环引用产生额原因，以及解决方法</h2>
-
-<ul>
-<li>产生原因：如下图所示，对象A和对象B相互引用了对方作为自己的成员变量，只有自己销毁的时候才能将成员变量的引用计数减去1.对象A的销毁依赖于对象B的销毁，同事对象B销毁也依赖于对象A的销毁，从而形成了循环引用，此时，即使外界没有任何指针访问它，它也无法释放。
-<img src="http://devstorepic.qiniudn.com/FvDA-QQdrUBpndLKOmJgy6-vqM0F" alt="2" /></li>
-</ul>
-
-
-<p>对个对象之间依然会存在循环引用问题，形成一个环，在编程中，形成的环越大越不容易察觉，如下图所示：</p>
-
-<p><img src="http://devstorepic.qiniudn.com/Fk4cV48OjN9tUl-lDiU_ap5WWGUl" alt="1" /></p>
-
-<h3>解决方法</h3>
-
-<ul>
-<li>事先知道存在循环引用的地方，在合理的位置主动断开一个引用，让对象回收</li>
-<li>使用weak声明</li>
-</ul>
-
-
-<h2>键路径(keyPath),键值编码(KVC),键值观察(KVO)</h2>
-
-<h3>键路径</h3>
-
-<ul>
-<li>在一个给定的实体中，同一个属性的所有值具有相同的数据类型</li>
-<li>键-值编码技术用于进行这样的查找-它是一种间接访问对象属性的机制。键路径是一个由点做分隔符组成的字符串，用于指定一个连接在一起的对象性质序列。第一个键的性质是由先前的性质决定的，接下来每个键的值也是相对于前面的性质</li>
-<li><p>键路径使您可以以独立于模型实现的方式指定相关对象的性质。通过键路径，您可以指定对象图中的一个任意深度的路径，使其指向相关对象的特定属性</p>
-
-<h3>键值编码KVC</h3></li>
-<li><p>键值编码是一种间接访问对象的属性使用字符串来标识属性，而不是通过调用存取的方法，直接或通过实例变量访问的机制，非对象类型的变量将被自动封装或者解封成对象，很多情况下会简化程序代码；</p></li>
-<li>KVC的缺点：一旦使用KVC，你的编译器无法检查出错误，即不会对设置的键，键路径进行错误检查，且执行效率要地域合成存取器方法和自定的setter和getter方法，因为使用KVC键值编码，它必须先解析字符串，然后在设置或者访问对象的实例变量
-
-<h3>键值观察KVO</h3></li>
-<li>键值观察机制是一种能使的对象获取到其他对象属性变化的通知，极大的简化了代码</li>
-<li>实现KVO键值观察模式，被观察的对象必须使用KVC键值编码来修改它的实例变量，这样才能被观察者观察到，因此，KVC是KVO的基础</li>
-</ul>
-
-
-<h3>Demo</h3>
-
-<p>比如我自定义一个Button</p>
-
-<pre><code>[self addObserver:self forKeyPath:@"highlighted" options:0 context:nil]; #pragma mark KVO 
-- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context { 
-     if ([keyPath isEqualToString:@"highlighted"] ) { 
-      [self setNeedsDisplay]; } 
-  }
-</code></pre>
-
-<p>对于系统是根据keypath去取的到相应的值发生改变，理论上来说是和KVC机制的道理是一样的。</p>
-
-<h3>KVC机制通过key找到value的原理</h3>
-
-<ul>
-<li>当通过KVC调用对象时，比如：<code>[self valueForKey:@”someKey”]</code>,程序会自动视图通过下面几种不同的方式解析这个调用。</li>
-<li>首先查找对象是否带有somekey这个方法，如果没找到，会继续查找对象是否带有somekey这个实例变量，如果还没有找到，程序会继续视图调用<code>-(id) valueForUndefinedKey:</code>这个方法，如果这个方法还是没有被实现的话，程序会抛出一个<code>NSUndefinedKeyException</code>错误</li>
-<li>补充：KVC在查找方法的时候，不仅会超照somekey这个方法，还会查找getsomeKey这个方法，前面加一个get,或者<em>someKey以</em>getsomeKey这几种形式，同时，查找实例变量的时候也会不仅仅查找somekey这个变量，也会查找_someKey这个变量是否存在</li>
-<li>设计<code>valueForUndefinedKey</code>方法的主要目的是当你使用-(id)valueForKey方法从对象中请求值时，对象能够在错误发生前，有最后的机会响应这个请求。</li>
-</ul>
-
-
-<h2>在Objective-C中如何实现KVO</h2>
-
-<ul>
-<li>注册观察者（注意：观察者和被观察者不会被保留也不会被释放）</li>
-</ul>
-
-
-<pre><code>- (void)addObserver:(NSObject *)observer forKeyPath:(NSString *)keyPath 
-options:(NSKeyValueObservingOptions)options 
-context:(void *)context;
-
-- (void)observeValueForKeyPath:(NSString *)keyPath 
-ofObject:(id)object change:(NSDictionary *)change   context:(void *)context;
-
-- (void)removeObserver:(NSObject *)observer 
-forKeyPath:(NSString *)keyPath;
-</code></pre>
-
-<ul>
-<li>KVO 中谁要监听谁注册，然后响应进行处理，使得观察者与被观察者完全解耦。KVO只检测类中的属性，并且属性都是通过NSString来查找，编译器不会检错和补位，全部取决于自己</li>
-</ul>
-
-
-<h2>代理的作用</h2>
-
-<ul>
-<li>代理又叫委托，是一种设计模式，代理是对象与对象之间的通信交互，代理解除了对象之间的耦合性</li>
-<li>改变或传递控制链，允许一个类在某些特定时刻通知到其他类，而不需要获取到哪些类的指针，可以减少框架的复杂度</li>
-<li>另外一点，代理可以理解为java中回调监听机制的一种类似</li>
-<li>代理的属性常常是assign的原因：防止循环引用，以至于对象无法得到正确的释放</li>
-</ul>
-
-
-<h2>NSNotification、Block、Delegate和KVO的区别</h2>
-
-<ul>
-<li>代理是一种回调机制，且是一对一的关系，通知是一对多的关系，一个对向所有的观察者提供变更通知</li>
-<li>效率：Delegate比NSNotification高</li>
-<li>Delegate和Block一般是一对一的通信</li>
-<li>Delegate需要定义协议方法，代理对象实现协议方法，并且需要建立代理关系才可以实现通信</li>
-<li>Block:Block更加简洁，不需要定义繁琐的协议方法，但通信事件比较多的话，建议使用Delegate;</li>
-</ul>
-
-
-<h2>Objective-C中可修改和不可修改类型</h2>
-
-<ul>
-<li>可修改不可修改的集合类，就是可动态添加修改和不可动态添加修改</li>
-<li>比如NSArray和NSMutableArray,前者在初始化后的内存控件就是固定不变的，而后者可以添加修改等，可以动态申请的内存空间</li>
-</ul>
-
-
-<h2>当我们调用一个静态方法时，需要对对象进行release吗？</h2>
-
-<p>不需要，静态方法（类方法）创建一个对象时，对象已被放入自动释放池。在自定释放池被释放时，很有可能被销毁</p>
-
-<h2>当我们释放我们的对象时，为什么需要调用[super dealloc]方法，它的位置又是如何的呢？</h2>
-
-<ul>
-<li>因为子类的某些实例是继承自父类的，因此需要调用<code>[super dealloc]</code>方法，来释放父类拥有的实例，其实也就是子类本身的，一般来说我们优先释放子类拥有的实例，最后释放父类所拥有的实例</li>
-</ul>
-
-
-<h2>对谓词的认识</h2>
-
-<ul>
-<li>Cocoa中提供乐意一个<code>NSPredicate</code>类，该类主要用于指定过滤器的条件，每一个对象通过谓词进行筛选，判断条件是否匹配</li>
-</ul>
-
-
-<h2>static，self，super关键字的作用</h2>
-
-<ul>
-<li>函数体内static变量的作用范围为该函数体，不同于auto变量，该变量的内存只被分配了一次，因此其值在下次调用时扔维持上次的值</li>
-<li>在模块内的static全局变量可以被模块内所有函数访问，但不能被模块外其他函数访问</li>
-<li>在模块内的static函数只可被这一模块内的其他函数调用，这个函数的使用范围被限制在声明</li>
-<li>在类中的static成员变量属于整个类所拥有过，对类的所有对象只有一份拷贝</li>
-<li>self：当前消息的接受者</li>
-<li>super：向父类发送消息</li>
-</ul>
-
-
-<h2>include与#import的区别、#import 与@class 的区别</h2>
-
-<ul>
-<li>include和#import其效果相同，都是查询勒种定义的行为</li>
-<li>import不会引起交叉编译，确保头文件只会被导入一次</li>
-<li>@class的表明，只定义了类的名称，而具体类的行为是未知的，一般用于.h文件</li>
-<li>@class比#import编译效率更高</li>
-<li>此外@class和#import的主要区别在于解决引用死锁的问题</li>
-</ul>
-
-
-<h2>@public、@protected、@private @ fileprivate, open 它们的含义与作用</h2>
-
-<ul>
-<li>@public:对象的实例变量的作用域在任意地方都可以被访问</li>
-<li>@protected:对象的实例变量作用域在本类和子类都可以被访问到</li>
-<li>@private：实例变量的作用域只能在本类中访问</li>
-</ul>
-
-
-<h3>fileprivate</h3>
-
-<p>在原有的swift中的private其实并不是真正的私有，如果一个变量定义为private,在同一个文件中的其他类依然是可以访问到的。这个场景在使用extension的时候很明显</p>
-
-<pre><code>class User {
-    private var name = "private"
-}
-
-extension User{
-    var accessPrivate: String {
-        return name
-    }
-}
-</code></pre>
-
-<p>这样带来了两个问题：</p>
-
-<ul>
-<li>当我们标记为private时，意思为真的私有还是文件内共享呢？</li>
-<li>当我们如果意图为真正的私有时，必须保证这个类或者结构体在一个单独的文件内，否则可能同文件里其它的代码访问到</li>
-</ul>
-
-
-<p>由此，在swift3中，新增加了一个<code>fileprivate</code>来显示表明，这个元素的访问权限为文件内私有，过去的private对应现在的fileprivate,现在private则是真正的私有，离开了这个类或者结构体的作用域外面就无法访问到</p>
-
-<h3>open</h3>
-
-<p>open则是弥补public语义上的不足。
-现在public有两层含义:</p>
-
-<ul>
-<li>这个元素可以在其他作用域被访问</li>
-<li>这个元素可以在其他作用域被继承或者ovrride</li>
-</ul>
-
-
-<p>继承是一件危险的事情，尤其对于一个framework或者module的设计者而言，在自身的module内，类或者属性对于作者而言是清晰的，能否被继承或者ovrride都是可控制的。但是对于使用它的人，作者有时会希望传达出这个类或者属性不应该被继承或者修改，这个对应的就是final.</p>
-
-<p>final的问题在于标记之后，在任何地方都不能被ovrride,而对于lib的设计者而言，希望得到的是在module内可以ovrride,在被import到其他地方后其他用户使用的时候不能被ovrride.</p>
-
-<p>这就是<code>open</code>产生的初衷，通过open和public标记区别一个元素在其他module中是只能被访问还是可以被ovrride.</p>
-
-<p>例子:</p>
-
-<pre><code>/// ModuleA:
-
-// 这个类在ModuleA的范围外是不能被继承的，只能被访问
-public class NonSubclassableParentClass {
-
-    public func foo() {}
-
-    // 这是错误的写法，因为class已经不能被继承，
-    // 所以他的方法的访问权限不能大于类的访问权限
-    open func bar() {}
-
-    // final的含义保持不变
-    public final func baz() {}
-}
-
-// 在ModuleA的范围外可以被继承
-open class SubclassableParentClass {
-    // 这个属性在ModuleA的范围外不能被override
-    public var size : Int
-
-    // 这个方法在ModuleA的范围外不能被override
-    public func foo() {}
-
-    // 这个方法在任何地方都可以被override
-    open func bar() {}
-
-    ///final的含义保持不变
-    public final func baz() {}
-}
-
-/// final的含义保持不变
-public final class FinalClass { }
-/// ModuleB:
-
-import ModuleA
-
-// 这个写法是错误的，编译会失败
-// 因为NonSubclassableParentClass类访问权限标记的是public，只能被访问不能被继承
-class SubclassA : NonSubclassableParentClass { }
-
-// 这样写法可以通过，因为SubclassableParentClass访问权限为 `open`.
-class SubclassB : SubclassableParentClass {
-
-    // 这样写也会编译失败
-    // 因为这个方法在SubclassableParentClass 中的权限为public，不是`open'.
-    override func foo() { }
-
-    // 这个方法因为在SubclassableParentClass中标记为open，所以可以这样写
-    // 这里不需要再声明为open，因为这个类是internal的
-    override func bar() { }
-}
-
-open class SubclassC : SubclassableParentClass {
-    // 这种写法会编译失败，因为这个类已经标记为open
-    // 这个方法override是一个open的方法，则也需要表明访问权限
-    override func bar() { } 
-}
-
-open class SubclassD : SubclassableParentClass {
-    // 正确的写法，方法也需要标记为open
-    open override func bar() { }    
-}
-
-open class SubclassE : SubclassableParentClass {
-    // 也可以显式的指出这个方法不能在被override
-    public final override func bar() { }    
-}
-</code></pre>
-
-<p>现在的访问权限则依次为:open,public,internal,fileprivate,private.</p>
-
-<h2>iOS开发中数据持久性有哪几种？</h2>
-
-<p>数据存储的核心都是写文件</p>
-
-<ul>
-<li>属性列表：只有NSString,NSArray,NSdictionary,NSdata可以writeToFile;存储依旧是plist文件，plist文件可以存储7种数据类型：array,dictionary,string,bool,data,date,number</li>
-<li>对象序列化（对象归档）:对象序列化通过序列化的形式，键值关系存储到本地，转化为二进制刘，通过runtime实现自动化归档/解档，实现NSCoding协议必须实现的两个方法:</li>
-<li>编码(对象序列化):把不能直接存储到plist文件中得到数据，转化为二进制数据，NSData,可以存储到本地</li>
-<li>解码:(对象反序列化)把二进制数据转化为本来的类型</li>
-<li>SqlLite数据库：大量有规律的数据使用数据库</li>
-<li>CoreData:通过管理对象进行增删改查操作。它不是一个数据库，不仅可以使用SqlLite数据库来保持数据，也可以使用其他方式来存储数据，如:XML</li>
-</ul>
-
-
-<h3><em>CoreData介绍</em></h3>
-
-<ul>
-<li>CoreData是面向对象的API，COreData是ios中非常重要的一项技术，几乎在所有编写的程序中，CoreData都作为数据存储的基础</li>
-<li>CoreData是苹果官方提供的一套框架，用来解决与对象声明周期管理，对象关系管理和持久化等方面相关的问题</li>
-<li>大多数情况下，我们引用CoreData作为持久化数据的解决方法，并利用它作为持久护士数据映射为内存对象。提供的是对象-关系映射功能，也就是说，CoreData可以将Objective-C对象转为数据，保存到SQL中，然后将保存后的数据还原成OC对象</li>
-</ul>
-
-
-<h3><em>CoreData的特征:</em></h3>
-
-<ul>
-<li>通过CoreData管理应用程序的数据模型，可以极大程度减少需要编写的代码数量</li>
-<li>将对象数据存储在SQLite数据已获得性能优化</li>
-<li>提供NSFetchResultsController类用于管理表视图的数据，即将Core Data的持久化存储在表视图中，并对这些数据进行管理：增删改查</li>
-<li>管理 undo/redo操作</li>
-<li>检查托管对象的属性值是否正确</li>
-</ul>
-
-
-<h3><em>CoreData的6个成员对象</em></h3>
-
-<ol>
-<li>NSManageObject：被管理的数据记录Managed Object Model是描述应用程序数据模型，这个模型包含实体(Entity),特性(Property)，读取请求(Fetch Request)等</li>
-<li>NSManageObjectContext：管理对象的上下文，持久化存储模型对象，参与数据对象进行各种操作的全过程，并检测数据对象的变化，以提供对undo/redo的支持及更新绑定到数据的UI</li>
-<li>NSPersistentStoreCoordinator：连接数据库的Persistent Store Coordinator,相当于数据文件管理器，处理底层的对数据文件的读取和写入，一般我们与这个没有交集</li>
-<li>NSManagedObjectModel：被管理的数据模型，数据结构</li>
-<li>NSFetchRequest：数据请求</li>
-<li>NSEntityDescription：表格实体结构，还需知道. xcdatamodel文件编译后为<code>.momd</code>或者<code>.mom</code>文件。</li>
-</ol>
-
-
-<h3>Core Data 的功能</h3>
-
-<ul>
-<li>对于KVC和KVO完整且自动化的支持，除了为属性整合KVO和KVC访问方法外，还整合了适当的集合访问方法来处理多值关系</li>
-<li>自动验证属性值</li>
-<li>支持跟踪修改和撤销操作</li>
-<li>关系维护，CoreData管理数据的关系传播，包括维护对象之间的一致性</li>
-<li>在内存上和界面上分组，过滤，组织数据</li>
-<li>自动支持对象存储在外部数据仓库的功能</li>
-<li>创建复杂请求：无需动手写SQL语句，在获取请求(Fetch request)中关联 NSPredicate,NSPredicated支持基本功能，想关子查询和其它高级的sql特性。它支持正确的Unicode编码，区域感知查询，排序和正则表达式</li>
-<li>延迟操作：CoreData使用懒加载方式减少内存负载，还支持部分实体化延迟加载和复制队形的数据共享机制</li>
-<li>合并策略：COreData内置版本跟踪和乐观锁来支持多用户写入冲突的解决，其中，乐观锁就是对局冲突进行检测，若冲突就返回冲突的信息</li>
-<li>数据迁移：CoreData的Schema Migration工具尅简化对应数据库结构变化的任务，在某些情况下允许你执行高效率的数据库原地迁移工作</li>
-<li>可选择针对程序Controller层的集成，来支持UI的显示同步core data在iphone os之上，提供NSFetchedResultsController对象来做相关工作，在Mac OS上我们用Cocoa提供的绑定机制来完成的</li>
-</ul>
-
-
-<h2>对象可以被Copy的条件</h2>
-
-<p>只有实现了NSCopying和NSMutableCopying协议的类的对象才能被拷贝分为不可变拷贝和可变拷贝，</p>
-
-<ul>
-<li>NSCopying协议方法为:</li>
-</ul>
-
-
-<pre><code>- (id)copyWithZone:(NSZone *)zone {
- MyObject *copy = [[[self class] allocWithZone: zone] init]; copy.username = [self.username copyWithZone:zone]; return copy;
-}
-</code></pre>
-
-<h2>在某个方法中 self.name = <em>name，name = </em>name 它 们有区别吗,为什么?</h2>
-
-<ul>
-<li>前者是存在内存管理的setter方法赋值，它会对_name对象进行保留或者拷贝操作</li>
-<li>后者是普通赋值</li>
-<li>一般来说，在对象的方法里成员变量和方法都是可以访问的，我们通常会重写setter方法来执行某些额外的工作，比如说，外部传一个模型过来，那么我会直接重写setter方法，当模型传来时，也就意味着数据发生了变化，那么视图也需要更新显示，则在赋值新模型的同时也去刷新UI</li>
-</ul>
-
-
-<h2>解释self=[super init]方法</h2>
-
-<ul>
-<li>容错处理，当父类初始化失败，会返回一个nil,表示初始化事变，由于继承的关系，子类是需要拥有父类的实例和行为，因此，我们必须先初始化父类，然后再初始化子类</li>
-</ul>
-
-
-<h2>定义属性时,什么时候用 assign、retain、copy 以及它们的之间的区别</h2>
-
-<ul>
-<li>assign:普工赋值，一般常用于基本数据类型，常见委托设计模式，一次来防止循环引用（我们成为弱引用）</li>
-<li>retain:保留计数，获得到了对象的所有权，引用计数在原有的基础上加1</li>
-<li>copy:一般认为，是在内存中重新开辟了一个新的内存空间，用来存储新的对象，和原来的对象是两个不同的地址，引用计数分别1.当时当copy对象为不可变对象时，那么copy的作用相当于retain,因此，这样可以节约内存空间</li>
-</ul>
-
-
-<h3>堆和栈的区别</h3>
-
-<ul>
-<li>栈区(stack)由编译器自动分配释放，存放方法（函数）的参数值，局部变量的值等，栈是由低地址扩展的数据结构，是以一块连续的内存的区域。即栈顶的地址和栈的最大容量是系统预先规定好的</li>
-<li>堆区（heap）：一般是由程序员分配释放，弱程序员不释放，程序结束时由OS回收，向高地址扩展的数据结构，是不连续的内存区域，从而堆获得的空间比较灵活</li>
-<li>碎片问题：对于堆来讲，频繁的new/delete势必会造成内存空间的不连续，从而造成大量的碎片，使的程序效率降低。对于栈来讲，则不会存在这个问题，因为栈是先进后出的队列，他们是如此的一一对应，以至于永远都不能有一个内存块从栈中间弹出</li>
-<li>分配方式：堆都是动态分配的，没有静态分配的堆。栈有2种分配方式：静态分配和动态分配。静态分配是编译器完成的，比如局部变量的分配。动态分配是由alloc函数进行分配，但是栈的动态分配和堆是不同的，它的动态分配是由编译器进行释放，无需我们手工实现</li>
-<li>分配效率：栈是机器系统提供的数据结构，计算机会在底层对栈提供支持：分配专门的寄存器放栈的地址，压栈出栈都有专门的指令执行，这就决定了栈的效率比较高。堆是C/C++函数库提供的，它的机制是很复杂的</li>
-<li>全局区(静态区)(static):全局变量和静态变量的存储是放在一块的。初始化的全局变量和静态变量在一块区域，未初始化的全局变量和未初始化的静态变量在相邻的另一块区域。程序结束后由系统释放</li>
-<li>文字常量区：常量字符串就是存放在这里的额，程序结束后由系统释放</li>
-<li>程序代码区：存放函数体的二进制代码</li>
-</ul>
-
-
-<h2>怎样使用performSelector传入3个以上的参数，其中一个为结构体</h2>
-
-<ul>
-<li>因为系统提供的performSelector的API中，并没有提供三个参数，因此，我们只能传数组或者字典，但是数组或者字典只有存入对象类型，而结构体并不是对象类型，我们只能通过对象放入结构作为属性来传过去了。</li>
-</ul>
-
-
-<pre><code> - (id)performSelector:(SEL)aSelector; 
- - (id)performSelector:(SEL)aSelector withObject:(id)object; 
- - (id)performSelector:(SEL)aSelector withObject:
-    (id)object1 withObject:(id)object2;
-</code></pre>
-
-<p>具体实现如下:</p>
-
-<pre><code>typedef struct HYBStruct {
-int a;
-int b;
-} *my_struct;
-@interface HYBObject : NSObject
-@property (nonatomic, assign) my_struct arg3;
-@property (nonatomic, copy)  NSString *arg1;
-@property (nonatomic, copy) NSString *arg2;
-
-@end
-@implementation HYBObject
-
-// 在堆上分配的内存，我们要手动释放掉- (void)dealloc {
-free(self.arg3);
-
-}@end
-</code></pre>
-
-<p>测试:</p>
-
-<pre><code>my_struct str = (my_struct)(malloc(sizeof(my_struct)));
-str-&gt;a = 1;
-str-&gt;b = 2;
-HYBObject *obj = [[HYBObject alloc] init];
-obj.arg1 = @"arg1";
-obj.arg2 = @"arg2";
-obj.arg3 = str; 
-[self performSelector:@selector(call:) withObject:obj]; 
-// 在回调时得到正确的数据的- (void)call:(HYBObject *)obj { NSLog(@"%d %d", obj.arg3-&gt;a, obj.arg3-&gt;b);
-}
-</code></pre>
-
-<h2>UITableViewCell有个UIlabel,显示NSTimer实现的秒表时间，手指滚动cell过程中，label是否刷新，为什么？</h2>
-
-<p>这是否刷新取决于timer加入到run loop中的mode是什么。Mode主要是用来指定事件在运行循环中的优先级的，分为：</p>
-
-<ul>
-<li>NSDefaultRunLoopMode（kCFRunLoopDefaultMode）：默认，空闲状态</li>
-<li>UITrackingRunLoopMode：ScrollView 滑动时切换到该Mode</li>
-<li>UIInitializationRunLoopMode：run loop启动时，会切换到该Mode</li>
-<li>NSRunLoopCommonModes（kCFRunLoopCommonModes）:Mode集合苹果公开提供的Mode有两个：</li>
-<li>NSDefaultRunLoopMode（kCFRunLoopDefaultMode）</li>
-<li>NSRunLoopCommonModes（kCFRunLoopCommonModes）</li>
-<li>在编程中，如果我们把一个NStimer对象以NSDefaultRunLoopMode（kCFRunLoopDefaultMode）添加到主运行循环中的时候，ScrollView滚动的过程中会因为mode的切换，而导致NSTimer将不再被调度，当我们滚动的时候，也希望不调度，那就应该使用该模式。
-但是，我们希望在滚动的时候，定时器也要回调，那就应该使用common mode</li>
-</ul>
-
-
-<h2>对于单元格重用的理解</h2>
-
-<ul>
-<li>当cell滑动屏幕时，系统会把这个单元格添加到重用队列中，等待被重用，当有新单元格从屏幕外划入屏幕内部时，从重用队列中找看有没有可重用的单元格，若有，就直接用，没有就重新创建一个</li>
-</ul>
-
-
-<h2>解决Cell重用的问题</h2>
-
-<ul>
-<li>UITableview通过重用单元格来达到节省内存的额目的，通过为每个单元格制定一个重用标识（reuseidentifier），即指定了单元格的种类，以及当单元格滚出屏幕时，允许恢复单元格以便复用。对于不同种类的单元格使用不同的Id，对于简单的表格，一个标识符就够了</li>
-<li>如一个TableView中又10个单元格，但屏幕最多显示4个，实际上iPHone只为其分配了4个单元格的内存，没有分配10个，当关东单元格时，屏幕内显示的单元格重复使用这4个内存。实际上分配的cell的格式为屏幕最大显示数，当有新的cell进入屏幕时，会随你调用已经滚出屏幕的cell所占的内存，这就是cell的重用</li>
-<li>对于多变的自定义cell,这种重用机制会导致内容出错，为解决这种出错的方法，把原来的</li>
-</ul>
-
-
-<pre><code>UITableViewCell *cell = [tableview dequeueReusableCellWithIdentifier:defineString]
-修改为：UITableViewCell *cell = [tableview cellForRowAtIndexPath:indexPath];
-</code></pre>
-
-<p>这样就解决掉cell重用机制导致的问题，但是数据量多的情况，会有性能问题</p>
-
-<h2>有a、b、c、d 4个异步请求，如何判断a、b、c、d都完成执行？如果需要a、b、c、d顺序执行，该如何实现？</h2>
-
-<p>对于这4个异步请求，要判断都执行完成最简单的方式就是通过GCD的group来实现：</p>
-
-<pre><code>dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-dispatch_group_t group = dispatch_group_create();
-dispatch_group_async(group, queue, ^{ /*任务a */ });
-dispatch_group_async(group, queue, ^{ /*任务b */ });
-dispatch_group_async(group, queue, ^{ /*任务c */ }); 
-dispatch_group_async(group, queue, ^{ /*任务d */ }); 
-dispatch_group_notify(group,dispatch_get_main_queue(), ^{ // 在a、b、c、d异步执行完成后，会回调这里});
-</code></pre>
-
-<ul>
-<li>当然，我们还可以使用非常老套的方法来处理，通过4个变量来标识a,b,c,d四个人物是否完成，然后在runloop中让其等待，当完成时才退出runloop.但是这样做会让后面的代码得不到执行，直到Runloop执行完成</li>
-<li>解释：要求顺序执行，那么可以将任务放到串行队列中，自然就是按顺序来异步执行了。</li>
-</ul>
-
-
-<h2>使用block有什么好处？使用NSTimer写出一个使用block显示（在UIlabel上）秒表的代码</h2>
-
-<ul>
-<li>代码紧凑，传值，回调都很方便，省去了写代理的很多代码</li>
-<li>NSTimer封装成block</li>
-<li>实现方法:</li>
-</ul>
-
-
-<pre><code>NSTimer *timer = [NSTimer scheduledTimerWithTimeInterval:1.0
-                              repeats:YES
-                             callback:^() {
-  weakSelf.secondsLabel.text = ...
-}
-[[NSRunLoop currentRunLoop] addTimer:timer forMode:NSRunLoopCommonModes]
-</code></pre>
-
-<h2>线程和进程的区别和联系？</h2>
-
-<ul>
-<li>一个程序至少要有进程，一个进程至少要有一个线程</li>
-<li>进程：资源分配的最小独立单元，进程是具有一定独立功能的程序关于某个数据集合上的一次运行活动，进程是系统进行资源分配和调度的一个独立单位</li>
-<li>线程：进程下的一个分支，是进程的实体，是CPU调度和分派的基本单元，它是比进程更小的能独立运行的基本单位，线程自己基本不拥有系统资源，只拥有一点在运行中不可少的资源（程序计数器，一组寄存器，栈）但是它可与同属一个进程的其他线程共享进程所拥有的全部资源</li>
-<li>进程和线程的主要差别在于他们是不同的操作系统资源管理方式。进程有独立的地址空间，一个进程崩溃后，在保护模式下不会对其他进程产生影响，而线程只是一个进程中的不同的执行路径。线程有自己的堆栈和局部变量，但线程之间没有单独的地址空间，一个线程死掉就等于这个进程死掉，所以多进程的程序要比多线程的程序健壮，但在进程切换时，耗费资源比较大，效率要差一些</li>
-<li>但对于一些要求同事进行并且又要共享某些变量的并发造作，只能用线程，不能用进程</li>
-</ul>
-
-
-<h2>多线程编程</h2>
-
-<ul>
-<li>NSThread:当需要进行一些耗时操作时会把耗时的操作放到线程中，线程同步：多个线程同事访问一个数据会出问题，NSlock,线程同步块，@synchronized(self){}。</li>
-<li>NSOperationQueue操作队列（不需要考虑线程同步问题）。编程的重点都放在main里面，NSInvocationOperation, BSBlockOperation，自定义Operaton.创建一个操作绑定相应的方法，当把操作添加到操作队列中时，操作绑定的方法就会自动执行了，当把操作添加到队列中时，默认会调用main方法。</li>
-<li>GCD（<code>Grand Central Dispatch</code>）宏大的中央调度，串行队列，并发队列，主线程队列</li>
-<li>同步和异步：同步指第一个任务不执行完，不会开始第二个，异步是不管第一个有没有执行完，都开始第二个</li>
-<li>串行和并行：串行是多个任务按照一定的顺序执行，并行是多个任务同事执行</li>
-<li>代码是在分线程执行，在主线程刷新UI</li>
-</ul>
-
-
-<h3>多线程编程是防止主线程堵塞，增加运行效率的最佳方法</h3>
-
-<ul>
-<li>Apple提供了NSOperation这个类，提供了一个优秀的多线程编程方法</li>
-<li>一个NSOperationQueue操作队列，相当于一个线程管理器，而非一个线程，因为你可以设置这个想成管理器可以并行运行的线程数量等</li>
-<li>多线程是一个比较轻量级的方法来实现单个应用程序内多个代码执行路径</li>
-<li>iPhoneOS下的主线程的堆栈大小是1M。第二个线程开始就是512KB，并且该值不能通过编译器开关或线程API函数来更改，只有主线程有直接修改UI的能力</li>
-</ul>
-
-
-<h2>定时器与线程的区别：</h2>
-
-<ul>
-<li>定时器：可以执行多次，默认在主线程中</li>
-<li>线程：只能执行一次</li>
-</ul>
-
-
-<h2>Apple设备尺寸和编程尺寸</h2>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20161104-0.png" alt="1" />
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20161104-1.png" alt="2" />
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20161104-2.png" alt="3" /></p>
-
-<h2>TCP和UPD的区别和联系</h2>
-
-<ul>
-<li>TCP为传输控制层协议，为面向连接，可靠地，点到点的通信</li>
-<li>UPD为用户数据报协议，非连接的不可靠的点到多点的通信</li>
-<li>TCP侧重可靠传输，UPD侧重于快速传输</li>
-</ul>
-
-
-<h2>TCP连接的三次握手</h2>
-
-<ul>
-<li>第一次握手：客户端发送syn包到服务器，并进入SYN_SEND状态，等待服务器确认</li>
-<li>第二次握手：服务器收到syn包，必须确认客户的SYN,同时自己也发送一个SYN包，即SYN+ACK包，此时服务器进入SYN+RECV状态；</li>
-<li>第三次握手：客户端收到服务器的SYN_ACK包，向服务器发送确认包ACK,此发送完毕，客户端和服务器进入ESTABLISHED状态，完成三次状态</li>
-</ul>
-
-
-<h2>Scoket连接和HTTP连接的区别:</h2>
-
-<ul>
-<li>HTTP协议是基于TCP连接的，是应用层协议，主要解决如何包装数据。Scoket是对TCP/IP协议的封装，scoket本身并不是协议，而是一个调用接口(API)，通过Socket,我们才能使用TCP/IP协议</li>
-<li>HTTP连接:短连接，客户端向服务器发送一次请求，服务器响应后连接断开，节省资源。服务器不能主动给客户端响应（除非采用HTTP长连接技术），iPHone主要类NSURLSession</li>
-<li>Socket连接：长连接，客户端跟服务器端直接使用Scoket进行连接，没有规定连接后断开，因此客户端和服务器保持连接通道，双方可以主动发送数据，一般多用于游戏.Socket默认连接超时时间是30秒，默认大小是8k</li>
-</ul>
-
-
-<h2>http协议的特点，关于http请求Get和Post的区别</h2>
-
-<p>Get和post的区别：</p>
-
-<ul>
-<li>HTTP超文本传输协议，是短链接，是客户端主动发送请求，服务器做出响应，服务器响应之后，链接断开，Http是一个属于应用层面面向对象的协议，http有两类报文：请求报文和响应报文</li>
-<li>http请求报文：一个http请求报文由请求行，请求头部，空行和请求数据4部分组成</li>
-<li>http响应报文：由三部分组成：状态航，消息报头，响应正文</li>
-<li>GET请求：参数在地址后拼接，没有请求数据，不安全（因为所有的参数都拼接在地址后面），不适合传输大量数据，长度有限制，为1024个字节</li>
-<li>Post请求：参数在请求数据区放着，相对Get更安全，并且数据大小没有限制，把提交的数据放置在HTTP包的包体中</li>
-<li>GET提交的数据会在地址栏显示出来，而Post请求，地址栏不会改变</li>
-</ul>
-
-
-<p><em>传输数据的大小 ：</em>
-* Get提交时，传输数据就会受到URL长度限制，Post由于不是通过URL传值，理论上不受限制</p>
-
-<p><em>安全性：</em></p>
-
-<ul>
-<li>Post的安全性要比Get的安全性高；</li>
-<li>通过Get提交数据，用户名和密码将明文出现在URL上，比如登录界面有可能被浏览器缓存</li>
-<li>HTTPS：安全超文本传输协议(Secure Hypertext Transfer Protocol),它是一个安全通信通道，基于http 开发，用于客户计算机和服务器之间交换信息，使用安全套接字(SSI)进行信息交换，即HTTP的安全版</li>
-</ul>
-
 ]]></content>
   </entry>
   
