@@ -96,6 +96,9 @@
 
 <p><img src="https://koenig-media.raywenderlich.com/uploads/2015/07/starter_screenshots1.png" alt="1" /></p>
 
+<!--more-->
+
+
 <p>第一个屏幕是输入文本框，设置开始和终止地点，点击<code>Route it</code>,App将会跳转到第二个页面，开始规划路线图。</p>
 
 <h2>使用MapKit和Coreloaction</h2>
@@ -834,6 +837,188 @@
 </span><span class='line'>  }
 </span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
 
+
+<p>这个函数循环所有的<code>MKRoute</code>，添加覆盖层到地图上。</p>
+
+<p>在方法<code>calculateDirectionsWithCompletionHandler(_:)</code>中，调用<code>showRoute(_:)</code>方法。在<code>else</code>block中你调用的<code>self.hideActivityIndicator():</code>的代码上面调用</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>self.showRoute(routesVar)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>编译运行，输入地址然后点击<code>Route it</code>,路线规划将要出现在地图上:</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2015/07/Map_Route.png" alt="1" /></p>
+
+<p>下一步，你要打印路线的每一步路径信息到<code>DirectionsTable</code>上</p>
+
+<h2>打印MKRoute的路径信息</h2>
+
+<p><code>DirectionsTable.swift</code>包含一个全局的数组<code>directionsArray</code>,是一个包含元组的数组(string,string,MKRoute).这两个字符串是开始地址和结束地址，最后一个MKRoute，是路径的信息。</p>
+
+<p>滑动页面到<code>UITableViewDataSource</code>的扩展方法中，在代理方法<code>numberOfSectionsInTableView(_:)</code>设置返回的数量，这个表格将要包含一个section为存储在<code>directionsArray</code>中每一个route。</p>
+
+<p>这样你的<code>DirectionsTable</code>的每一个section就会为route呈现一个不同的分段.</p>
+
+<p>代理方法<code>tableView(_:numberOfRowsInSection:)</code>将会返回<code>MKRouteSteps</code>的数量，比如:<code>directionsArray[section].route.</code></p>
+
+<p>从开始地点到目的地一共有多少步.</p>
+
+<p>在<code>tableView(_:cellForRowAtIndexPath:)</code>中，添加如下代码:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>// 1
+</span><span class='line'>let steps = directionsArray[indexPath.section].route.steps
+</span><span class='line'>// 2
+</span><span class='line'>let step = steps[indexPath.row]
+</span><span class='line'>// 3
+</span><span class='line'>let instructions = step.instructions
+</span><span class='line'>// 4
+</span><span class='line'>let distance = step.distance.miles()
+</span><span class='line'>// 5
+</span><span class='line'>cell.textLabel?.text = "\(indexPath.row+1). \(instructions) - \(distance) miles"</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在每一行中，你打印<code>MKRouteStep</code>的说明信息和距离等:</p>
+
+<ol>
+<li>通过当前的section的值，得到<code>MKRoute</code>,然后通过<code>MKRoute</code>获取<code>MKRouteSteps</code>的数组</li>
+<li>从steps的数组中，访问<code>MKRouteStep</code>的对象通过当前行。</li>
+<li>获取step的说明信息</li>
+<li>获取step的距离信息，在<code>CLLocationDistance</code>的扩展方法中，定义了一个miles()方法，通过这个方法把距离转为 米 单位 。</li>
+<li>设置label显示出每一步的说明信息和距离</li>
+</ol>
+
+
+<p>现在，你可以使用<code>UITableViewDelegate</code>的扩展方法去显示开始地点和结束地点的信息。可以在每一个section中的header中显示开始地址，在footer中显示结束地点。</p>
+
+<p>在<code>tableView(_:viewForHeaderInSection:)</code>添加如下代码:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>label.text = "SEGMENT #\(section+1)\n\nStarting point: \(directionsArray[section].startingAddress)\n"
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这个头部view包含了开始地址:</p>
+
+<p>在<code>tableView(_:viewForFooterInSection:)</code>中添加如下代码:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>// 1
+</span><span class='line'>let route = directionsArray[section].route
+</span><span class='line'>// 2
+</span><span class='line'>let time = route.expectedTravelTime.formatted()
+</span><span class='line'>// 3
+</span><span class='line'>let miles = route.distance.miles()
+</span><span class='line'>//4
+</span><span class='line'>label.text = "Ending point: \(directionsArray[section].endingAddress)\n\nDistance: \(miles) miles\n\nExpected Travel Time: \(time)"</span></code></pre></td></tr></table></div></figure>
+
+
+<ol>
+<li>得到当前的section route</li>
+<li>从NSTimeInterval的扩展中，通过<code>formatted()</code>格式化<code>expectedTravelTime</code>,<code>formatted()</code>方法通过<code>NSDateComponentsFormatter</code>吧<code>NSTimeInterval</code>转为<em>时分秒</em>的格式</li>
+<li>通过<code>CLLocationDistance</code>格式化距离</li>
+<li>让表格的label显示结束地址，距离和期望到达时间信息</li>
+</ol>
+
+
+<p>现在回到<code>DirectionsViewController</code>中，添加如下方法:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>func displayDirections(directionsArray: [(startingAddress: String, 
+</span><span class='line'>  endingAddress: String, route: MKRoute)]) {
+</span><span class='line'>  directionsTableView.directionsArray = directionsArray
+</span><span class='line'>  directionsTableView.delegate = directionsTableView
+</span><span class='line'>  directionsTableView.dataSource = directionsTableView
+</span><span class='line'>  directionsTableView.reloadData()
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>更新<code>showRoute(_:):</code>方法:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'> func showRoute(routes: [MKRoute]) {
+</span><span class='line'>  var directionsArray = [(startingAddress: String, endingAddress: String, route: MKRoute)]()
+</span><span class='line'>  for i in 0..&lt;routes.count {
+</span><span class='line'>    plotPolyline(routes[i])
+</span><span class='line'>   let item = ((locationArray[i].textField?.text)!,
+</span><span class='line'>                        (locationArray[i+1].textField?.text)!, routes[i]) as TupleRouteItem
+</span><span class='line'> //(startingAddress: String, endingAddress: String, route: MKRoute)
+</span><span class='line'>    directionsArray.append(item)
+</span><span class='line'>  }
+</span><span class='line'>  displayDirections(directionsArray)
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>对于每一个路径规划，你都添加了开始地址和结束地址，然后添加<code>MKRoute</code>到directionsArray数组中</p>
+
+<p>下一步，你需要更新<code>totalTimeLabel</code>去显示总的期望达到时间。总的时间需要通过可变参数在<code>calculateSegmentDirections(_:time:routes:).</code>方法中计算出来。</p>
+
+<p>所以更新<code>showRoute(_:)</code>方法，添加一个<code>NSTimeInterval</code>参数</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>func showRoute(routes: [MKRoute], time: NSTimeInterval) {</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在<code>DirectionsViewController</code>类中添加如下方法</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>func printTimeToLabel(time: NSTimeInterval) {
+</span><span class='line'>  var timeString = time.formatted()
+</span><span class='line'>  totalTimeLabel.text = "Total Time: \(timeString)"
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>该方法在totalTimeLabel中显示出来总共时间</p>
+
+<p>最后在函数的末尾，调用<code>printTimeToLabel(_:)</code></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>printTimeToLabel(time)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>编译运行:</p>
+
+<p><img src="https://koenig-media.raywenderlich.com/uploads/2015/07/Route_2.png" alt="1" /></p>
+
+<h2>下载工程</h2>
+
+<p><a href="">最终工程</a></p>
 </div>
 
 
