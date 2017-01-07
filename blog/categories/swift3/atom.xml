@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Swift3 | 安路的技术博客]]></title>
+  <link href="http://andrew-anlu.github.io/blog/categories/swift3/atom.xml" rel="self"/>
+  <link href="http://andrew-anlu.github.io/"/>
+  <updated>2017-01-07T14:00:59+08:00</updated>
+  <id>http://andrew-anlu.github.io/</id>
+  <author>
+    <name><![CDATA[安路]]></name>
+    <email><![CDATA[andrewswift1987@gamil.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Swift3-associatedtype用法]]></title>
+    <link href="http://andrew-anlu.github.io/blog/2017/01/06/swift3-associatedtypeyong-fa/"/>
+    <updated>2017-01-06T16:18:04+08:00</updated>
+    <id>http://andrew-anlu.github.io/blog/2017/01/06/swift3-associatedtypeyong-fa</id>
+    <content type="html"><![CDATA[<p>swift中的协议采用的是"Associated Types"的方式来实现泛型功能的，通过<code>associatedtype</code>关键字来声明一个类型的占位符作为协议定义的一部分，swift的协议不支持下面的定义方式:</p>
+
+<pre><code>protocol GeneratorType {
+    public mutating func next() -&gt; Element?
+}
+</code></pre>
+
+<p>而是应该使用这样的定义方式:</p>
+
+<pre><code>protocol GeneratorType {
+    associatedtype Element
+    public mutating func next() -&gt; Self.Element?
+}
+</code></pre>
+
+<p>在Swift中，class,struct,enums都可以使用参数化类型来表达泛型的，只有在协议中需要使用associatedtype关键字来表达参数化类型。为什么协议不采用这样的语法形式呢？我查看了很多讨论，原因大概总结为两点:</p>
+
+<ol>
+<li>采用语法的参数化方式的泛型其实定义了整个类型的家族，在概念上这对于一个可以具体实现的类型（clas,stuct,enums）是由意义的，比方说Array.但对于协议来说，协议表达的含义是single的。你智慧实现一次
+<code>GeneratorType</code>，而不会实现一个GeneratorType协议。接着又实现另外一个<code>GeneratorType</code>协议。</li>
+<li>协议在swift中有两个目的，第一个目的是用来实现多继承(swift语言被设计成单继承的)，第二个目的是强制实现者必须准守自己所指定的泛型约束。关键字<code>associatedtype</code>是用来实现第二个目的的，在<code>GeneratorType</code>中由<code>associatedtype</code>指定的Element,是用来控制next()方法的返回类型的。而不是用来指定<code>GeneratorType</code>的类型的。</li>
+</ol>
+
+]]></content>
+  </entry>
+  
+</feed>

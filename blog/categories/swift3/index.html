@@ -5,16 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>如何在Mac系统上搭建PHP开发环境 - 安路的技术博客</title>
+  <title>Category: Swift3 - 安路的技术博客</title>
   <meta name="author" content="安路">
 
   
-  <meta name="description" content="前言 现在有个项目后台用php做的，所以就想学习一下php，研究了差不多一天，终于可以在Mac系统上运行php环境了，现在总结一下。 运行环境 需要的软件如下： MAMP
-zend studio 首先说说这个MAMP,
-mamp是Mac系统下php运行环境 1
-2
-3
-4 M-&gt;Mac系统 &hellip;">
+  <meta name="description" content="Category: swift3">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -23,7 +18,7 @@ mamp是Mac系统下php运行环境 1
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://andrew-anlu.github.io/blog/2015/10/22/ru-he-zai-macxi-tong-shang-da-jian-phpkai-fa-huan-jing/">
+  <link rel="canonical" href="http://andrew-anlu.github.io/blog/categories/swift3/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="安路的技术博客" type="application/atom+xml">
@@ -70,167 +65,36 @@ mamp是Mac系统下php运行环境 1
   <div id="main">
     <div id="content">
       <div>
-<article class="hentry" role="article">
+<article role="article">
   
   <header>
-    
-      <h1 class="entry-title">如何在Mac系统上搭建PHP开发环境</h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-10-22T20:28:05+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>22</span><span class='date-suffix'>nd</span>, <span class='date-year'>2015</span></span> <span class='time'>8:28 pm</span></time>
-        
-           | <a href="#disqus_thread"
-             data-disqus-identifier="http://andrew-anlu.github.io">Comments</a>
-        
-      </p>
+    <h1 class="entry-title">Category: Swift3</h1>
     
   </header>
-
-
-<div class="entry-content"><h2>前言</h2>
-
-<p>现在有个项目后台用php做的，所以就想学习一下php，研究了差不多一天，终于可以在Mac系统上运行php环境了，现在总结一下。</p>
-
-<h2>运行环境</h2>
-
-<p>需要的软件如下：</p>
-
-<ul>
-<li>MAMP</li>
-<li>zend studio</li>
-</ul>
-
-
-<!--more-->
-
-
-<p>首先说说这个MAMP,
-mamp是Mac系统下php运行环境</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>   M-&gt;Mac系统
-</span><span class='line'>   A-&gt;Apache 一般用Tomcat
-</span><span class='line'>   M-&gt;mysql数据库
-</span><span class='line'>   P-&gt;php</span></code></pre></td></tr></table></div></figure>
-
-
-<p>官方网址<a href="https://www.mamp.info/en/mamp-pro/">https://www.mamp.info/en/mamp-pro/</a>  ,下载完之后,单击Preferences，选择Ports并单击Set Apache &amp; MySQL ports to 80 &amp; 3306建议使用的端口代替默认值。</p>
-
-<p><img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20151022-3.png" alt="demo" /></p>
-
-<p>点击 <code>start servers</code> 开启服务，如果右上角的 <code>Apache Server</code> <code>Mysql server</code> 变成绿灯了，证明启动成功，点击中间的 <code>Open WebStart page</code>弹出网页如图:<img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20151022-4.png" alt="demo" /></p>
-
-<h4>设置</h4>
-
-<p>点击perference 然后点击<code>webServer</code>,可以看到程序的根目录<code>mac-&gt;应用程序-&gt;MAMP-&gt;htdocs</code>,类似于网络托管服务器文件夹中的Public_html(默认路径可以自己修改)</p>
-
-<p>默认服务器是Apache.
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20151022-5.png" alt="demo" /></p>
-
-<h2>使用Zend Studio</h2>
-
-<p>zend Studio是专门编写php的IDE，下载官方的
-<a href="http://macdown.uranusjr.com/features/">zend studio</a>
-,
-下载完后， 一路Next,在最后选择工作空间的时候，一定要选上刚才配置
-MAMP的路径<code>mac-&gt;应用程序-&gt;MAMP-&gt;htdocs</code>，</p>
-
-<p>然后新建一个 local php 工程<img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20151022-6.png" alt="demo" /></p>
-
-<p>然后在index.php文件中编写如下代码:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'> &lt;?php
-</span><span class='line'> echo  "Hello world";
-</span><span class='line'> echo "我成功了，我好高兴啊"
-</span><span class='line'>   ?&gt;</span></code></pre></td></tr></table></div></figure>
-
-
-<p>然后在地址栏里输入 <code>http://localhost:8888/Demo/</code>,运行结果
-<img src="http://7xkxhx.com1.z0.glb.clouddn.com/QQ20151022-7.png" alt="demo" /></p>
-
-<p>恭喜，你的Mac电脑也能编写php程序了!</p>
-</div>
-
-
-  <footer>
-    <p class="meta">
-      
   
-
-<span class="byline author vcard">Posted by <span class="fn">安路</span></span>
-
-      
+  <div id="blog-archives" class="category">
 
 
 
-
-<time class='entry-date' datetime='2015-10-22T20:28:05+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>22</span><span class='date-suffix'>nd</span>, <span class='date-year'>2015</span></span> <span class='time'>8:28 pm</span></time>
-      
-
-<span class="categories">
   
-    <a class='category' href='/blog/categories/mac/'>mac</a>
+  <h2>2017</h2>
+
+<article>
   
-</span>
+<h1><a href="/blog/2017/01/06/swift3-associatedtypeyong-fa/">Swift3-associatedtype用法</a></h1>
+<time datetime="2017-01-06T16:18:04+08:00" pubdate><span class='month'>Jan</span> <span class='day'>06</span> <span class='year'>2017</span></time>
+
+<footer>
+  <span class="categories">posted in <a class='category' href='/blog/categories/swift3/'>swift3</a></span>
+</footer>
 
 
-    </p>
-    
-      <div class="sharing">
-  
-  
-  
-
-<!-- JiaThis Button BEGIN -->
-<div class="jiathis_style_32x32">
-	<a class="jiathis_button_qzone"></a>
-	<a class="jiathis_button_tsina"></a>
-	<a class="jiathis_button_tqq"></a>
-	<a class="jiathis_button_weixin"></a>
-	<a class="jiathis_button_renren"></a>
-	<a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank"></a>
-	<a class="jiathis_counter_style"></a>
-</div>
-<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
-<!-- JiaThis Button END -->
-<br><br>
-<!-- UY BEGIN -->
-<div id="uyan_frame"></div>
-<script type="text/javascript" src="http://v2.uyan.cc/code/uyan.js?uid=2052593"></script>
-<!-- UY END -->
-
-</div>
-
-    
-    <p class="meta">
-      
-        <a class="basic-alignment left" href="/blog/2015/10/22/sheng-ji-xcode7hou-yu-dao-de-wen-ti/" title="Previous Post: 升级xcode7后遇到的问题">&laquo; 升级xcode7后遇到的问题</a>
-      
-      
-        <a class="basic-alignment right" href="/blog/2015/10/30/uitableviewchuang-jian-you-bian-suo-yin/" title="Next Post: UITableView创建右边索引">UITableView创建右边索引 &raquo;</a>
-      
-    </p>
-  </footer>
 </article>
 
-  <section>
-    <h1>Comments</h1>
-    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
 </div>
-  </section>
+
+  
+</article>
 
 </div>
 
@@ -357,10 +221,7 @@ MAMP的路径<code>mac-&gt;应用程序-&gt;MAMP-&gt;htdocs</code>，</p>
       var disqus_shortname = 'Andrewswift1987';
       
         
-        // var disqus_developer = 1;
-        var disqus_identifier = 'http://andrew-anlu.github.io/blog/2015/10/22/ru-he-zai-macxi-tong-shang-da-jian-phpkai-fa-huan-jing/';
-        var disqus_url = 'http://andrew-anlu.github.io/blog/2015/10/22/ru-he-zai-macxi-tong-shang-da-jian-phpkai-fa-huan-jing/';
-        var disqus_script = 'embed.js';
+        var disqus_script = 'count.js';
       
     (function () {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;

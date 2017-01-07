@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
+<loc>http://andrew-anlu.github.io/blog/2017/01/06/swift3-associatedtypeyong-fa/</loc>
+<lastmod>2017-01-06T16:18:04+08:00</lastmod>
+</url>
+<url>
 <loc>http://andrew-anlu.github.io/blog/2016/12/23/iosde-hou-tai-mo-shi/</loc>
 <lastmod>2016-12-23T14:32:36+08:00</lastmod>
 </url>
@@ -335,5 +339,8 @@
 </url>
 <url>
 <loc>http://andrew-anlu.github.io/blog/categories/qi-che/</loc>
+</url>
+<url>
+<loc>http://andrew-anlu.github.io/blog/categories/swift3/</loc>
 </url>
 </urlset>

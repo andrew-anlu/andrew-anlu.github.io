@@ -9,7 +9,7 @@
   <meta name="author" content="安路">
 
   
-  <meta name="description" content="内存分配可以分为5个区 栈区（stack） 这个一般由编译器操作，或者说是系统管理，会存一些局部变量，这些系统都会帮我们自动实现，无需我们干预，所以大量的局部变量，深递归，函数循环调用都可以耗尽栈内存而程序崩溃 堆区（heap） 一般由程序员管理，比如alloc申请内存，free释放内存， &hellip;">
+  <meta name="description" content="UICOllecitonViewCell的优化 在ios10之前，UIcollectionView上面如果有大量的Cell,当用户活动很快的时候，整个UIcollectionView有很卡顿，为什么会造成这样的问题，这里涉及到iOS系统的重用机制，当cell准备加载进到屏幕的时候， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -66,6 +66,45 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/10/10/gua-pei-ios10/">适配iOS10</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-10-10T11:03:06+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>10</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>11:03 am</span></time>
+        
+           | <a href="/blog/2016/10/10/gua-pei-ios10/#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/10/10/gua-pei-ios10/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>UICOllecitonViewCell的优化</h2>
+
+<p>在ios10之前，UIcollectionView上面如果有大量的Cell,当用户活动很快的时候，整个UIcollectionView有很卡顿，为什么会造成这样的问题，这里涉及到iOS系统的重用机制，当cell准备加载进到屏幕的时候，整个cell都已经加载完成，等待在屏幕外面了，也就是整整一行cell都已经加载完毕，这就是造成卡顿的主要原因，专业术语叫掉帧</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/10/10/gua-pei-ios10/">阅读全文 &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -427,43 +466,6 @@ github排名 <a href="https://github.com/trending">https://github.com/trending</
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/05/26/swiftyu-fa-xiao-ji-qiao/">Swift语法小技巧</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-05-26T15:09:59+08:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>26</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>3:09 pm</span></time>
-        
-           | <a href="/blog/2016/05/26/swiftyu-fa-xiao-ji-qiao/#disqus_thread"
-             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/05/26/swiftyu-fa-xiao-ji-qiao/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h3><a name="判断某个对象是否响应了某个方法"> 判断某个对象是否响应了某个方法</a></h3>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/05/26/swiftyu-fa-xiao-ji-qiao/">阅读全文 &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/4">&larr; Older</a>
@@ -488,6 +490,10 @@ github排名 <a href="https://github.com/trending">https://github.com/trending</
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2017/01/06/swift3-associatedtypeyong-fa/">Swift3-associatedtype用法</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/12/23/iosde-hou-tai-mo-shi/">iOS的后台模式</a>
       </li>
     
@@ -503,10 +509,6 @@ github排名 <a href="https://github.com/trending">https://github.com/trending</
         <a href="/blog/2016/12/19/yong-corelocationshi-xian-di-li-wei-lan/">用CoreLocation实现-地理围栏</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2016/12/15/mapkitjiao-cheng-qi-bu/">MapKit教程:起步</a>
-      </li>
-    
   </ul>
 </section>
 <section>
@@ -519,7 +521,8 @@ github排名 <a href="https://github.com/trending">https://github.com/trending</
 <li class='category'><a href='/blog/categories/mac/'>mac (2)</a></li>
 <li class='category'><a href='/blog/categories/nodejs/'>nodejs (2)</a></li>
 <li class='category'><a href='/blog/categories/octopress/'>octopress (2)</a></li>
-<li class='category'><a href='/blog/categories/swift/'>swift (25)</a></li>
+<li class='category'><a href='/blog/categories/swift/'>swift (26)</a></li>
+<li class='category'><a href='/blog/categories/swift3/'>swift3 (1)</a></li>
 <li class='category'><a href='/blog/categories/xcode/'>xcode (1)</a></li>
 <li class='category'><a href='/blog/categories/汽车/'>汽车 (4)</a></li>
 
@@ -582,7 +585,7 @@ github排名 <a href="https://github.com/trending">https://github.com/trending</
 
 
 <p>
-  Copyright &copy; 2016 - 安路 -
+  Copyright &copy; 2017 - 安路 -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 
