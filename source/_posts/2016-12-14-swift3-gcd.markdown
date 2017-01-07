@@ -1,0 +1,112 @@
+---
+layout: post
+title: "swift3-GCD"
+date: 2016-12-14 16:05:13 +0800
+comments: true
+categories: swift
+---
+
+在swift3中，[GCD](https://developer.apple.com/reference/dispatch)的语法已经全面修改，变得更加swift化了。
+
+<!--more-->
+
+## DispatchQueue
+
+首先，dispatch的全局函数不再为下划线风格的名称了，它变成了更符合Swift风格的DispatchQueue的样子
+
+
+### main thread
+同样的，你不在需要去用`dispatch_get_main_queue()`来获取主线程，而是`DispatchQueue.main`，那么要放到主线程的代码怎么执行呢？只需要在后面使用`.async{}`即可：
+
+
+```
+DispatchQueue.main.async { [weak self] in
+      your code runs in main thread
+}
+```
+
+## 优先级
+我们知道，GCD的默认队列的优先级有四个:
+
+* DISPATCH_QUEUE_PRIORITY_HIGH
+* DISPATCH_QUEUE_PRIORITY_DEFAULT
+* DISPATCH_QUEUE_PRIORITY_LOW
+* DISPATCH_QUEUE_PRIORITY_BACKGROUND
+
+现在swift3中正式更名为：
+
+* .userInitialted
+* .default
+* .utility
+* .background
+
+当然，它们的对应关系也就是与顺序相同的:
+
+```
+ DISPATCH_QUEUE_PRIORITY_HIGH:         .userInitiated
+ DISPATCH_QUEUE_PRIORITY_DEFAULT:      .default
+ DISPATCH_QUEUE_PRIORITY_LOW:          .utility
+ DISPATCH_QUEUE_PRIORITY_BACKGROUND:   .background
+```
+
+## 获取一个队列
+我们使用`DispatchQueue.global()`获取一个系统的队列，这样的话获取的就是默认`.default`优先级的队列了，如果要获取其它优先级的队列，就使用`DispatchQueue.global(qos: .userInitiated)`,最后，我们使用`.async{}`来执行代码:
+
+```
+DispatchQueue.global(qos: .userInitiated).async {
+            //your code here
+        }
+```
+
+## 创建一个队列
+直接用`DispatchQueue `的初始化来创建一个队列，最简单的方法就是:
+
+```
+let queue = DispatchQueue(label: "myBackgroundQueue")
+```
+复杂一点，你可以指定优先级以及队列类别:
+
+```
+let queue = DispatchQueue(label: "myBackgroundQueue", qos: .userInitiated, attributes: .concurrent)
+```
+
+然后把代码放进去:
+
+```
+queue.async {
+    print("aaa")
+}
+```
+
+## 队列组
+对于组，现在你可以使用这样的语法直接创建一个组
+
+```
+let group = DispatchGroup()
+```
+
+使用如下:
+
+```
+let group = DispatchGroup()
+ 
+let queue = DispatchQueue(label: "myBackgroundQueue")
+ 
+queue.async(group:group) {
+    print("background working")
+}
+```
+
+那么，如果有多个并发队列在同一个组中，我们徐亚它们完成了再继续:
+
+```
+group.wait()
+```
+
+## 延迟执行
+
+```
+DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 3.0) {
+    print("after!")
+}
+```
