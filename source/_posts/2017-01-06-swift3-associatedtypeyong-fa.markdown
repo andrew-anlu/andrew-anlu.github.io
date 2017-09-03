@@ -31,4 +31,84 @@ protocol GeneratorType {
 2. 协议在swift中有两个目的，第一个目的是用来实现多继承(swift语言被设计成单继承的)，第二个目的是强制实现者必须准守自己所指定的泛型约束。关键字`associatedtype `是用来实现第二个目的的，在`GeneratorType `中由`associatedtype `指定的Element,是用来控制next()方法的返回类型的。而不是用来指定`GeneratorType `的类型的。
 
 
+我们可以用一个例子进一步解释一下第二个观点
 
+```
+public protocol Automobile {
+    associatedtype FuelType
+    associatedtype ExhaustType
+    
+    func drive(fuel: FuelType) -> ExhaustType}
+
+public protocol Fuel {
+    associatedtype ExhaustType
+    func consume() -> ExhaustType
+}
+
+public protocol Exhaust {
+    init()
+    
+    func emit()
+}
+```
+
+
+我们定义了三个协议，机动车(Automobile),燃料(Fuel),尾气(Exhaust)，因为Automobile涉及到然后和尾气所以它内定以了两个关联类型`FuelType`和`ExhaustType`
+
+Fuel燃烧后会排放Exhaust,所以在Fuel内定义了关联类型ExhaustType,而Exhaust不需要关联类型。
+
+接下来我们做三个具体的实现：
+
+
+
+```
+public struct UnleadedGasoline: Fuel {
+  public func consume() -> E {    print("...consuming unleaded gas...")    return E()
+  }
+}
+public struct CleanExhaust: Exhaust {
+  public init() {}
+  public func emit() {  print("...this is some clean exhaust...")
+  }
+}
+public class Car: Automobile {
+  public func drive(fuel: F) -> E {      return fuel.consume()
+  }
+}
+```
+
+我们重点关注Car的定义，我们之所以在Car的定义中同事使用了两种占位符F和E,就是为了给这两个占位符所代表的类型增加约束，因为我们使用一种燃料，必然要排放这种燃料多对应的尾气。于是我么你这样使用Car
+
+```
+var car = Car()
+car.drive(UnleadedGasoline()).emit()
+```
+
+Car, CleanExhaust 在这里成为了一种具体的类型，从Car的意义上来看，燃料成为Car类型的一部分是无可厚非的，因为汽车本身就是可以用燃料进行乐行区分的。
+
+
+但是尾气成为Car类型的一部分真的有意义吗？从现实生活来看，这是没有意义的，因为尾气一定属于某种燃料类型，用燃料作为类型的一部分已经足够了。尾气成为类型的一部分问题出在了，我们需要在技术上进行泛型约束。
+
+
+我们现在来调整下Car的实现部分：
+
+```
+
+模板：
+public class Car: Automobile {
+  public func drive(fuel: F) -> F.ExhaustType {   
+     return fuel.consume()
+  }
+}
+
+具体例子:
+ public func drive(fuel: UnleadedGasoline) -> UnleadedGasoline.ExhaustType {
+        return fuel.consume()
+    }
+```
+
+在新的定义中，我们把E从参数中去掉，而是换做drive方法的返回值。这样的效果是非常明显的，因为E的存在就是为了泛型约束，让其作为返回值是完全可以实现这种约束。而且没有使其成为类型一部分的副作用。我们现在就可以这样获得一个Car的实例的。
+
+```
+var fusion = Car()
+```
