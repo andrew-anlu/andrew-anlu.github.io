@@ -9,7 +9,7 @@
   <meta name="author" content="安路">
 
   
-  <meta name="description" content="Carthage官网已经针对cocopods和carthage进行了详细的说明： ">
+  <meta name="description" content="在swift3中，GCD的语法已经全面修改，变得更加swift化了。 ">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -23,7 +23,7 @@
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="安路的技术博客" type="application/atom+xml">
   <script src="/javascripts/modernizr-2.0.js"></script>
-  <script src="//libs.baidu.com/jquery/1.9.1/jquery.min.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
   <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
   <script src="/javascripts/octopress.js" type="text/javascript"></script>
   <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
@@ -58,7 +58,6 @@
 <ul class="main-navigation">
   <li><a href="/">Blog</a></li>
   <li><a href="/blog/archives">Archives</a></li>
-  <li><a href="/blog/">About me</a></li>
 </ul>
 
 </nav>
@@ -66,6 +65,43 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/12/14/swift3-gcd/">swift3-GCD</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-12-14T16:05:13+08:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>14</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>4:05 pm</span></time>
+        
+           | <a href="/blog/2016/12/14/swift3-gcd/#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/12/14/swift3-gcd/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>在swift3中，<a href="https://developer.apple.com/reference/dispatch">GCD</a>的语法已经全面修改，变得更加swift化了。</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/12/14/swift3-gcd/">阅读全文 &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -2851,43 +2887,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/10/17/ios10-usernotifications/">Ios10 UserNotifications</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-10-17T09:53:08+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>17</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>9:53 am</span></time>
-        
-           | <a href="/blog/2016/10/17/ios10-usernotifications/#disqus_thread"
-             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/10/17/ios10-usernotifications/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>ios10以前杂乱的和通知相关的API都被统一了，现在开发者可以使用独立的UserNotificaitons.framework来集中管理和使用iOS系统中通知的功能。在此基础上，Apple还增加了撤回单条通知，更新已展示通知，中途修改通知内容，在通知中展示图片视频，自定义通知UI等一系列功能。</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/10/17/ios10-usernotifications/">阅读全文 &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/3">&larr; Older</a>
@@ -2912,6 +2911,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2017/09/03/webstormde-shi-yong/">webStorm的使用</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2017/01/06/swift3-associatedtypeyong-fa/">Swift3-associatedtype用法</a>
       </li>
     
@@ -2925,10 +2928,6 @@
     
       <li class="post">
         <a href="/blog/2016/12/21/dao-che-ru-ku-ji-qiao/">倒车入库技巧</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/12/19/yong-corelocationshi-xian-di-li-wei-lan/">用CoreLocation实现-地理围栏</a>
       </li>
     
   </ul>
@@ -2946,6 +2945,7 @@
 <li class='category'><a href='/blog/categories/swift/'>swift (26)</a></li>
 <li class='category'><a href='/blog/categories/swift3/'>swift3 (1)</a></li>
 <li class='category'><a href='/blog/categories/xcode/'>xcode (1)</a></li>
+<li class='category'><a href='/blog/categories/前端/'>前端 (1)</a></li>
 <li class='category'><a href='/blog/categories/汽车/'>汽车 (4)</a></li>
 
 	</ul>
@@ -2998,20 +2998,10 @@
 
     </div>
   </div>
-  <footer role="contentinfo"><!--返回顶部开始-->
-<div id="full" style="width:0px; height:0px; position:fixed; right:180px; bottom:150px; z-index:100; text-align:center; background-color:transparent; cursor:pointer;">
-  <a href="#" onclick="goTop();return false;"><img src="http://7xsn4e.com2.z0.glb.clouddn.com/top.png" border=0 alt="返回顶部" width="50" height="50"></a>
-</div>
-<script src="/javascripts/top.js" type="text/javascript"></script>
-<!--返回顶部结束-->
-
-
-<p>
+  <footer role="contentinfo"><p>
   Copyright &copy; 2017 - 安路 -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
-
-
 
 </footer>
   

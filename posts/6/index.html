@@ -9,8 +9,7 @@
   <meta name="author" content="安路">
 
   
-  <meta name="description" content="在iOS中有两种方式来实现多线程:NSOperation和GCD.
-其中GCD是基于C的底层的API,而NSOperation则是GCD实现的Object-c的API,随让NSOPeration是基于GCD实现的，但是并不意味着它是一个GCD的重复版本，相反， &hellip;">
+  <meta name="description" content="NSUrlSession是NSUrlConnection的替代品。 NSUrlConennection指的是一组构成 Foundation框架中URL加载系统的相互关联的组件:NSURLRequest,NSUrlResponse,NSURlProtocol等,在协商发送一个请求到服务器的过程中， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -24,7 +23,7 @@
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="安路的技术博客" type="application/atom+xml">
   <script src="/javascripts/modernizr-2.0.js"></script>
-  <script src="//libs.baidu.com/jquery/1.9.1/jquery.min.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
   <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
   <script src="/javascripts/octopress.js" type="text/javascript"></script>
   <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
@@ -59,7 +58,6 @@
 <ul class="main-navigation">
   <li><a href="/">Blog</a></li>
   <li><a href="/blog/archives">Archives</a></li>
-  <li><a href="/blog/">About me</a></li>
 </ul>
 
 </nav>
@@ -67,6 +65,45 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/03/27/nsurlsessionxiang-jie/">NSUrlSession详解</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-03-27T18:48:28+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>27</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>6:48 pm</span></time>
+        
+           | <a href="/blog/2016/03/27/nsurlsessionxiang-jie/#disqus_thread"
+             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/03/27/nsurlsessionxiang-jie/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>NSUrlSession是NSUrlConnection的替代品。</p>
+
+<p>NSUrlConennection指的是一组构成 Foundation框架中URL加载系统的相互关联的组件:NSURLRequest,NSUrlResponse,NSURlProtocol等,在协商发送一个请求到服务器的过程中，该服务器可发出验证质询，这可以由共享的cookie，证书存储（credential storage）或通过连接委托自动处理。必要的时候，为了无缝地改变装载行为，传出请求也可以被注册的NSURLProtocol对象截获.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2016/03/27/nsurlsessionxiang-jie/">阅读全文 &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -419,45 +456,6 @@ swift会为您管理在捕获过程中涉及到所有内存操作。</p>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/03/01/xcodechang-jian-wen-ti-jie-xi/">Xcode常见问题解析</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-03-01T16:05:46+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>1</span><span class='date-suffix'>st</span>, <span class='date-year'>2016</span></span> <span class='time'>4:05 pm</span></time>
-        
-           | <a href="/blog/2016/03/01/xcodechang-jian-wen-ti-jie-xi/#disqus_thread"
-             data-disqus-identifier="http://andrew-anlu.github.io/blog/2016/03/01/xcodechang-jian-wen-ti-jie-xi/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>启动项目或者编译的时候，xcode总是有一些莫名的错误，现在我把遇到的问题和异常信息都记录下来，以此共勉</p>
-
-<h3>CodeSign error: code signing is required for product type &lsquo;Application&rsquo; in SDK &lsquo;iOS 9.2&rsquo;</h3>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/2016/03/01/xcodechang-jian-wen-ti-jie-xi/">阅读全文 &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/7">&larr; Older</a>
@@ -482,6 +480,10 @@ swift会为您管理在捕获过程中涉及到所有内存操作。</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2017/09/03/webstormde-shi-yong/">webStorm的使用</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2017/01/06/swift3-associatedtypeyong-fa/">Swift3-associatedtype用法</a>
       </li>
     
@@ -495,10 +497,6 @@ swift会为您管理在捕获过程中涉及到所有内存操作。</p>
     
       <li class="post">
         <a href="/blog/2016/12/21/dao-che-ru-ku-ji-qiao/">倒车入库技巧</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/12/19/yong-corelocationshi-xian-di-li-wei-lan/">用CoreLocation实现-地理围栏</a>
       </li>
     
   </ul>
@@ -516,6 +514,7 @@ swift会为您管理在捕获过程中涉及到所有内存操作。</p>
 <li class='category'><a href='/blog/categories/swift/'>swift (26)</a></li>
 <li class='category'><a href='/blog/categories/swift3/'>swift3 (1)</a></li>
 <li class='category'><a href='/blog/categories/xcode/'>xcode (1)</a></li>
+<li class='category'><a href='/blog/categories/前端/'>前端 (1)</a></li>
 <li class='category'><a href='/blog/categories/汽车/'>汽车 (4)</a></li>
 
 	</ul>
@@ -568,20 +567,10 @@ swift会为您管理在捕获过程中涉及到所有内存操作。</p>
 
     </div>
   </div>
-  <footer role="contentinfo"><!--返回顶部开始-->
-<div id="full" style="width:0px; height:0px; position:fixed; right:180px; bottom:150px; z-index:100; text-align:center; background-color:transparent; cursor:pointer;">
-  <a href="#" onclick="goTop();return false;"><img src="http://7xsn4e.com2.z0.glb.clouddn.com/top.png" border=0 alt="返回顶部" width="50" height="50"></a>
-</div>
-<script src="/javascripts/top.js" type="text/javascript"></script>
-<!--返回顶部结束-->
-
-
-<p>
+  <footer role="contentinfo"><p>
   Copyright &copy; 2017 - 安路 -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
-
-
 
 </footer>
   

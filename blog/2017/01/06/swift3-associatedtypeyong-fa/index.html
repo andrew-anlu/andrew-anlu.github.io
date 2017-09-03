@@ -26,7 +26,7 @@ protocol GeneratorType { public &hellip;">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="安路的技术博客" type="application/atom+xml">
   <script src="/javascripts/modernizr-2.0.js"></script>
-  <script src="//libs.baidu.com/jquery/1.9.1/jquery.min.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
   <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
   <script src="/javascripts/octopress.js" type="text/javascript"></script>
   <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
@@ -61,7 +61,6 @@ protocol GeneratorType { public &hellip;">
 <ul class="main-navigation">
   <li><a href="/">Blog</a></li>
   <li><a href="/blog/archives">Archives</a></li>
-  <li><a href="/blog/">About me</a></li>
 </ul>
 
 </nav>
@@ -122,6 +121,122 @@ protocol GeneratorType { public &hellip;">
 <li>协议在swift中有两个目的，第一个目的是用来实现多继承(swift语言被设计成单继承的)，第二个目的是强制实现者必须准守自己所指定的泛型约束。关键字<code>associatedtype</code>是用来实现第二个目的的，在<code>GeneratorType</code>中由<code>associatedtype</code>指定的Element,是用来控制next()方法的返回类型的。而不是用来指定<code>GeneratorType</code>的类型的。</li>
 </ol>
 
+
+<p>我们可以用一个例子进一步解释一下第二个观点</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>public protocol Automobile {
+</span><span class='line'>    associatedtype FuelType
+</span><span class='line'>    associatedtype ExhaustType
+</span><span class='line'>    
+</span><span class='line'>    func drive(fuel: FuelType) -&gt; ExhaustType}
+</span><span class='line'>
+</span><span class='line'>public protocol Fuel {
+</span><span class='line'>    associatedtype ExhaustType
+</span><span class='line'>    func consume() -&gt; ExhaustType
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>public protocol Exhaust {
+</span><span class='line'>    init()
+</span><span class='line'>    
+</span><span class='line'>    func emit()
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们定义了三个协议，机动车(Automobile),燃料(Fuel),尾气(Exhaust)，因为Automobile涉及到然后和尾气所以它内定以了两个关联类型<code>FuelType</code>和<code>ExhaustType</code></p>
+
+<p>Fuel燃烧后会排放Exhaust,所以在Fuel内定义了关联类型ExhaustType,而Exhaust不需要关联类型。</p>
+
+<p>接下来我们做三个具体的实现：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>public struct UnleadedGasoline: Fuel {
+</span><span class='line'>  public func consume() -&gt; E {    print("...consuming unleaded gas...")    return E()
+</span><span class='line'>  }
+</span><span class='line'>}
+</span><span class='line'>public struct CleanExhaust: Exhaust {
+</span><span class='line'>  public init() {}
+</span><span class='line'>  public func emit() {  print("...this is some clean exhaust...")
+</span><span class='line'>  }
+</span><span class='line'>}
+</span><span class='line'>public class Car: Automobile {
+</span><span class='line'>  public func drive(fuel: F) -&gt; E {      return fuel.consume()
+</span><span class='line'>  }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们重点关注Car的定义，我们之所以在Car的定义中同事使用了两种占位符F和E,就是为了给这两个占位符所代表的类型增加约束，因为我们使用一种燃料，必然要排放这种燃料多对应的尾气。于是我么你这样使用Car</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>var car = Car()
+</span><span class='line'>car.drive(UnleadedGasoline()).emit()</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Car, CleanExhaust 在这里成为了一种具体的类型，从Car的意义上来看，燃料成为Car类型的一部分是无可厚非的，因为汽车本身就是可以用燃料进行乐行区分的。</p>
+
+<p>但是尾气成为Car类型的一部分真的有意义吗？从现实生活来看，这是没有意义的，因为尾气一定属于某种燃料类型，用燃料作为类型的一部分已经足够了。尾气成为类型的一部分问题出在了，我们需要在技术上进行泛型约束。</p>
+
+<p>我们现在来调整下Car的实现部分：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>
+</span><span class='line'>模板：
+</span><span class='line'>public class Car: Automobile {
+</span><span class='line'>  public func drive(fuel: F) -&gt; F.ExhaustType {   
+</span><span class='line'>     return fuel.consume()
+</span><span class='line'>  }
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>具体例子:
+</span><span class='line'> public func drive(fuel: UnleadedGasoline) -&gt; UnleadedGasoline.ExhaustType {
+</span><span class='line'>        return fuel.consume()
+</span><span class='line'>    }</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在新的定义中，我们把E从参数中去掉，而是换做drive方法的返回值。这样的效果是非常明显的，因为E的存在就是为了泛型约束，让其作为返回值是完全可以实现这种约束。而且没有使其成为类型一部分的副作用。我们现在就可以这样获得一个Car的实例的。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>var fusion = Car()</span></code></pre></td></tr></table></div></figure>
+
 </div>
 
 
@@ -153,25 +268,6 @@ protocol GeneratorType { public &hellip;">
   
   
   
-
-<!-- JiaThis Button BEGIN -->
-<div class="jiathis_style_32x32">
-	<a class="jiathis_button_qzone"></a>
-	<a class="jiathis_button_tsina"></a>
-	<a class="jiathis_button_tqq"></a>
-	<a class="jiathis_button_weixin"></a>
-	<a class="jiathis_button_renren"></a>
-	<a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank"></a>
-	<a class="jiathis_counter_style"></a>
-</div>
-<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
-<!-- JiaThis Button END -->
-<br><br>
-<!-- UY BEGIN -->
-<div id="uyan_frame"></div>
-<script type="text/javascript" src="http://v2.uyan.cc/code/uyan.js?uid=2052593"></script>
-<!-- UY END -->
-
 </div>
 
     
@@ -179,6 +275,8 @@ protocol GeneratorType { public &hellip;">
       
         <a class="basic-alignment left" href="/blog/2016/12/23/iosde-hou-tai-mo-shi/" title="Previous Post: iOS的后台模式">&laquo; iOS的后台模式</a>
       
+      
+        <a class="basic-alignment right" href="/blog/2017/09/03/webstormde-shi-yong/" title="Next Post: webStorm的使用">webStorm的使用 &raquo;</a>
       
     </p>
   </footer>
@@ -206,6 +304,10 @@ protocol GeneratorType { public &hellip;">
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2017/09/03/webstormde-shi-yong/">webStorm的使用</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2017/01/06/swift3-associatedtypeyong-fa/">Swift3-associatedtype用法</a>
       </li>
     
@@ -219,10 +321,6 @@ protocol GeneratorType { public &hellip;">
     
       <li class="post">
         <a href="/blog/2016/12/21/dao-che-ru-ku-ji-qiao/">倒车入库技巧</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/12/19/yong-corelocationshi-xian-di-li-wei-lan/">用CoreLocation实现-地理围栏</a>
       </li>
     
   </ul>
@@ -240,6 +338,7 @@ protocol GeneratorType { public &hellip;">
 <li class='category'><a href='/blog/categories/swift/'>swift (26)</a></li>
 <li class='category'><a href='/blog/categories/swift3/'>swift3 (1)</a></li>
 <li class='category'><a href='/blog/categories/xcode/'>xcode (1)</a></li>
+<li class='category'><a href='/blog/categories/前端/'>前端 (1)</a></li>
 <li class='category'><a href='/blog/categories/汽车/'>汽车 (4)</a></li>
 
 	</ul>
@@ -293,20 +392,10 @@ protocol GeneratorType { public &hellip;">
 
     </div>
   </div>
-  <footer role="contentinfo"><!--返回顶部开始-->
-<div id="full" style="width:0px; height:0px; position:fixed; right:180px; bottom:150px; z-index:100; text-align:center; background-color:transparent; cursor:pointer;">
-  <a href="#" onclick="goTop();return false;"><img src="http://7xsn4e.com2.z0.glb.clouddn.com/top.png" border=0 alt="返回顶部" width="50" height="50"></a>
-</div>
-<script src="/javascripts/top.js" type="text/javascript"></script>
-<!--返回顶部结束-->
-
-
-<p>
+  <footer role="contentinfo"><p>
   Copyright &copy; 2017 - 安路 -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
-
-
 
 </footer>
   
